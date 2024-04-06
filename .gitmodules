@@ -1,0 +1,3 @@
+[submodule "BuildTool"]
+	path = BuildTool
+	url = https://github.com/Justpenz233/CPPReflection.git
