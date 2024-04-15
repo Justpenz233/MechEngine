@@ -159,7 +159,7 @@ ray_intersection RayTracingScene::intersect(const Var<Ray>& ray) const noexcept
 		auto ToWorldTransform = get_instance_transform(InstanceId);
 		auto Tri = StaticMeshProxy->get_triangle(InstanceId, TriangleId);
 		auto bary = hit.barycentric;
-		auto v_buffer = StaticMeshProxy->get_static_mesh_data(InstanceId).vertexID;
+		auto v_buffer = StaticMeshProxy->get_static_mesh_data(InstanceId).vertex_id;
 		auto v0 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i0);
 		auto v1 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i1);
 		auto v2 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i2);

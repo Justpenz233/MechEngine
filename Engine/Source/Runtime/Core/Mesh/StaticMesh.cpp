@@ -11,12 +11,19 @@
 #include "igl/readOBJ.h"
 #include "igl/fast_find_self_intersections.h"
 #include "Algorithm/GeometryProcess.h"
+#include "Materials/Material.h"
 #include "Misc/Path.h"
+
+StaticMesh::StaticMesh()
+{
+	MaterialData = Material::DefaultMaterial();
+}
 
 StaticMesh::StaticMesh(const MatrixX3d& InVerM, const MatrixX3i& InTriM)
 {
 	verM = InVerM;
 	triM = InTriM;
+	MaterialData = Material::DefaultMaterial();
 	OnGeometryUpdate();
 }
 
@@ -24,6 +31,7 @@ StaticMesh::StaticMesh(MatrixX3d&& InVerM, MatrixX3i&& InTriM)
 {
 	verM = std::move(InVerM);
 	triM = std::move(InTriM);
+	MaterialData = Material::DefaultMaterial();
 	OnGeometryUpdate();
 }
 
@@ -36,6 +44,7 @@ StaticMesh::StaticMesh(const TArray<Vector3d>& verList, const TArray<Vector3i>& 
 	triM.resize(triList.size(), 3);
 	for (int i = 0; i < triList.size(); i++)
 		triM.row(i) = triList[i];
+	MaterialData = Material::DefaultMaterial();
 	OnGeometryUpdate();
 }
 
@@ -47,6 +56,7 @@ StaticMesh::StaticMesh(const TArray<double>& verList, const TArray<int>& triList
 		verM.row(i / 3) = RowVector3d(verList[i], verList[i + 1], verList[i + 2]);
 	for (int i = 0; i < triList.size(); i += 3)
 		triM.row(i / 3) = Eigen::RowVector3i(triList[i], triList[i + 1], triList[i + 2]);
+	MaterialData = Material::DefaultMaterial();
 	OnGeometryUpdate();
 }
 
@@ -58,6 +68,7 @@ StaticMesh::StaticMesh(StaticMesh&& Other) noexcept
 		colM = std::move(Other.colM);
 	if (Other.norM.rows() != 0)
 		norM = std::move(Other.norM);
+	MaterialData = std::move(Other.MaterialData);
 	OnGeometryUpdate();
 }
 
@@ -67,6 +78,7 @@ StaticMesh::StaticMesh(const StaticMesh& Other)
 	triM = Other.triM;
 	colM = Other.colM;
 	norM = Other.norM;
+	MaterialData = NewObject<Material>(*Other.MaterialData);
 	OnGeometryUpdate();
 }
 
@@ -76,6 +88,7 @@ ObjectPtr<StaticMesh> StaticMesh::operator=(std::shared_ptr<StaticMesh> Other)
 	triM      = Other->triM;
 	if (Other->colM.rows() != 0) colM = Other->colM.eval();
 	if (Other->norM.rows() != 0) norM = Other->norM.eval();
+	MaterialData = NewObject<Material>(*Other->MaterialData);
 	OnGeometryUpdate();
 	return Cast<StaticMesh>(GetThis());
 }
@@ -86,6 +99,7 @@ StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 	triM = std::move(Other.triM);
 	if (Other.colM.rows() != 0) colM = std::move(Other.colM);
 	if (Other.norM.rows() != 0) norM = std::move(Other.norM);
+	MaterialData = std::move(Other.MaterialData);
 	OnGeometryUpdate();
 	return *this;
 }

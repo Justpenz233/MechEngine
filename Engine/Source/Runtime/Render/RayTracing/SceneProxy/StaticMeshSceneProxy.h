@@ -12,14 +12,17 @@ namespace MechEngine::Rendering
 struct staticMeshData
 {
 	// Vertex buffer id in bindless array
-	uint vertexID = ~0u;
+	uint vertex_id = ~0u;
 
 	// Triangle id in bindless array
-	uint triangleID = ~0u;
+	uint triangle_id = ~0u;
+
+	// Material id
+	uint material_id = ~0u;
 };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::staticMeshData, vertexID, triangleID) {};
+LUISA_STRUCT(MechEngine::Rendering::staticMeshData, vertex_id, triangle_id, material_id) {};
 
 namespace MechEngine::Rendering
 {
@@ -44,13 +47,13 @@ public:
 	Var<Triangle> get_triangle(Expr<uint> mesh_index, Expr<uint> triangle_index) const
 	{
 		auto mesh_data = data_buffer->read(mesh_index);
-		return bindlessArray->buffer<Triangle>(mesh_data.triangleID)->read(triangle_index);
+		return bindlessArray->buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
 	}
 
 	Var<Vertex> get_vertex(Expr<uint> mesh_index, Expr<uint> vertex_index) const
 	{
 		auto mesh_data = data_buffer->read(mesh_index);
-		return bindlessArray->buffer<Vertex>(mesh_data.vertexID)->read(vertex_index);
+		return bindlessArray->buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);
 	}
 
 public://----------------- CPU CODE -----------------

@@ -11,6 +11,7 @@
 #include "SceneProxy/CameraSceneProxy.h"
 #include "SceneProxy/LightSceneProxy.h"
 #include "SceneProxy/StaticMeshSceneProxy.h"
+#include "SceneProxy/MaterialSceneProxy.h"
 
 class CameraComponent;
 class RenderingComponent;
@@ -125,6 +126,9 @@ protected:
 	// Only one camera
 	unique_ptr<CameraSceneProxy> CameraProxy;
 
+	// Material collection
+	unique_ptr<MaterialSceneProxy> MaterialProxy;
+
 	BindlessArray bindlessArray;
 	size_t _bindless_buffer_count{0u};
 	size_t _bindless_tex2d_count{0u};
@@ -164,10 +168,11 @@ public:
 	Stream& GetStream() noexcept { return stream; }
 	Accel& getAccel() { return rtAccel; }
 	BindlessArray& getBindlessArray() { return bindlessArray; }
-	StaticMeshSceneProxy* GetStaticMeshProxy() { return StaticMeshProxy.get(); }
-	TransformSceneProxy* GetTransformProxy() { return TransformProxy.get(); }
-	CameraSceneProxy* GetCameraProxy() { return CameraProxy.get(); }
-	LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
+	FORCEINLINE StaticMeshSceneProxy* GetStaticMeshProxy() { return StaticMeshProxy.get(); }
+	FORCEINLINE TransformSceneProxy* GetTransformProxy() { return TransformProxy.get(); }
+	FORCEINLINE CameraSceneProxy* GetCameraProxy() { return CameraProxy.get(); }
+	FORCEINLINE LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
+	FORCEINLINE MaterialSceneProxy* GetMaterialProxy() { return MaterialProxy.get(); }
 };
 
 

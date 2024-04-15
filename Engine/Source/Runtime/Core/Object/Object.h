@@ -6,8 +6,12 @@
 
 #include "Core/CoreMinimal.h"
 #include "CoreTypeTraits.h"
+#include "Delegate.h"
 #include "ObjectInitiliazer.h"
 #include "Reflection/reflection/reflection.h"
+
+DECLARE_MULTICAST_DELEGATE_PARMS(FOnPostEdit, Reflection::FieldAccessor&)
+DECLARE_MULTICAST_DELEGATE_PARMS(FOnPreEdit, Reflection::FieldAccessor&)
 
 enum EAccessorFlag
 {
@@ -56,10 +60,26 @@ public:
     virtual bool Save() { return true; }
 
 	// Called before the Filed is edited
-	virtual void PreEdit(Reflection::FieldAccessor& Field) {}
+	FORCEINLINE virtual void PreEdit(Reflection::FieldAccessor& Field)
+    {
+    	PreEditDelegate.Broadcast(Field);
+    }
+
+	FORCEINLINE FOnPreEdit& GetPreEditDelegate()
+	{
+		return PreEditDelegate;
+	}
 
 	// Called after the Filed is edited
-	virtual void PostEdit(Reflection::FieldAccessor& Field) {}
+	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field)
+    {
+	    PostEditDelegate.Broadcast(Field);
+    }
+
+	FORCEINLINE FOnPostEdit& GetPostEditDelegate()
+	{
+		return PostEditDelegate;
+	}
 
 	/// \brief Is this object is a instance of class T
 	/// \tparam T Class type to test
@@ -115,6 +135,8 @@ protected:
 	// Object this object is contained in
 	Object* Outer = nullptr;
 
+	FOnPostEdit PostEditDelegate;
+	FOnPreEdit PreEditDelegate;
 	void RegisterObject();
 
 	static String AssignObjectName(Object*);

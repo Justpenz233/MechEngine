@@ -7,11 +7,10 @@
 #include "Core/CoreMinimal.h"
 #include "Object/Object.h"
 
-DECLARE_MULTICAST_DELEGATE_PARMS(FOnComponentPostEdit, Reflection::FieldAccessor&)
-
+MCLASS()
 class ActorComponent : public Object
 {
-
+	REFLECTION_BODY()
 protected:
 	class Actor* Owner;
 	class World* World;
@@ -36,9 +35,6 @@ public:
 	FORCEINLINE void SetOwner(Actor*);
 	String GetOwnerName() const;
 
-
-	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
-
     // Called after this object is created
     virtual void Init() {};
 	// Called when game start
@@ -51,10 +47,6 @@ public:
 	virtual void OnSelected() {}
 	virtual void OnCancleSelected() {}
 
-	FORCEINLINE FOnComponentPostEdit& GetPostEditDelegate();
-
-protected:
-	FOnComponentPostEdit PostEditDelegate;
 };
 
 FORCEINLINE void ActorComponent::SetOwner(Actor* OwnerActor)
@@ -65,11 +57,6 @@ FORCEINLINE void ActorComponent::SetOwner(Actor* OwnerActor)
 FORCEINLINE class Actor* ActorComponent::GetOwner() const
 {
 	return Owner;
-}
-
-FORCEINLINE FOnComponentPostEdit& ActorComponent::GetPostEditDelegate()
-{
-	return PostEditDelegate;
 }
 
 template <class T>

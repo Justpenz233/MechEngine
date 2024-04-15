@@ -4,6 +4,7 @@
 #pragma once
 #include <luisa/luisa-compute.h>
 #include "ray_tracing_hit.h"
+#include "TypeConvertion.h"
 #include "Materials/Material.h"
 
 namespace MechEngine::Rendering
@@ -16,10 +17,23 @@ struct materialData
 	uint material_type = ~0u;
 	float3 diffuse;
 	float3 specular;
-	float metalness;
+	float metalness = 0.0f;
+
+	bool bUseTriangleNormal = false;
+	bool bUseVertexNormal = true;
+
+	materialData() = default;
+	materialData(uint Tag, Material* InMaterial) :
+	material_type(Tag),
+	diffuse(ToLuisaVector(InMaterial->Diffuse)),
+	specular(ToLuisaVector(InMaterial->Specular)),
+	metalness(InMaterial->Metalness),
+	bUseTriangleNormal(InMaterial->NormalType == FaceNormal),
+	bUseVertexNormal(InMaterial->NormalType == VertexNormal)
+	{}
 };
 }
-LUISA_STRUCT(Rendering::materialData, material_type, diffuse, specular, metalness){};
+LUISA_STRUCT(Rendering::materialData, material_type, diffuse, specular, metalness, bUseTriangleNormal, bUseVertexNormal){};
 
 
 namespace MechEngine::Rendering
@@ -31,29 +45,10 @@ class material_base
 {
 protected:
 
-	// Currently not support texture
-	bool bHasDiffuseTexture = false;
-	bool bHasSpecularTexture = false;
-	bool bHasMetalnessTexture = false;
-	bool bHasNormalTexture = false;
-
-	bool bUseTriangleNormal = false;
-	bool bUseVertexNormal = true;
-
 public:
-	material_base(Material* InMaterial)
-	{
-		if (InMaterial->NormalType == NormalMode::FaceNormal)
-		{
-			bUseTriangleNormal = true;
-			bUseVertexNormal = false;
-		}
-		else if (InMaterial->NormalType == NormalMode::VertexNormal)
-		{
-			bUseTriangleNormal = false;
-			bUseVertexNormal = true;
-		}
-	}
+	material_base() = default;
+
+	~material_base() = default;
 	/**
 	* Evaluate the material color at the given intersection point.
 	* This should calculate the color of the material at the given point.
@@ -62,7 +57,7 @@ public:
 	* @param view_dir  The direction from the intersection point to the camera. Not normalized, contains the distance to the camera.
 	* @param light_dir  The direction from the intersection point to the light source. Not normalized, contains the distance to the light.
 	*/
-	virtual Float3 evaluate(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const = 0;
+	[[nodiscard]] virtual Float3 evaluate(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const = 0;
 
 	/**
 	 * Sample the diffuse property at the given intersection point.
@@ -81,13 +76,20 @@ public:
 	*/
 	virtual Float3 sample_normal(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir)
 	{
-		if (bUseTriangleNormal)
-			return intersection.triangle_normal_world;
-		else if (bUseVertexNormal)
+		Float3 Normal;
+		$if (material_data.bUseTriangleNormal)
 		{
-			return intersection.vertex_normal_world;
+			Normal = intersection.triangle_normal_world;
 		}
-		else return make_float3(0.,0.,1.);
+		$elif(material_data.bUseVertexNormal)
+		{
+			Normal = intersection.vertex_normal_world;
+		}
+		$else
+		{
+			Normal = make_float3(0.,0.,1.);
+		};
+		return Normal;
 	}
 
 };

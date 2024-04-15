@@ -26,7 +26,7 @@ class StaticMesh : public Object
 {
 	REFLECTION_BODY(StaticMesh)
 public:
-	StaticMesh()= default;
+	StaticMesh();
 	StaticMesh(const MatrixX3d& InVerM, const MatrixX3i& InTriM);
 	StaticMesh(MatrixX3d&& InVerM, MatrixX3i&& InTriM);
 	StaticMesh(const TArray<Vector3d>& verList, const TArray<Vector3i>& triList);

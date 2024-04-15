@@ -1,6 +1,6 @@
 #pragma once
 #include "ContainerTypes.h"
-#include "Object/Object.h"
+
 // Ref: https://zhuanlan.zhihu.com/p/663942977
 template<typename R, typename... Args>
 class VDelegate
@@ -111,7 +111,7 @@ public:
 		DelegateList.push_back(delegate);
 	}
 
-	template<class T> requires std::is_base_of_v<Object, T>
+	template<class T>
 	void AddObjectFunction(T* Ptr, void(T::* fp)(Args...))
 	{
 		Delegate<void, Args...> delegate;

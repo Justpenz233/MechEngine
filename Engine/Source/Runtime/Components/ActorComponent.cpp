@@ -10,12 +10,6 @@ std::string ActorComponent::GetOwnerName() const
 	return Owner->GetName();
 }
 
-void ActorComponent::PostEdit(Reflection::FieldAccessor& Field)
-{
-	Object::PostEdit(Field);
-	PostEditDelegate.Broadcast(Field);
-}
-
 void ActorComponent::SetSelected(bool InSelected)
 {
 	bool bPreSelected = Selected;

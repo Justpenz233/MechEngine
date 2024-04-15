@@ -35,6 +35,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 {
 	if (NewMeshes.empty() && DirtyMeshes.empty()) return;
 
+	// Upload new mesh data
 	for (auto MeshComponent: NewMeshes)
 	{
 		auto MeshData = MeshComponent->MeshData;
@@ -66,16 +67,18 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 
 		stream << VBuffer->copy_from(Vertices.data())
 		<< TBuffer->copy_from(Triangles.data()) << commit()
-		<< AccelMesh->build() << commit();
+		<< AccelMesh->build();
 
 		auto VBindlessid = Scene.RegisterBindless(VBuffer->view());
 		auto TBindlessid = Scene.RegisterBindless(TBuffer->view());
+		auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshData->GetMaterial());
 
 		accel.emplace_back(*AccelMesh);
 		auto Id = accel.size() - 1;
 		MeshIndexMap[MeshComponent] = Id;
-		StaticMeshDatas[Id].vertexID = VBindlessid;
-		StaticMeshDatas[Id].triangleID = TBindlessid;
+		StaticMeshDatas[Id].vertex_id = VBindlessid;
+		StaticMeshDatas[Id].triangle_id = TBindlessid;
+		StaticMeshDatas[Id].material_id = MaterialID;
 	}
 	if(!NewMeshes.empty())
 	{
@@ -85,6 +88,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	}
 	NewMeshes.clear();
 
+	// Update mesh visibility
 	for (auto MeshComponent: DirtyMeshes)
 	{
 		ASSERTMSG(MeshIndexMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");

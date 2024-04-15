@@ -11,7 +11,8 @@ enum MaterialMode
 	BlinnPhong,
 	CookTorrance,
 	Disney,
-	GGX
+	GGX,
+	Custom // should provide a shader pointer
 };
 enum NormalMode
 {
@@ -28,20 +29,46 @@ class Material : public Object
 {
 	REFLECTION_BODY(Material)
 public:
+	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);   //  1: Light Gray
+
 	Material() = default;
 
+	Material(const Material& Other) = default;
+
+	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
+
+	FORCEINLINE void MarkAsDirty() { bDirty = true; }
+	FORCEINLINE void ClearDirty() { bDirty = false; }
+	FORCEINLINE bool IsDirty() const { return bDirty; }
+
 	MPROPERTY()
-	MaterialMode Model = BlinnPhong;
+	MaterialMode Mode = BlinnPhong;
 
 	MPROPERTY()
 	NormalMode NormalType = VertexNormal;
 
 	MPROPERTY()
-	FLinearColor Diffuse;
+	FLinearColor Diffuse = DefalutColor;
 
 	MPROPERTY()
-	FLinearColor Specular;
+	FLinearColor Specular = DefalutColor;
 
 	MPROPERTY()
 	float Metalness = 0.0f;
+
+
+	static ObjectPtr<Material> DefaultMaterial();
+
+protected:
+	bool bDirty = false;
 };
+
+FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field)
+{
+	Object::PostEdit(Field);
+	MarkAsDirty();
+}
+
+inline ObjectPtr<Material> Material::DefaultMaterial() {
+	return NewObject<Material>();
+}
