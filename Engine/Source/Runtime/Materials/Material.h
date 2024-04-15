@@ -5,6 +5,8 @@
 #pragma once
 #include "Math/MathType.h"
 #include "Object/Object.h"
+#include "Game/World.h"
+#include "Render/RendererInterface.h"
 
 enum MaterialMode
 {
@@ -25,21 +27,22 @@ enum NormalMode
  * Only contains the data for the material model.
  */
 MCLASS(Material)
-class Material : public Object
+class Material final : public Object
 {
 	REFLECTION_BODY(Material)
 public:
 	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);   //  1: Light Gray
 
-	Material() = default;
+	Material();
 
-	Material(const Material& Other) = default;
+	Material(const Material& Other);
 
-	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
+	FORCEINLINE void PostEdit(Reflection::FieldAccessor& Field) override;
 
-	FORCEINLINE void MarkAsDirty() { bDirty = true; }
-	FORCEINLINE void ClearDirty() { bDirty = false; }
-	FORCEINLINE bool IsDirty() const { return bDirty; }
+	/**
+	 * Should be called affter modifying the material properties.
+	 */
+	FORCEINLINE void UpdateMaterial();
 
 	MPROPERTY()
 	MaterialMode Mode = BlinnPhong;
@@ -56,17 +59,40 @@ public:
 	MPROPERTY()
 	float Metalness = 0.0f;
 
-
 	static ObjectPtr<Material> DefaultMaterial();
 
 protected:
-	bool bDirty = false;
+	/**
+	* Register the material to the renderer. Should be called affter creating the material.
+	*/
+	FORCEINLINE void RegisterMaterial();
 };
 
-FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field)
+inline Material::Material()
 {
-	Object::PostEdit(Field);
-	MarkAsDirty();
+	RegisterMaterial();
+}
+
+inline Material::Material(const Material& Other)
+ : Object(Other) {
+	Mode = Other.Mode;
+	NormalType = Other.NormalType;
+	Diffuse = Other.Diffuse;
+	Specular = Other.Specular;
+	Metalness = Other.Metalness;
+	RegisterMaterial();
+}
+
+FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field) {
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::RegisterMaterial() {
+	GWorld->GetScene()->AddMaterial(this);
+}
+
+FORCEINLINE void Material::UpdateMaterial() {
+	GWorld->GetScene()->UpdateMaterial(this);
 }
 
 inline ObjectPtr<Material> Material::DefaultMaterial() {

@@ -48,8 +48,6 @@ inline auto TestRendering()
 			static float TotalTime = 0;
 			TotalTime += DeltaTime * 2.f;
 			Light->SetTranslation({cos(TotalTime), sin(TotalTime), 1});
-			Light->GetPointLightComponent()->SetLightColor({std::abs(cos(TotalTime)),
-				std::abs(sin(TotalTime)), std::abs(cos(TotalTime) * sin(TotalTime))});
 		};
 	};
 }

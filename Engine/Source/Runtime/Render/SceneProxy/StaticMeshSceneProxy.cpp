@@ -3,7 +3,6 @@
 //
 
 #include "StaticMeshSceneProxy.h"
-
 #include "Components/StaticMeshComponent.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
@@ -71,14 +70,14 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 
 		auto VBindlessid = Scene.RegisterBindless(VBuffer->view());
 		auto TBindlessid = Scene.RegisterBindless(TBuffer->view());
-		// auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshData->GetMaterial());
+		auto MaterialID = Scene.GetMaterialProxy()->TryAddMaterial(MeshData->GetMaterial());
 
 		accel.emplace_back(*AccelMesh);
 		auto Id = accel.size() - 1;
 		MeshIndexMap[MeshComponent] = Id;
 		StaticMeshDatas[Id].vertex_id = VBindlessid;
 		StaticMeshDatas[Id].triangle_id = TBindlessid;
-		// StaticMeshDatas[Id].material_id = MaterialID;
+		StaticMeshDatas[Id].material_id = MaterialID;
 	}
 	if(!NewMeshes.empty())
 	{

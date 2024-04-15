@@ -18,12 +18,6 @@ StaticCurveComponent::StaticCurveComponent(ObjectPtr<Curve> NewCurve)
 	CurveData = NewCurve;
 }
 
-void StaticCurveComponent::Init()
-{
-	StaticMeshComponent::Init();
-	Color = GetNextColor();
-}
-
 void StaticCurveComponent::UploadRenderingData()
 {
 	if (!CurveData->IsValid())
@@ -127,7 +121,5 @@ double StaticCurveComponent::CalcSimilarity(ObjectPtr<T> Others)
 
 ObjectPtr<StaticMesh> StaticCurveComponent::GenerateCurveMesh()
 {
-    auto CurveMeshData = BasicShapesLibrary::GenerateCurveMesh(CurveData, Radius, CurveData->bClosed, CSG_NUM_N, SampleNum);
-	CurveMeshData->SetColor(Color);
-    return CurveMeshData;
+    return BasicShapesLibrary::GenerateCurveMesh(CurveData, Radius, CurveData->bClosed, CSG_NUM_N, SampleNum);
 }

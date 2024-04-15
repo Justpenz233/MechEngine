@@ -24,6 +24,7 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	LightProxy = luisa::make_unique<LightSceneProxy>(*this);
 	TransformProxy = luisa::make_unique<TransformSceneProxy>(*this);
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
+	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
 
 	bindlessArray = device.create_bindless_array(bindless_array_capacity);
 	Viewport = InViewport;
@@ -43,6 +44,16 @@ void RayTracingScene::UpdateStaticMesh(StaticMeshComponent* InMesh)
 void RayTracingScene::EraseMesh(StaticMeshComponent* InMesh)
 {
 
+}
+
+void RayTracingScene::AddMaterial(Material* InMaterial)
+{
+	MaterialProxy->TryAddMaterial(InMaterial);
+}
+
+void RayTracingScene::UpdateMaterial(Material* InMaterial)
+{
+	MaterialProxy->UpdateMaterial(InMaterial);
 }
 
 void RayTracingScene::AddCamera(CameraComponent* InCamera, TransformComponent* InTransform)
@@ -97,6 +108,9 @@ void RayTracingScene::UploadData()
 	CameraProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
+	MaterialProxy->UploadDirtyData(stream);
+	UpdateBindlessArrayIfDirty();
+
 	LightProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
@@ -121,17 +135,32 @@ void RayTracingScene::Render()
 			auto ray = CameraProxy->GenerateRay(p);
 			auto intersection = intersect(ray);
 
-			auto light_data = LightProxy->get_light_data(0);
-			auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();
+			$if(intersection.valid())
+			{
+				// calculate light color, the light need to do polymorphically dispatch as material
+				auto light_data = LightProxy->get_light_data(0);
+				auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();
+				auto light_color = light_data.linear_color / distance_squared(light_pos, intersection.position_world);
 
-			auto distance_light = intersection.depth;
-			auto light_dir = normalize(light_pos - intersection.position_world);
-			auto half_dir = normalize(light_dir - make_float3(ray->direction()));
-			auto diffuse        = max(dot(intersection.triangle_normal_world, light_dir), 0.f) * light_data.linear_color;
-			auto specular       = pow(max(dot(intersection.triangle_normal_world, half_dir), 0.f), 32.f) / (distance_light * distance_light) * light_data.linear_color;
-			auto color          = select(make_float3(1.f), make_float3(diffuse + specular), intersection.valid());
-			// auto Color = make_float3(p + 1.f, 0.f) * 0.5f;
-			frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
+				// calculate mesh color
+				auto light_dir = intersection.position_world - light_pos;
+				auto view_dir = -ray->direction();
+				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+				Float3 mesh_color;
+				MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
+					[&](const material_base* material) {
+					mesh_color = material->evaluate(material_data, intersection, view_dir, light_dir);
+				});
+
+				// combine light and mesh color
+				auto color = mesh_color * light_color;
+				frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
+			}
+			$else
+			{
+				frame_buffer()->write(pixel_coord, make_float4(1.f));
+			};
+
 		}));
 
 	stream << (*MainShader)().dispatch(GetWindosSize()) << synchronize();
@@ -187,6 +216,7 @@ ray_intersection RayTracingScene::intersect(const Var<Ray>& ray) const noexcept
 		it.vertex_normal_world = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
 		it.depth = length(p - ray->origin());
 		it.back_face = dot(normal_world, ray->direction()) > 0.f;
+		it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;
 		// .......
 	};
 	return it;

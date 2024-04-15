@@ -3,9 +3,9 @@
 //
 
 #include "MaterialSceneProxy.h"
-
-#include "Render/Core/blinn_phong_material.h"
+#include "Render/material/material_base.h"
 #include "Render/Core/TypeConvertion.h"
+#include "Render/material/blinn_phong_material.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
 Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
@@ -13,13 +13,14 @@ Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
 {
 	material_data_buffer = Scene.RegisterBuffer<materialData>(MaxMaterials);
 
-	MaterialModeTagMap[BlinnPhong] = material_tags.create<blinn_phong_material>();
+	MaterialModeTagMap[BlinnPhong] = material_virtual_call.create<blinn_phong_material>();
 }
 
-uint Rendering::MaterialSceneProxy::AddMaterial(Material* InMaterial)
+uint Rendering::MaterialSceneProxy::TryAddMaterial(Material* InMaterial)
 {
 	ASSERTMSG(InMaterial != nullptr, "Material is nullptr!");
-	if (MaterialIDMap.contains(InMaterial)) return MaterialIDMap[InMaterial];
+	if (MaterialIDMap.contains(InMaterial))
+		return MaterialIDMap[InMaterial];
 	uint tag;
 	if (MaterialModeTagMap.contains(InMaterial->Mode))
 	{

@@ -3,8 +3,8 @@
 //
 #pragma once
 #include <luisa/luisa-compute.h>
-#include "ray_tracing_hit.h"
-#include "TypeConvertion.h"
+#include "Render/Core/ray_tracing_hit.h"
+#include "Render/Core/TypeConvertion.h"
 #include "Materials/Material.h"
 
 namespace MechEngine::Rendering
@@ -64,17 +64,17 @@ public:
 	 * This give the material custom control over the diffuse color of the material.
 	 * @return diffuse color of the material at the given intersection point.
 	 */
-	virtual Float3 sample_diffuse(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) { return material_data.diffuse; }
+	virtual Float3 sample_diffuse(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.diffuse; }
 
-	virtual Float3 sample_specular(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) { return material_data.specular; }
+	virtual Float3 sample_specular(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.specular; }
 
-	virtual Float sample_metalness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) {return material_data.metalness; }
+	virtual Float sample_metalness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const {return material_data.metalness; }
 
 	/**
 	* Sample the normal at the given intersection point.
 	* Will create shader variations based on the how the normal is sampled.
 	*/
-	virtual Float3 sample_normal(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir)
+	virtual Float3 sample_normal(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const
 	{
 		Float3 Normal;
 		$if (material_data.bUseTriangleNormal)

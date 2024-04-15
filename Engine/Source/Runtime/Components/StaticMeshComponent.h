@@ -40,8 +40,6 @@ public:
 	StaticMeshComponent();
 	~StaticMeshComponent() override;
 
-	inline static FColor DefalutColor = Vector3d(0.8, 0.8, 0.8);   //  1: Light Gray
-
 	MPROPERTY()
 	ObjectPtr<StaticMesh> MeshData;
 
@@ -77,18 +75,11 @@ public:
 	void SetMeshData(ObjectPtr<StaticMesh> InMeshData);
 	void SetCollisionMeshData(ObjectPtr<StaticMesh> InCollisionMesh);
 
-	static FColor GetNextColor();
-	// Set color and override color of mesh data
-	FORCEINLINE void SetColor(FColor NewColor);
-
 	void SmoothMesh(int Iteration = 5, bool UseUniform = false);
 
 	bool FillHoles();
 
 protected:
-	MPROPERTY()
-	FColor Color = Vector3d(0.8, 0.8, 0.8);
-
 	StaticMeshDirtyTag Dirty = DIRTY_ALL;
 };
 
@@ -102,8 +93,3 @@ FORCEINLINE void StaticMeshComponent::MarkAsDirty(StaticMeshDirtyTag InTag)
 	Dirty |= InTag;
 }
 
-FORCEINLINE void StaticMeshComponent::SetColor(FColor NewColor)
-{
-	Color = NewColor;
-	MarkAsDirty(StaticMeshDirtyTag::DIRTY_RENDERDATA);
-}

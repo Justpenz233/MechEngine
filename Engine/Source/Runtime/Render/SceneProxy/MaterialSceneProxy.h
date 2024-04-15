@@ -7,7 +7,7 @@
 #include "SceneProxy.h"
 #include "Log/Log.h"
 #include "Materials/Material.h"
-#include "Render/Core/material_base.h"
+#include "Render/material/material_base.h"
 
 namespace MechEngine::Rendering
 {
@@ -18,7 +18,12 @@ class MaterialSceneProxy : public SceneProxy
 public:
 	MaterialSceneProxy(RayTracingScene& InScene);
 
-	uint AddMaterial(Material* InMaterial);
+	/**
+	* Try add a material to the scene, return the material id
+	* if exist, return the material id
+	* @return the material id
+	*/
+	uint TryAddMaterial(Material* InMaterial);
 
 	void UpdateMaterial(Material* InMaterial);
 
@@ -28,6 +33,14 @@ public:
 
 	virtual void UploadDirtyData(Stream& stream) override;
 
+public:
+	Polymorphic<material_base> material_virtual_call;
+
+	Var<materialData> get_material_data(Expr<uint> material_index) const
+	{
+		return material_data_buffer->read(material_index);
+	}
+
 protected:
 	static constexpr uint MaxMaterials = 1024;
 	vector<materialData> MaterialDataVector;
@@ -36,7 +49,6 @@ protected:
 	THashMap<class Material*, uint> MaterialIDMap;
 
 	THashMap<MaterialMode, uint> MaterialModeTagMap;
-	Polymorphic<material_base> material_tags;
 
 	bool bNeedUpdate = false;
 

@@ -6,6 +6,11 @@
 #include "CoreMinimal.h"
 #include "Math/Box.h"
 
+// Material property update
+DECLARE_MULTICAST_DELEGATE(FOnMaterialUpdate);
+// Change to a new material
+DECLARE_MULTICAST_DELEGATE(FOnMaterialChange);
+
 // DEPRECATED, should move into material
 enum MeshNormalOption
 {

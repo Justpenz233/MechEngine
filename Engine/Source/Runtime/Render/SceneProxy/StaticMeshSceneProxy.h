@@ -39,18 +39,18 @@ public:
 	void UpdateStaticMesh(StaticMeshComponent* InMesh);
 
 //----------------- GPU CODE -----------------
-	Var<staticMeshData> get_static_mesh_data(Expr<uint> mesh_index) const
+	Var<staticMeshData> get_static_mesh_data(const UInt& mesh_index) const
 	{
 		return data_buffer->read(mesh_index);
 	}
 
-	Var<Triangle> get_triangle(Expr<uint> mesh_index, Expr<uint> triangle_index) const
+	Var<Triangle> get_triangle(const UInt& mesh_index, const UInt& triangle_index) const
 	{
 		auto mesh_data = data_buffer->read(mesh_index);
 		return bindlessArray->buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
 	}
 
-	Var<Vertex> get_vertex(Expr<uint> mesh_index, Expr<uint> vertex_index) const
+	Var<Vertex> get_vertex(const UInt& mesh_index, const UInt& vertex_index) const
 	{
 		auto mesh_data = data_buffer->read(mesh_index);
 		return bindlessArray->buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);

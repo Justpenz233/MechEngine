@@ -12,6 +12,8 @@
 #include "PointerTypes.h"
 #include "Math/MathType.h"
 
+class Material;
+
 namespace luisa::compute
 {
 	class ImGuiWindow;
@@ -49,6 +51,18 @@ public:
 	 * @param InMesh Meshcomponent to update
 	 */
 	virtual void UpdateStaticMesh(StaticMeshComponent* InMesh) = 0;
+
+	/**
+	 * Add a new material to the scene
+	 * @param InMaterial Material to add
+	 */
+	virtual void AddMaterial(Material* InMaterial) = 0;
+
+	/**
+	 * Update the material data in the scene
+	 * @param InMaterial Material to update
+	 */
+	virtual void UpdateMaterial(Material* InMaterial) = 0;
 
 	/**
 	 * Erase the mesh from the scene

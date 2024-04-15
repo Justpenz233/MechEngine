@@ -35,6 +35,7 @@ namespace MechEngine::Rendering
 		Float2 uv;
 		UInt instace_id;
 		UInt primitive_id;
+		UInt material_id;
 		Bool back_face;
 
 		ray_intersection(): instace_id(~0u) {}
