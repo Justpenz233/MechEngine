@@ -5,7 +5,6 @@
 #include "Editor.h"
 #include "Core/reflection_register.h"
 #include "Misc/Config.h"
-#include "Render/IGLRender/LibiglPipeline.h"
 #include "Misc/Path.h"
 
 // Override new and delete with mi_malloc and mi_free
@@ -56,11 +55,7 @@ void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
 	auto Width = GConfig.Get<int>("Render", "ResolutionX");
 	auto Height = GConfig.Get<int>("Render", "ResolutionY");
 
-	if(PipelineType == RenderPipelineType::IGL)
-	{
-		Renderer = MakeUnique<LibiglPipeline>(Width, Height, WindowName);
-	}
-	else if(PipelineType == RenderPipelineType::RAYTRACING)
+	if(PipelineType == RenderPipelineType::RAYTRACING)
 	{
 		Renderer = MakeUnique<RayTracingPipeline>(Width, Height, WindowName);
 	}

@@ -30,15 +30,13 @@ if (NOT TARGET libigl)
     option(LIBIGL_INSTALL "Enable installation of libigl targets" OFF)
     # use external imgui
     option(LIBIGL_IMGUI "Build target igl::imgui" OFF)
-    option(LIBIGL_GLFW "Build target igl::glfw" ON)
+    option(LIBIGL_GLFW "Build target igl::glfw" OFF)
     # use CGAL for mesh boolean
     option(LIBIGL_COPYLEFT_CGAL "Build target igl_copyleft::cgal" ON)
 
     # for SCAF parametaerization
     option(LIBIGL_RESTRICTED_TRIANGLE "Build target igl_restricted::triangle" ON)
-
     add_subdirectory(libigl)
-    igl_include(glfw)
 endif()
 
 if (NOT TARGET pmp)
@@ -52,7 +50,6 @@ endif ()
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
-        igl::glfw
         igl_copyleft::cgal
         igl_restricted::triangle
         spdlog::spdlog_header_only

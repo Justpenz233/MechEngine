@@ -151,7 +151,6 @@ protected:
 
 enum RenderPipelineType
 {
-	IGL = 0,
-	DEFFERED = 1,
-	RAYTRACING = 2
+	DEFFERED = 0,
+	RAYTRACING = 1
 };

@@ -1,5 +1,4 @@
 #pragma once
-#include "ImguiPlugin.h"
 #include "MenuBarItem.h"
 #include "Core/CoreMinimal.h"
 #include "Core/Delegate.h"
