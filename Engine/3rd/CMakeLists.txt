@@ -17,7 +17,7 @@ if (NOT TARGET luisa::compute)
     option(LUISA_COMPUTE_ENABLE_GUI "Enable GUI support" ON)
     set(LUISA_COMPUTE_BUILD_TESTS OFF)
     set(LUISA_COMPUTE_ENABLE_RUST OFF)
-    include(luisacompute.cmake)
+    add_subdirectory(luisa-compute)
 endif ()
 
 if (NOT TARGET json11)
