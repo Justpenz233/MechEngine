@@ -33,7 +33,7 @@ struct materialData
 	{}
 };
 }
-LUISA_STRUCT(Rendering::materialData, material_type, diffuse, specular, metalness, bUseTriangleNormal, bUseVertexNormal){};
+LUISA_STRUCT(MechEngine::Rendering::materialData, material_type, diffuse, specular, metalness, bUseTriangleNormal, bUseVertexNormal){};
 
 
 namespace MechEngine::Rendering

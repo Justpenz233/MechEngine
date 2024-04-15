@@ -3,11 +3,19 @@
 //
 
 #pragma once
+#include <luisa/runtime/bindless_array.h>
+#include <luisa/runtime/stream.h>
+#include <luisa/runtime/rtx/accel.h>
+
 #include "ViewportInterface.h"
 #include "Misc/Platform.h"
 #include "PointerTypes.h"
 #include "Math/MathType.h"
-#include "ContainerTypes.h"
+
+namespace luisa::compute
+{
+	class ImGuiWindow;
+}
 
 class RenderingComponent;
 class ViewportInterface;
@@ -17,12 +25,17 @@ class CameraComponent;
 class LightComponent;
 class World;
 
+using luisa::compute::Stream;
+using luisa::compute::Device;
+using luisa::compute::BindlessArray;
+
+
 class GPUSceneInterface
 {
 public:
 	virtual  ~GPUSceneInterface() = default;
 
-	GPUSceneInterface() = default;
+	GPUSceneInterface(Stream& stream, Device& device) noexcept : stream(stream), device(device) {}
 
 	/**
 	 * Add a new mesh to the scene and bind the corresponding transform
@@ -100,6 +113,51 @@ public:
 	 * Render the scene
 	 */
 	virtual void Render() = 0;
+
+
+protected:
+	BindlessArray bindlessArray;
+	size_t _bindless_buffer_count{0u};
+	size_t _bindless_tex2d_count{0u};
+	size_t _bindless_tex3d_count{0u};
+	Stream& stream;
+	Device& device;
+
+	luisa::vector<luisa::unique_ptr<luisa::compute::Resource>> Resources;
+	static constexpr auto bindless_array_capacity = 500'000u;// limitation of Metal
+	static constexpr auto constant_buffer_size = 256u * 1024u;
+
+public:
+	template<typename T, typename... Args>
+	requires std::is_base_of_v<luisa::compute::Resource, T>
+	[[nodiscard]] auto create(Args &&...args) noexcept -> T * {
+		auto resource = luisa::make_unique<T>(device.create<T>(std::forward<Args>(args)...));
+		auto p = resource.get();
+		Resources.emplace_back(std::move(resource));
+		return p;
+	}
+
+	template<typename T>
+	[[nodiscard]] luisa::compute::BufferView<T> RegisterBuffer(size_t n) noexcept {
+		return create<luisa::compute::Buffer<T>>(n)->view();
+	}
+
+	template<typename T>
+	[[nodiscard]] auto RegisterBindless(luisa::compute::BufferView<T> buffer) noexcept {
+		auto buffer_id = _bindless_buffer_count++;
+		bindlessArray.emplace_on_update(buffer_id, buffer);
+		return static_cast<uint>(buffer_id);
+	}
+
+	template<typename T>
+	[[nodiscard]] std::pair<luisa::compute::BufferView<T>, uint /* bindless id */> RegisterBindlessBuffer(size_t n) noexcept {
+		auto view = RegisterBuffer<T>(n);
+		auto buffer_id = RegisterBindless(view);
+		return std::make_pair(view, buffer_id);
+	}
+
+	Stream& GetStream() noexcept { return stream; }
+	BindlessArray& getBindlessArray() { return bindlessArray; }
 };
 
 class RenderInterface

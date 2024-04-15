@@ -3,8 +3,11 @@
 //
 
 #pragma once
-#include "Log/Log.h"
 
+#include "Log/Log.h"
+#include "Log/LogFormatter.h"
+
+#include "Object/Object.h"
 class Object;
 class Actor;
 class World;

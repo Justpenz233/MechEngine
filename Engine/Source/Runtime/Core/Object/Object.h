@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "Core/CoreMinimal.h"
-#include "CoreTypeTraits.h"
+#include "PointerTypes.h"
 #include "Delegate.h"
 #include "ObjectInitiliazer.h"
 #include "Reflection/reflection/reflection.h"
@@ -146,6 +145,12 @@ protected:
 	Object(const String& InObjectName);
 	Object(String&& InObjectName);
 };
+
+template <class T>
+concept IsObject = std::is_base_of_v<Object, T>;
+
+template <class T, class... Args>
+concept ObjectConstructBy = IsObject<T> && std::constructible_from<T, Args...>;
 
 template <class T>
 ObjectPtr<T> Object::GetThis()

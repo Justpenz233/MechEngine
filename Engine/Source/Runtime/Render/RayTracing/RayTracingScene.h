@@ -7,11 +7,11 @@
 #include "Render/RendererInterface.h"
 #include "luisa/luisa-compute.h"
 #include "Render/Core/ray_tracing_hit.h"
-#include "SceneProxy/TransformProxy.h"
-#include "SceneProxy/CameraSceneProxy.h"
-#include "SceneProxy/LightSceneProxy.h"
-#include "SceneProxy/StaticMeshSceneProxy.h"
-#include "SceneProxy/MaterialSceneProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
+#include "Render/SceneProxy/CameraSceneProxy.h"
+#include "Render/SceneProxy/LightSceneProxy.h"
+#include "Render/SceneProxy/StaticMeshSceneProxy.h"
+#include "Render/SceneProxy/MaterialSceneProxy.h"
 
 class CameraComponent;
 class RenderingComponent;
@@ -104,15 +104,13 @@ public:
 
 	Float4x4 get_instance_transform(Expr<uint> instance_id) const noexcept;
 
+	FORCEINLINE Accel& GetAccel() { return rtAccel; }
+	FORCEINLINE StaticMeshSceneProxy* GetStaticMeshProxy() { return StaticMeshProxy.get(); }
+	FORCEINLINE TransformSceneProxy* GetTransformProxy() { return TransformProxy.get(); }
+	FORCEINLINE CameraSceneProxy* GetCameraProxy() { return CameraProxy.get(); }
+	FORCEINLINE LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
+	FORCEINLINE MaterialSceneProxy* GetMaterialProxy() { return MaterialProxy.get(); }
 protected:
-	Stream& stream;
-	Device& device;
-	Accel rtAccel;
-
-	vector<unique_ptr<Resource>> Resources;
-	static constexpr auto bindless_array_capacity = 500'000u;// limitation of Metal
-	static constexpr auto constant_buffer_size = 256u * 1024u;
-
 	//----------- Render primitive data management ------------
 	// Mesh collection
 	unique_ptr<StaticMeshSceneProxy> StaticMeshProxy;
@@ -129,50 +127,9 @@ protected:
 	// Material collection
 	unique_ptr<MaterialSceneProxy> MaterialProxy;
 
-	BindlessArray bindlessArray;
-	size_t _bindless_buffer_count{0u};
-	size_t _bindless_tex2d_count{0u};
-	size_t _bindless_tex3d_count{0u};
-
-public:
-	template<typename T, typename... Args>
-	requires std::is_base_of_v<Resource, T>
-	[[nodiscard]] auto create(Args &&...args) noexcept -> T * {
-		auto resource = luisa::make_unique<T>(device.create<T>(std::forward<Args>(args)...));
-		auto p = resource.get();
-		Resources.emplace_back(std::move(resource));
-		return p;
-	}
-
-	template<typename T>
-	[[nodiscard]] BufferView<T> RegisterBuffer(size_t n) noexcept {
-		return create<Buffer<T>>(n)->view();
-	}
-
-	template<typename T>
-	[[nodiscard]] auto RegisterBindless(BufferView<T> buffer) noexcept {
-		auto buffer_id = _bindless_buffer_count++;
-		bindlessArray.emplace_on_update(buffer_id, buffer);
-		return static_cast<uint>(buffer_id);
-	}
-
-	template<typename T>
-	[[nodiscard]] std::pair<BufferView<T>, uint /* bindless id */> RegisterBindlessBuffer(size_t n) noexcept {
-		auto view = RegisterBuffer<T>(n);
-		auto buffer_id = RegisterBindless(view);
-		return std::make_pair(view, buffer_id);
-	}
-
 	unique_ptr<Shader2D<>> MainShader;
 
-	Stream& GetStream() noexcept { return stream; }
-	Accel& getAccel() { return rtAccel; }
-	BindlessArray& getBindlessArray() { return bindlessArray; }
-	FORCEINLINE StaticMeshSceneProxy* GetStaticMeshProxy() { return StaticMeshProxy.get(); }
-	FORCEINLINE TransformSceneProxy* GetTransformProxy() { return TransformProxy.get(); }
-	FORCEINLINE CameraSceneProxy* GetCameraProxy() { return CameraProxy.get(); }
-	FORCEINLINE LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
-	FORCEINLINE MaterialSceneProxy* GetMaterialProxy() { return MaterialProxy.get(); }
+	luisa::compute::Accel rtAccel;
 };
 
 

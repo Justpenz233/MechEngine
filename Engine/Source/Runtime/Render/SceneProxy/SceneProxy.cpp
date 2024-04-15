@@ -8,7 +8,7 @@ namespace MechEngine::Rendering
 {
 SceneProxy::SceneProxy(RayTracingScene& InScene)
 	: Scene(InScene)
-	, accel(InScene.getAccel()),
+	, accel(InScene.GetAccel()),
 	bindlessArray(InScene.getBindlessArray())
 {}
 }

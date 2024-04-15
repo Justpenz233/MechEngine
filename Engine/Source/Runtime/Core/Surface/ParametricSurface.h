@@ -1,6 +1,5 @@
 #pragma once
-#include "Log/Log.h"
-#include "Object/Object.h"
+#include "CoreMinimal.h"
 
 class ParametricSurface : public Object
 {

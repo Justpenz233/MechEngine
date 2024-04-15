@@ -1,6 +1,8 @@
 #include "reflection.h"
 #include <cstring>
 #include <map>
+
+#include "Log/Log.h"
 #include "Object/Object.h"
 
 namespace Reflection
@@ -313,7 +315,7 @@ namespace Reflection
 
     EnumAccessor FieldAccessor::GetEnumAccessor(void* instance)
     {
-    	ASSERTMSG(isEnumType(), "Field is not enum type");
+    	MechEngine::ASSERTMSG(isEnumType(), "Field is not enum type");
 	    return EnumAccessor(m_enum_map[m_field_type_name], this, instance);
     }
 

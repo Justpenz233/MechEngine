@@ -1,6 +1,6 @@
 #pragma once
 #include "Object/Object.h"
-#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/Eigen>
 
 /**
  * @brief A particle swarm method, by default assume all value in [0, 1]

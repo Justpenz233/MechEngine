@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "CoreMinimal.h"
 #include <filesystem>
+#include "Platform.h"
 
 class Path : public std::filesystem::path
 {

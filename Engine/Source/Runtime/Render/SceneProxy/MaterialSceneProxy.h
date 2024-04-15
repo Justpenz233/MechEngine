@@ -5,6 +5,7 @@
 #pragma once
 #include <luisa/dsl/polymorphic.h>
 #include "SceneProxy.h"
+#include "Log/Log.h"
 #include "Materials/Material.h"
 #include "Render/Core/material_base.h"
 

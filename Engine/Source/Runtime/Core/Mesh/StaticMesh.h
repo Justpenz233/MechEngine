@@ -3,11 +3,8 @@
 //
 
 #pragma once
-#include <utility>
-
 #include "CoreMinimal.h"
 #include "Math/Box.h"
-#include "Object/Object.h"
 
 // DEPRECATED, should move into material
 enum MeshNormalOption

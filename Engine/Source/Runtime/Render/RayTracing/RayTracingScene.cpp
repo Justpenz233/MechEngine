@@ -3,20 +3,20 @@
 //
 
 #include "RayTracingScene.h"
-#include "SceneProxy/TransformProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
 #include "Render/Core/TypeConvertion.h"
 #include <luisa/runtime/rtx/accel.h>
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
-#include "SceneProxy/CameraSceneProxy.h"
-#include "SceneProxy/LightSceneProxy.h"
+#include "Render/SceneProxy/CameraSceneProxy.h"
+#include "Render/SceneProxy/LightSceneProxy.h"
 
 namespace MechEngine::Rendering
 {
 
 RayTracingScene::RayTracingScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept:
-stream(stream), device(device), Window(InWindow)
+GPUSceneInterface(stream, device), Window(InWindow)
 {
 	rtAccel = device.create_accel({});
 
