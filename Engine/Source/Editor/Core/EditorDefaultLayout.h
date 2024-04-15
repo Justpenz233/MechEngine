@@ -1,11 +1,11 @@
 #pragma once
 
-#include "UI/ImguiPlugin.h"
+#include "LambdaUIWidget.h"
 #include "Widgets/MenuBarWidgets/MenuBar.h"
-#include "Widgets/MenuBarWidgets/GroundWidget.h"
 #include "Widgets/TransformGizmo.h"
 #include "Widgets/MenuBarWidgets/SaveMeshMenuBar.h"
 #include "Widgets/WorldEditor/WorldOutliner.h"
+#include "UI/ImguiPlus.h"
 
 inline void LoadDefaultEditorLayout(World* CurrentWorld)
 {
@@ -19,4 +19,19 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Save Selected Mesh", "");
 
 	CurrentWorld->AddWidget<WorldOutliner>();
+
+	// Handle notifications window
+	CurrentWorld->AddWidget<LambdaUIWidget>([]() {
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.2f);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.01f, 0.0f, 0.1f, 1.00f));
+
+		ImGui::RenderNotifications();
+
+		ImGui::PopStyleColor(1);
+
+		ImGui::PopStyleVar(2);
+
+	});
 }

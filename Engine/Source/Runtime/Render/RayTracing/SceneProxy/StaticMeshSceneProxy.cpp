@@ -48,6 +48,10 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			Vertices[i].px = static_cast<float>(VertexData[0]);
 			Vertices[i].py = static_cast<float>(VertexData[1]);
 			Vertices[i].pz = static_cast<float>(VertexData[2]);
+			auto VertexNormal = MeshData->VertexNormal.row(i);
+			Vertices[i].nx = static_cast<float>(VertexNormal[0]);
+			Vertices[i].ny = static_cast<float>(VertexNormal[1]);
+			Vertices[i].nz = static_cast<float>(VertexNormal[2]);
 		}
 		for (int i = 0; i < TriangleNum; i++)
 		{

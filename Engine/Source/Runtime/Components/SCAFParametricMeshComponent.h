@@ -51,6 +51,8 @@ public:
 
 	FORCEINLINE virtual bool ValidUV(double U, double V) const override;
 
+	FORCEINLINE ObjectPtr<StaticMesh> GetUVMesh();
+
 	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const override;
 
 private:
@@ -70,4 +72,10 @@ FORCEINLINE FVector SCAFParametricMeshComponent::Sample(double U, double V) cons
 FORCEINLINE bool SCAFParametricMeshComponent::ValidUV(double U, double V) const
 {
 	return SampleHit(U, V).Valid;
+}
+
+FORCEINLINE ObjectPtr<StaticMesh> SCAFParametricMeshComponent::GetUVMesh()
+{
+	auto Mesh = NewObject<StaticMesh>(UVMesh, Indices);
+	return Mesh;
 }

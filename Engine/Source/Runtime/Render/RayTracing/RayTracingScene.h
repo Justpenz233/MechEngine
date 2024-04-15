@@ -6,7 +6,6 @@
 #include "Components/LightComponent.h"
 #include "Render/RendererInterface.h"
 #include "luisa/luisa-compute.h"
-#include "Render/Core/InstanceIndex.h"
 #include "Render/Core/ray_tracing_hit.h"
 #include "SceneProxy/TransformProxy.h"
 #include "SceneProxy/CameraSceneProxy.h"
@@ -36,10 +35,10 @@ class LuisaViewport;
 class RayTracingScene : public GPUSceneInterface
 {
 public:
-	RayTracingScene(Stream& stream, Device& device, ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
+	RayTracingScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
 
 protected:
-	class ImGuiWindow* Window;
+	class luisa::compute::ImGuiWindow* Window;
 	class ViewportInterface* Viewport;
 
 public:

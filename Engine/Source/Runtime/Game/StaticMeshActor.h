@@ -11,8 +11,6 @@
 MCLASS(StaticMeshActor)
 class StaticMeshActor : public Actor
 {
-protected:
-	ObjectPtr<StaticMeshComponent> MeshComponent;
 public:
 	REFLECTION_BODY(StaticMeshActor)
 
@@ -25,4 +23,7 @@ public:
     virtual void SetVisible(bool bVisible);
 
 	Math::FBox GetBoundingBox() const;
+
+protected:
+	StaticMeshComponent* MeshComponent;
 };

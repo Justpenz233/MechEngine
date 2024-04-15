@@ -5,6 +5,7 @@
 #include "LibiglPipeline.h"
 
 #include "Components/CameraComponent.h"
+#include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Game/World.h"
 #include "Misc/Config.h"
@@ -45,6 +46,9 @@ void LibiglScene::UpdateGPUData()
 		}
 	}
 
+	if(DirtyTransforms.contains(LightTransform))
+		Viewer->core().light_position = -LightTransform->GetLocation().cast<float>();
+
 	DirtyTransforms.clear();
 	DirtyMeshes.clear();
 }
@@ -65,6 +69,19 @@ void LibiglScene::UpdateCamera(CameraComponent* InCamera)
 {
 	Viewer->core().camera_view_angle = InCamera->GetFovH();
 	Viewer->core().camera_zoom = InCamera->GetZoom();
+}
+
+void LibiglScene::AddLight(LightComponent* InLight, TransformComponent* InTransform)
+{
+	MainLight = InLight;
+	LightTransform = InTransform;
+}
+
+void LibiglScene::UpdateLight(LightComponent* InLight)
+{
+	MainLight = InLight;
+	Viewer->core().light_position = -InLight->GetOwner()->GetLocation().cast<float>();
+	Viewer->core().lighting_factor = InLight->GetIntensity();
 }
 
 Matrix4d LibiglScene::GetViewMatrix()

@@ -4,8 +4,10 @@
 
 #pragma once
 #include <imgui.h>
+
 #include "LambdaUIWidget.h"
 #include "Actors/CameraActor.h"
+#include "Actors/PointLightActor.h"
 #include "Game/StaticMeshActor.h"
 #include "Game/World.h"
 #include "Mesh/BasicShapesLibrary.h"
@@ -19,11 +21,14 @@ inline auto TestRendering()
 	return [](World& world) {
 		auto Camera = world.SpawnActor<CameraActor>("MainCamera");
 		Camera->SetTranslation({-5, 0, 0});
+
 		auto Cow = StaticMesh::LoadFromObj(Path("spot.obj"));
 		Cow->Normlize();
+
 		auto Ball = world.SpawnActor<StaticMeshActor>("Point",
 			BasicShapesLibrary::GenerateSphere(0.04f));
 		Ball->SetTranslation({0., 0., 1.});
+
 		auto CowActor = world.SpawnActor<StaticMeshActor>("Cow", Cow);
 		CowActor->SetTranslation({0, 0, -0.1});
 		CowActor->SetRotation({M_PI_2, 0., 0.});
@@ -36,7 +41,15 @@ inline auto TestRendering()
 			ImGui::Text("Screen Position: (%.2f, %.2f, %.2f)", ScreenPos.x(), ScreenPos.y(), ScreenPos.z());
 			ImGui::Text("Unproject Position: (%.2f, %.2f, %.2f)", UnprojectPos.x(), UnprojectPos.y(), UnprojectPos.z());
 			ImGui::End();
-
 		});
+
+		auto Light = world.SpawnActor<PointLightActor>("Light");
+		world.TickFunction = [Light](float DeltaTime, World& world) {
+			static float TotalTime = 0;
+			TotalTime += DeltaTime * 2.f;
+			Light->SetTranslation({cos(TotalTime), sin(TotalTime), 1});
+			Light->GetPointLightComponent()->SetLightColor({std::abs(cos(TotalTime)),
+				std::abs(sin(TotalTime)), std::abs(cos(TotalTime) * sin(TotalTime))});
+		};
 	};
 }

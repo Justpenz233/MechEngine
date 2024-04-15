@@ -21,6 +21,11 @@ RenderPipeline(width, height, title)
 	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
 }
 
+RayTracingPipeline::~RayTracingPipeline()
+{
+	MainWindow->destroy();
+}
+
 GPUSceneInterface* RayTracingPipeline::NewScene(World* InWorld)
 {
 	Scene = MakeUnique<Rendering::RayTracingScene>(Stream, Device, MainWindow.get(), Viewport.get());
@@ -66,7 +71,7 @@ void RayTracingPipeline::Render()
 
 	Scene->Render();
 
-	// Viewport->DrawWidgets();
+	Viewport->DrawWidgets();
 	Viewport->HandleInput();
 }
 

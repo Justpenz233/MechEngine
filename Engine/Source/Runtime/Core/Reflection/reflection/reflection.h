@@ -1,5 +1,6 @@
 #pragma once
 #include <any>
+#include <magic_enum/magic_enum.hpp>
 #include "Reflection/json.h"
 #include <functional>
 #include <string>
@@ -7,7 +8,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "CoreMinimal.h"
+#include "ContainerTypes.h"
+#include "Misc/Platform.h"
+
 
 #define NAME(name) #name
 
@@ -72,6 +75,8 @@
 #define REGISTER_Method_TO_MAP(name, value) TypeMetaRegisterinterface::registerToMethodMap(name, value);
 #define REGISTER_BASE_CLASS_TO_MAP(name, value) TypeMetaRegisterinterface::registerToClassMap(name, value);
 #define REGISTER_ARRAY_TO_MAP(name, value) TypeMetaRegisterinterface::registerToArrayMap(name, value);
+#define REGISTER_ENUM_TO_MAP(name, value) TypeMetaRegisterinterface::registerToEnumMap(name, value);
+#define REGISTER_POINTER_TO_MAP(name, value) TypeMetaRegisterinterface::registerToPointerMap(name, value);
 #define UNREGISTER_ALL TypeMetaRegisterinterface::unregisterAll();
 
 #define PICCOLO_REFLECTION_NEW(name, ...) Reflection::ReflectionPtr(#name, new name(__VA_ARGS__));
@@ -102,6 +107,50 @@ struct is_safely_castable<T, U, std::void_t<decltype(static_cast<U>(std::declval
 {
 };
 
+template<typename T>
+concept IsNativePointer = std::is_pointer_v<T>;
+
+template<typename T>
+concept IsUniquePointer = requires(T a) {
+	requires std::is_same_v<T, std::unique_ptr<typename T::element_type>>;
+};
+
+template<typename T>
+concept IsSharedPointer = requires(T a) {
+	requires std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
+};
+
+template<typename T>
+concept IsWeakPointer = requires(T a) {
+	requires std::is_same_v<T, std::weak_ptr<typename T::element_type>>;
+};
+
+template<typename T>
+concept IsSmartPointer = IsUniquePointer<T> || IsSharedPointer<T> || IsWeakPointer<T>;
+
+template<typename T>
+concept IsAnyPointer = IsNativePointer<T> || IsUniquePointer<T> || IsSharedPointer<T>;
+
+template<IsUniquePointer T>
+void* reflection_get_pointer_inner(const T& ptr) {
+	return static_cast<void*>(ptr.get());
+}
+
+template<IsSharedPointer T>
+void* reflection_get_pointer_inner(const T& ptr) {
+	return static_cast<void*>(ptr.get());
+}
+
+template<IsWeakPointer T>
+void* reflection_get_pointer_inner(const T& ptr) {
+	return static_cast<void*>(ptr.lock().get());
+}
+
+template<IsNativePointer T>
+void* reflection_get_pointer_inner(T ptr) {
+	return static_cast<void*>(ptr);
+}
+
 namespace Reflection
 {
     class TypeMeta;
@@ -118,19 +167,28 @@ typedef std::function<void*(int, void*)> GetArrayFunc;
 typedef std::function<int(void*)> GetSizeFunc;
 typedef std::function<bool()> GetBoolFunc;
 typedef std::function<std::any(void *, std::any)> InvokeFunction;
+typedef std::function<std::vector<std::string>()> GetStringArrayFunc;
+typedef std::function<void(void*, std::string)> SetStringFunc;
+typedef std::function<std::string(void*)> GetStringFunc;
 
 typedef std::function<void*(const Json&)> ConstructorWithJson;
 typedef std::function<Json(void*)> WriteJsonByName;
 typedef std::function<int(Reflection::ReflectionInstance*&, void*)> GetBaseClassReflectionInstanceListFunc;
 
-typedef std::tuple<SetFuncion, GetFuncion, GetNameFuncion, GetNameFuncion, GetNameFuncion, GetBoolFunc>
+typedef std::tuple<SetFuncion, GetFuncion, GetNameFuncion, GetNameFuncion, GetNameFuncion, GetBoolFunc, GetBoolFunc, GetBoolFunc>
 FieldFunctionTuple;
 typedef std::tuple<GetNameFuncion, InvokeFunction> MethodFunctionTuple;
 typedef std::tuple<GetBaseClassReflectionInstanceListFunc, ConstructorWithJson, WriteJsonByName> ClassFunctionTuple;
 typedef std::tuple<SetArrayFunc, GetArrayFunc, GetSizeFunc, GetNameFuncion, GetNameFuncion> ArrayFunctionTuple;
+typedef std::tuple<GetNameFuncion, GetStringArrayFunc, GetStringFunc, SetStringFunc> EnumFunctionTuple;
+typedef std::tuple<GetFuncion> PointerFunctionTuple;
 
 namespace Reflection
 {
+	class EnumAccessor;
+	class ArrayAccessor;
+	class PointerAccessor;
+
     class TypeMetaRegisterinterface
     {
     public:
@@ -141,6 +199,10 @@ namespace Reflection
         static void registerToMethodMap(const char* name, MethodFunctionTuple* value);
 
         static void registerToArrayMap(const char* name, ArrayFunctionTuple* value);
+
+    	static void registerToEnumMap(const char* name, EnumFunctionTuple* value);
+
+    	static void registerToPointerMap(const char* name, PointerFunctionTuple* value);
 
         static void unregisterAll();
     };
@@ -210,14 +272,6 @@ namespace Reflection
 
         TypeMeta getOwnerTypeMeta();
 
-        /**
-         * param: TypeMeta out_type
-         *        a reference of TypeMeta
-         *
-         * return: bool value
-         *        true: it's a reflection type
-         *        false: it's not a reflection type
-         */
         bool getTypeMeta(TypeMeta& field_type) const;
 
         const char* getTypeName() const;
@@ -235,6 +289,18 @@ namespace Reflection
         std::string GetPureTypeName();
 
         bool isArrayType();
+
+    	bool isEnumType();
+
+    	bool isPointerType();
+
+        /**
+         * Get enum accessor of the instance in this field
+         * @param instance the instance to the field
+         * @return EnumAccessor of the instance
+         */
+        EnumAccessor GetEnumAccessor(void* instance);
+    	PointerAccessor GetPointerAccessor(void* instance);
 
         FieldAccessor& operator=(const FieldAccessor& dest);
 
@@ -303,6 +369,81 @@ namespace Reflection
         const char* m_array_type_name;
         const char* m_element_type_name;
     };
+
+    /**
+     * Enum reflection accessor, should be generated by FieldAccessor
+     */
+    class EnumAccessor
+	{
+	public:
+		friend class TypeMeta;
+    	friend class FieldAccessor;
+		EnumAccessor() = default;
+
+		/**
+		 * Get all enum value string
+		 * @return vector of string of enum values
+		 */
+		std::vector<std::string> GetEnumStringArray() const;
+
+		/**
+		 * Set enum value by string for instance
+		 * @param value set string of enum value
+		 */
+		void                     SetEnumValue(std::string value) const;
+
+		/**
+		 * Get enum value string of instance
+		 * @return string of enum value
+		 */
+		std::string              GetEnumValue() const;
+
+		/**
+		 * Get enum type name
+		 * @return enum type name
+		 */
+		const char* 			GetEnumTypeName() const;
+
+		/**
+		 * Get the filed name of enum, as EnumType FiledName;
+		 * @return filed name of enum
+		 */
+		const char* GetFiledName() const;
+
+	private:
+		EnumAccessor(EnumFunctionTuple* func, FieldAccessor* field_accessor, void* instance);
+	private:
+		EnumFunctionTuple* m_func;
+		const char* m_enum_type_name;
+		const char* m_filed_name;
+    	FieldAccessor* m_field_accessor;
+		void* m_instance;
+    	void* m_filed_ptr;
+	};
+
+	class PointerAccessor
+	{
+	public:
+		friend class TypeMeta;
+		friend class FieldAccessor;
+		PointerAccessor() = default;
+
+		PointerAccessor(PointerFunctionTuple* func, FieldAccessor* field_accessor, void* instance);
+
+		/**
+		 * Get the inner pointer of the ptr, beacuse the filed may not be a native pointer
+		 * Basicly, for native pointer, it will return T*
+		 * for smart pointer, it will return the T->get()
+		 * @return pointer of instance
+		 */
+		void* GetPointer() const;
+
+	protected:
+		FieldAccessor* m_field_accessor;
+		PointerFunctionTuple* m_func;
+		void* m_filed_ptr;
+		void* m_instance;
+	};
 
     class ReflectionInstance
     {

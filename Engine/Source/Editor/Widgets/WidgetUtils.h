@@ -7,8 +7,7 @@
 #include "Object/Object.h"
 namespace MechEngine::UI
 {
-
-	inline String GetObjectDisplayName(ObjectPtr<Object> Obj)
+	inline String GetObjectDisplayName(Object* Obj)
 	{
 		std::string DisplayName = Obj->GetName();
 		if(DisplayName.empty()) return Obj->ClassName();
@@ -24,6 +23,14 @@ namespace MechEngine::UI
 		return DisplayName;
 	}
 
-	void DrawActorPanel(ObjectPtr<class Actor> Actor);
+	inline String GetObjectDisplayName(ObjectPtr<Object> Obj)
+	{
+		return GetObjectDisplayName(Obj.get());
+	}
+
+
+	void DrawActorPanel(ObjectPtr<Actor> Actor);
+
+	void DrawObjectPanel(class Object* Obj);
 
 } // namespace MechEngine::Editor

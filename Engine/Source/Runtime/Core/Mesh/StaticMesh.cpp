@@ -2,35 +2,29 @@
 // Created by Mayn on 8/25/2023.
 //
 
+#include <fstream>
 #include "StaticMesh.h"
 #include "Math/LinearAlgebra.h"
 #include "igl/per_face_normals.h"
 #include "igl/per_vertex_normals.h"
 #include "igl/per_corner_normals.h"
-#include <fstream>
-#include <igl/readOBJ.h>
-
+#include "igl/readOBJ.h"
+#include "igl/fast_find_self_intersections.h"
 #include "Algorithm/GeometryProcess.h"
-#include "igl/copyleft/cgal/is_self_intersecting.h"
 #include "Misc/Path.h"
-
-void StaticMesh::UpdateBoundingBox()
-{
-	BoundingBox = Math::FBox(verM);
-}
 
 StaticMesh::StaticMesh(const MatrixX3d& InVerM, const MatrixX3i& InTriM)
 {
 	verM = InVerM;
 	triM = InTriM;
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 StaticMesh::StaticMesh(MatrixX3d&& InVerM, MatrixX3i&& InTriM)
 {
 	verM = std::move(InVerM);
 	triM = std::move(InTriM);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 StaticMesh::StaticMesh(const TArray<Vector3d>& verList, const TArray<Vector3i>& triList)
@@ -42,7 +36,7 @@ StaticMesh::StaticMesh(const TArray<Vector3d>& verList, const TArray<Vector3i>& 
 	triM.resize(triList.size(), 3);
 	for (int i = 0; i < triList.size(); i++)
 		triM.row(i) = triList[i];
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 StaticMesh::StaticMesh(const TArray<double>& verList, const TArray<int>& triList)
@@ -53,7 +47,7 @@ StaticMesh::StaticMesh(const TArray<double>& verList, const TArray<int>& triList
 		verM.row(i / 3) = RowVector3d(verList[i], verList[i + 1], verList[i + 2]);
 	for (int i = 0; i < triList.size(); i += 3)
 		triM.row(i / 3) = Eigen::RowVector3i(triList[i], triList[i + 1], triList[i + 2]);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 StaticMesh::StaticMesh(StaticMesh&& Other) noexcept
@@ -64,7 +58,7 @@ StaticMesh::StaticMesh(StaticMesh&& Other) noexcept
 		colM = std::move(Other.colM);
 	if (Other.norM.rows() != 0)
 		norM = std::move(Other.norM);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 StaticMesh::StaticMesh(const StaticMesh& Other)
@@ -73,7 +67,7 @@ StaticMesh::StaticMesh(const StaticMesh& Other)
 	triM = Other.triM;
 	colM = Other.colM;
 	norM = Other.norM;
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 ObjectPtr<StaticMesh> StaticMesh::operator=(std::shared_ptr<StaticMesh> Other)
@@ -82,7 +76,7 @@ ObjectPtr<StaticMesh> StaticMesh::operator=(std::shared_ptr<StaticMesh> Other)
 	triM      = Other->triM;
 	if (Other->colM.rows() != 0) colM = Other->colM.eval();
 	if (Other->norM.rows() != 0) norM = Other->norM.eval();
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 	return Cast<StaticMesh>(GetThis());
 }
 
@@ -92,7 +86,7 @@ StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 	triM = std::move(Other.triM);
 	if (Other.colM.rows() != 0) colM = std::move(Other.colM);
 	if (Other.norM.rows() != 0) norM = std::move(Other.norM);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 	return *this;
 }
 
@@ -114,7 +108,7 @@ void StaticMesh::TransformMesh(const Matrix4d& transMat)
 			verM(i, 1) = NewPos[1];
 			verM(i, 2) = NewPos[2];
 		}, 1e7);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 void StaticMesh::SaveOBJ(String FileName)
 {
@@ -145,7 +139,7 @@ void StaticMesh::Translate(const FVector& Translation)
 	ParallelFor(verM.rows(), [this, Translation](int i){
 		verM.row(i) += Translation;
 	});
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 void StaticMesh::Rotate(const FQuat& Rotation)
@@ -153,13 +147,13 @@ void StaticMesh::Rotate(const FQuat& Rotation)
 	ParallelFor(verM.rows(), [this, Rotation](int i){
 		verM.row(i) = verM.row(i) * Rotation.matrix();
 	});
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 void StaticMesh::RotateEuler(const FVector& RotationEuler)
 {
 	TransformMesh(MMath::RotationMatrix4FromEulerXYZ(RotationEuler));
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 void StaticMesh::Scale(const FVector& InScale)
@@ -169,7 +163,7 @@ void StaticMesh::Scale(const FVector& InScale)
 		verM(i, 1) *= InScale[1];
 		verM(i, 2) *= InScale[2];
 	});
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 void StaticMesh::Scale(double InScale)
@@ -179,27 +173,81 @@ void StaticMesh::Scale(double InScale)
 
 bool StaticMesh::IsSelfIntersect() const
 {
-	return igl::copyleft::cgal::is_self_intersecting(verM, triM);
+	MatrixXd IF, EV, EE;
+	Eigen::VectorXi EI;
+	igl::fast_find_self_intersections(verM, triM, true, true, IF, EV, EE, EI);
+	return IF.rows() > 0;
 }
 
 bool StaticMesh::FillHoles()
 {
-	return Algorithm::GeometryProcess::FillAllHoles(verM, triM);
+	auto Result = Algorithm::GeometryProcess::FillAllHoles(verM, triM);
+	if (Result) OnGeometryUpdate();
+	return Result;
 }
 
 void StaticMesh::SmoothMesh(int Iteration, bool UseUniform)
 {
 	Algorithm::GeometryProcess::SmoothMesh(verM, triM, Iteration, UseUniform);
+	OnGeometryUpdate();
 }
 
-void StaticMesh::Normlize()
+StaticMesh& StaticMesh::RemoveIsolatedVertices()
+{
+	THashSet<int> VertexSet;
+	for (int i = 0; i < triM.rows(); i++)
+	{
+		VertexSet.insert(triM(i, 0));
+		VertexSet.insert(triM(i, 1));
+		VertexSet.insert(triM(i, 2));
+	}
+	if (VertexSet.size() == verM.rows())
+		return *this;
+
+	THashMap<int, int> VertexMap;
+	int Index = 0;
+	for (int VertexIndex : VertexSet)
+	{
+		VertexMap[VertexIndex] = Index;
+		Index++;
+	}
+	MatrixX3d NewVerM(VertexSet.size(), 3);
+	for (auto& [VertexIndex, NewIndex] : VertexMap)
+	{
+		NewVerM.row(NewIndex) = verM.row(VertexIndex);
+	}
+	for (int i = 0; i < triM.rows(); i++)
+	{
+		triM(i, 0) = VertexMap[triM(i, 0)];
+		triM(i, 1) = VertexMap[triM(i, 1)];
+		triM(i, 2) = VertexMap[triM(i, 2)];
+	}
+	verM = NewVerM;
+	OnGeometryUpdate();
+	return *this;
+}
+
+bool StaticMesh::HasIsolatedVertices() const
+{
+	THashSet<int> VertexSet;
+	for (int i = 0; i < triM.rows(); i++)
+	{
+		VertexSet.insert(triM(i, 0));
+		VertexSet.insert(triM(i, 1));
+		VertexSet.insert(triM(i, 2));
+	}
+	return VertexSet.size() != verM.rows();
+}
+
+StaticMesh& StaticMesh::Normlize()
 {
 	auto Center = GetBoundingBox().GetCenter();
 	auto Scale = 1. / GetBoundingBox().GetSize().maxCoeff();
 	verM.rowwise() -= Center.transpose();
 	verM *= Scale;
 
-	UpdateBoundingBox();
+	OnGeometryUpdate();
+	return *this;
 }
 
 ObjectPtr<StaticMesh> StaticMesh::LoadFromObj(const Path& FileName)
@@ -241,7 +289,7 @@ int StaticMesh::GetFaceNum() const
 	return triM.rows();
 }
 
-void StaticMesh::SetColor(RowVector3d Color)
+void StaticMesh::SetColor(const FColor& Color)
 {
 	colM.resize(1, 3);
 	colM.row(0) = Color;
@@ -261,18 +309,19 @@ void StaticMesh::CalcNormal()
 	 	igl::per_vertex_normals(verM, triM, norM);
 	if(NormalOption == PerCornerNormal)
 		igl::per_corner_normals(verM, triM, 20, norM);
+	igl::per_vertex_normals(verM, triM, VertexNormal);
 }
 
 bool StaticMesh::CheckNormalValid() const
 {
+	if (VertexNormal.rows() != verM.rows())
+		return false;
 	if (NormalOption == PerFaceNormal)
 		return norM.rows() == triM.rows();
 	if (NormalOption == PerVertexNormal)
 		return norM.rows() == verM.rows();
 	if (NormalOption == PerCornerNormal)
 		return norM.rows() == triM.rows() * 3;
-	if(NormalOption == UserDefinedNormal)
-		return norM.rows() != 0;
 	return false;
 }
 
@@ -288,41 +337,61 @@ void StaticMesh::ReverseNormal()
 	}
 }
 
+void StaticMesh::RemoveVertex(int VertexIndex)
+{
+	for (int i = 0;i < triM.rows();i ++)
+	{
+		if (triM(i, 0) == VertexIndex || triM(i, 1) == VertexIndex || triM(i, 2) == VertexIndex)
+		{
+			triM.row(i) = triM.row(triM.rows() - 1);
+			triM.conservativeResize(triM.rows() - 1, 3);
+			i--;
+		}
+	}
+	RemoveIsolatedVertices();
+}
+
+void StaticMesh::RemoveVertices(const TArray<int>& VertexIndices)
+{
+	THashSet<int> VertexSet;
+	for (int VertexIndice : VertexIndices) VertexSet.insert(VertexIndice);
+	for (int i = 0;i < triM.rows();i ++)
+	{
+		if (VertexSet.contains(triM(i, 0)) || VertexSet.contains(triM(i, 1)) || VertexSet.contains(triM(i, 2)))
+		{
+			triM.row(i) = triM.row(triM.rows() - 1);
+			triM.conservativeResize(triM.rows() - 1, 3);
+			i--;
+		}
+	}
+	RemoveIsolatedVertices();
+}
+
+void StaticMesh::RemoveFace(int FaceIndex)
+{
+	triM.row(FaceIndex) = triM.row(triM.rows() - 1);
+	triM.conservativeResize(triM.rows() - 1, 3);
+}
+
+void StaticMesh::RemoveFaces(const TArray<int>& FaceIndices)
+{
+	for (int FaceIndex : FaceIndices)
+	{
+		triM.row(FaceIndex) = triM.row(triM.rows() - 1);
+		triM.conservativeResize(triM.rows() - 1, 3);
+	}
+}
+
 void StaticMesh::Clear()
 {
 	verM.resize(0, 3);
 	triM.resize(0, 3);
 	norM.resize(0, 3);
 	colM.resize(0, 3);
-	UpdateBoundingBox();
+	OnGeometryUpdate();
 }
 
 bool StaticMesh::IsEmpty() const
 {
 	return verM.rows() < 3 || triM.rows() < 1;
 }
-
-void StaticMesh::ClearDegenerate()
-{
-	return;
-	auto CalcTriangleArea = [&](Vector3i Triangle)
-	{
-		Vector3d AB = verM.row(Triangle.x()) - verM.row(Triangle.y());
-		Vector3d AC = verM.row(Triangle.z()) - verM.row(Triangle.x());
-		return 0.5 * abs(AB.cross(AC).stableNorm());
-	};
-
-	int LastFaceIndex = GetFaceNum() - 1;
-	for(int i = 0;i <= LastFaceIndex;i ++)
-	{
-		if(CalcTriangleArea(triM.row(i)) < 1e-10)
-		{
-			triM.row(i).swap(triM.row(LastFaceIndex --));
-		}
-	}
-	LOG_INFO("Clear degenerate Triangles.  Clear count: {0}", triM.rows() - LastFaceIndex - 1);
-	triM.conservativeResize(LastFaceIndex + 1, 3);
-	UpdateBoundingBox();
-}
-
-

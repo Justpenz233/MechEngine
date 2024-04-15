@@ -29,6 +29,7 @@ public:
 	Matrix4d GetMatrix() const;
 
 	FORCEINLINE const FVector& GetTranslation() const { return Translation; }
+	FORCEINLINE const FVector& GetLocation() const { return Translation; }
 	FORCEINLINE const FQuat&   GetRotation() const { return Rotation; }
 	FVector		   GetRotationEuler() const;
 	FORCEINLINE const FVector& GetScale() const { return Scale; }

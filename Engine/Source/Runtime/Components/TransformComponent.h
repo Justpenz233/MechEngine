@@ -22,6 +22,7 @@ public:
 	FORCEINLINE Affine3d GetTransform() const;
 	FORCEINLINE FTransform GetFTransform() const;
 	FORCEINLINE FVector GetTranslation() const;
+	FORCEINLINE FVector GetLocation() const;
 
 	// Result in X,Y,Z , rotation order is x,y,z
 	FORCEINLINE FVector GetRotationEuler() const;
@@ -71,7 +72,12 @@ FORCEINLINE Eigen::Matrix4d TransformComponent::GetTransformMatrix() const
 
 FORCEINLINE Eigen::Vector3d TransformComponent::GetTranslation() const
 {
-	return Transform.GetTranslation();
+	return Transform.GetLocation();
+}
+
+FORCEINLINE Eigen::Vector3d TransformComponent::GetLocation() const
+{
+	return Transform.GetLocation();
 }
 
 FORCEINLINE Eigen::Vector3d TransformComponent::GetRotationEuler() const

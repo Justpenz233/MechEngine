@@ -12,6 +12,8 @@ class RayTracingPipeline : public RenderPipeline
 public:
 	RayTracingPipeline(uint width, uint height, const String& title);
 
+	virtual ~RayTracingPipeline() override;
+
 	virtual GPUSceneInterface* NewScene(class World* InWorld) override;
 
 	virtual void EraseScene(GPUSceneInterface*) override;

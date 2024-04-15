@@ -4,6 +4,7 @@ set (ThirdPartyDir ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(Boost REQUIRED)
 
 if (NOT TARGET luisa::compute)
+    option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" OFF)
     option(LUISA_COMPUTE_ENABLE_DSL "Enable C++ DSL" ON)
     option(LUISA_COMPUTE_ENABLE_TENSOR "Enable C++ DSL tensor extension" OFF)
     option(LUISA_COMPUTE_ENABLE_DX "Enable DirectX backend" ON)
@@ -32,6 +33,7 @@ if (NOT TARGET libigl)
     option(LIBIGL_GLFW "Build target igl::glfw" ON)
     # use CGAL for mesh boolean
     option(LIBIGL_COPYLEFT_CGAL "Build target igl_copyleft::cgal" ON)
+
     # for SCAF parametaerization
     option(LIBIGL_RESTRICTED_TRIANGLE "Build target igl_restricted::triangle" ON)
 
@@ -54,6 +56,7 @@ target_link_libraries(ThirdParty INTERFACE
         igl_copyleft::cgal
         igl_restricted::triangle
         spdlog::spdlog_header_only
+        magic_enum
         pmp
         luisa::compute
         bvh

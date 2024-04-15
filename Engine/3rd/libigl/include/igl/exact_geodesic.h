@@ -57,6 +57,20 @@ namespace igl
 	  const int &VT
 	  );
 
+
+	/**
+	 * Find the triangle path from source to target
+	 */
+	template <
+	typename DerivedV,
+	typename DerivedF>
+	IGL_INLINE Eigen::VectorXi exact_geodesic_path_tri(
+	  const Eigen::MatrixBase<DerivedV> &V,
+	  const Eigen::MatrixBase<DerivedF> &F,
+	  const int &TriSt,
+	  const int &TriDes
+	  );
+
 	template <
 	typename DerivedV,
 	typename DerivedF,

@@ -32,6 +32,9 @@ void World::BeginPlay()
 
 	for(auto actor : Actors)
 		actor->BeginPlay();
+
+	if(SelectedActor.expired() && !Actors.empty())
+		SelectActor(Actors[0]);
 }
 
 void World::Tick(double DeltaTime)

@@ -185,5 +185,35 @@ namespace MechEngine
         		ImGui::PopID();
         	};
 		}
-	} // namespace Widgets
+
+		EnumWidget CreateEnumComboWidget()
+    	{
+    		return [](Reflection::EnumAccessor& Field) {
+    			auto Current = Field.GetEnumValue();
+    			auto Items = Field.GetEnumStringArray();
+
+    			ImGui::PushID(Field.GetFiledName());
+    			ShowLableLeft(Field.GetEnumTypeName());
+				if(ImGui::BeginCombo("", Current.c_str()))
+				{
+					for (const auto & Item : Items)
+					{
+						bool is_selected = (Current == Item);
+						if (ImGui::Selectable(Item.c_str(), is_selected))
+						{
+							if(Current != Item)
+							{
+								Current = Item;
+								Field.SetEnumValue(Current);
+							}
+						}
+						if (is_selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+    			ImGui::PopID();
+    		};
+    	}
+    } // namespace Widgets
 }

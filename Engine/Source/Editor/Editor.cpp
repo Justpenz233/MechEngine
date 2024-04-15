@@ -118,6 +118,9 @@ void Editor::Start()
 		Renderer->RenderFrame();
 	}
 
+	LOG_INFO("Closing editor");
+	Renderer.reset();
+
 	LOG_INFO("End play");
 	CurrentWorld->EndPlay();
 }

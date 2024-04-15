@@ -49,7 +49,7 @@ void Actor::BeginPlay()
 void Actor::Tick(double DeltaTime)
 {
 	if(TickFunction) TickFunction(DeltaTime, GetThis());
-	for(auto Component: Components)
+	for(auto& Component: Components)
 	{
 		if(Component)
 		{

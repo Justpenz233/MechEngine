@@ -12,6 +12,8 @@ namespace Reflection
     static std::multimap<std::string, FieldFunctionTuple*>  m_field_map;
     static std::multimap<std::string, MethodFunctionTuple*> m_method_map;
     static std::map<std::string, ArrayFunctionTuple*>       m_array_map;
+	static std::map<std::string, EnumFunctionTuple*>        m_enum_map;
+	static std::map<std::string, PointerFunctionTuple*> m_pointer_map;
 
     void TypeMetaRegisterinterface::registerToFieldMap(const char* name, FieldFunctionTuple* value)
     {
@@ -31,6 +33,30 @@ namespace Reflection
         {
             delete value;
         }
+    }
+
+    void TypeMetaRegisterinterface::registerToEnumMap(const char* name, EnumFunctionTuple* value)
+    {
+	    if (m_enum_map.find(name) == m_enum_map.end())
+	    {
+		    m_enum_map.insert(std::make_pair(name, value));
+	    }
+	    else
+	    {
+		    delete value;
+	    }
+    }
+
+    void TypeMetaRegisterinterface::registerToPointerMap(const char* name, PointerFunctionTuple* value)
+    {
+	    if (m_pointer_map.find(name) == m_pointer_map.end())
+	    {
+		    m_pointer_map.insert(std::make_pair(name, value));
+	    }
+	    else
+	    {
+		    delete value;
+	    }
     }
 
     void TypeMetaRegisterinterface::registerToClassMap(const char* name, ClassFunctionTuple* value)
@@ -272,8 +298,29 @@ namespace Reflection
 
     bool FieldAccessor::isArrayType()
     {
-        // todo: should check validation
         return (std::get<5>(*m_functions))();
+    }
+
+    bool FieldAccessor::isEnumType()
+    {
+	    return (std::get<6>(*m_functions))();
+    }
+
+    bool FieldAccessor::isPointerType()
+    {
+	    return (std::get<7>(*m_functions))();
+    }
+
+    EnumAccessor FieldAccessor::GetEnumAccessor(void* instance)
+    {
+    	ASSERTMSG(isEnumType(), "Field is not enum type");
+	    return EnumAccessor(m_enum_map[m_field_type_name], this, instance);
+    }
+
+    PointerAccessor FieldAccessor::GetPointerAccessor(void* instance)
+    {
+
+	    return PointerAccessor(m_pointer_map[m_field_type_name], this, instance);
     }
 
     FieldAccessor& FieldAccessor::operator=(const FieldAccessor& dest)
@@ -333,6 +380,47 @@ namespace Reflection
         m_array_type_name   = std::get<3>(*m_func)();
         m_element_type_name = std::get<4>(*m_func)();
     }
+
+    std::vector<std::string> EnumAccessor::GetEnumStringArray() const
+    {
+	    return std::get<1>(*m_func)();
+    }
+
+    void EnumAccessor::SetEnumValue(std::string value) const
+    {
+	    std::get<3>(*m_func)(m_filed_ptr, std::move(value));
+    	static_cast<Object*>(m_instance)->PostEdit(*m_field_accessor);
+    }
+
+    std::string EnumAccessor::GetEnumValue() const
+    {
+	    return std::get<2>(*m_func)(m_filed_ptr);
+    }
+
+    const char* EnumAccessor::GetEnumTypeName() const
+    {
+	    return m_enum_type_name;
+    }
+
+    const char* EnumAccessor::GetFiledName() const
+    {
+	    return m_filed_name;
+    }
+
+    EnumAccessor::EnumAccessor(EnumFunctionTuple* func, FieldAccessor* field_accessor,void* instance)
+    {
+    	if (func == nullptr)
+    	{
+    		return;
+    	}
+    	m_field_accessor = field_accessor;
+    	m_instance = instance;
+    	m_filed_ptr = field_accessor->get(instance);
+    	m_filed_name = field_accessor->getFieldName();
+    	m_func = func;
+	    m_enum_type_name = std::get<0>(*func)();
+    }
+
     const char* ArrayAccessor::getArrayTypeName() { return m_array_type_name; }
     const char* ArrayAccessor::getElementTypeName() { return m_element_type_name; }
     void        ArrayAccessor::set(int index, void* instance, void* element_value)
@@ -367,6 +455,23 @@ namespace Reflection
         m_array_type_name   = dest.m_array_type_name;
         m_element_type_name = dest.m_element_type_name;
         return *this;
+    }
+
+    PointerAccessor::PointerAccessor(PointerFunctionTuple* func, FieldAccessor* field_accessor, void* instance)
+    {
+	    if (func == nullptr)
+	    {
+		    return;
+	    }
+    	m_field_accessor = field_accessor;
+    	m_instance = instance;
+    	m_filed_ptr = field_accessor->get(instance);
+    	m_func = func;
+    }
+
+    void* PointerAccessor::GetPointer() const
+    {
+	    return std::get<0>(*m_func)(m_filed_ptr);
     }
 
     ReflectionInstance& ReflectionInstance::operator=(ReflectionInstance& dest)

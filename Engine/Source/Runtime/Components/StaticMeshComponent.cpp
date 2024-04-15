@@ -5,6 +5,7 @@
 #include "StaticMeshComponent.h"
 #include "Game/Actor.h"
 #include "Game/World.h"
+#include "Materials/Material.h"
 #include "Render/RendererInterface.h"
 
 StaticMeshComponent::StaticMeshComponent()
@@ -46,7 +47,6 @@ void StaticMeshComponent::BeginPlay()
 void StaticMeshComponent::EndPlay()
 {
 	ActorComponent::EndPlay();
-	World->GetScene()->EraseMesh(this);
 }
 
 void StaticMeshComponent::OnSelected()
@@ -82,7 +82,17 @@ void StaticMeshComponent::UploadRenderingData()
 		if (!MeshData->CheckNormalValid())
 			MeshData->CalcNormal();
 
-		MeshData->SetColor(Color);
+		//TODO: Remove, use material instead
+		if(MeshData->colM.rows() == 0)
+			MeshData->SetColor(Color);
+
+		if (MeshData->GetMaterial() == nullptr)
+		{
+			auto DefaultMaterial = NewObject<Material>();
+			DefaultMaterial->Diffuse = Color;
+			DefaultMaterial->Specular = {1., 1., 1.};
+			MeshData->SetMaterial(DefaultMaterial);
+		}
 
 		World->GetScene()->UpdateStaticMesh(this);
 	}

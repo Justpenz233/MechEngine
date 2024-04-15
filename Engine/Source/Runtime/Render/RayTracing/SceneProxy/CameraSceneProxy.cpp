@@ -40,6 +40,11 @@ FMatrix4 CameraSceneProxy::GetProjectionMatrix(uint Index) const
 
 void CameraSceneProxy::UploadDirtyData(Stream& stream)
 {
+	if(!CameraComponent)
+	{
+		LOG_ERROR("No valid Camera in scene, raytracing will not work");
+		return;
+	}
 	if (bDirty)
 	{
 		cameraData data;

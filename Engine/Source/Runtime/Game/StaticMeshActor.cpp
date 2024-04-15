@@ -7,11 +7,11 @@
 
 StaticMeshActor::StaticMeshActor()
 {
-	MeshComponent = AddComponent<StaticMeshComponent>();
+	MeshComponent = AddComponent<StaticMeshComponent>().get();
 }
 StaticMeshActor::StaticMeshActor(ObjectPtr<StaticMesh> InMeshData)
 {
-	MeshComponent = AddComponent<StaticMeshComponent>();
+	MeshComponent = AddComponent<StaticMeshComponent>().get();
 	MeshComponent->SetMeshData(std::move(InMeshData));
 }
 
@@ -26,5 +26,5 @@ Math::FBox StaticMeshActor::GetBoundingBox() const
 
 StaticMeshComponent* StaticMeshActor::GetStaticMeshComponent()
 {
-	return MeshComponent.get();
+	return MeshComponent;
 }

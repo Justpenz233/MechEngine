@@ -45,3 +45,9 @@
 build
 .cache
 **/.DS_Store
+**/_generated
+cmake-build-debug/
+cmake-build-release/
+cmake-build-relwithdebinfo/
+CMakeFiles/
+bin/

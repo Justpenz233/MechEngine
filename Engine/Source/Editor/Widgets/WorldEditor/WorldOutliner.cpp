@@ -4,6 +4,7 @@
 
 #include "WorldOutliner.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "Game/Actor.h"
 #include "Game/World.h"
 #include "Widgets/WidgetUtils.h"

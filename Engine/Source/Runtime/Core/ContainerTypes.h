@@ -25,6 +25,7 @@ using TMap = std::map<K, V>;
 template <typename K, typename V>
 using TMultiMap = std::multimap<K, V>;
 
+#include <unordered_map>
 template <typename K, typename V>
 using THashMap = std::unordered_map<K, V>;
 
@@ -36,5 +37,6 @@ using TSet = std::set<T>;
 template <typename T>
 using THashSet = std::unordered_set<T>;
 
+#include <functional>
 template <typename T>
 using TFunction = std::function<T>;

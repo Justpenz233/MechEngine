@@ -4,9 +4,10 @@
 
 #pragma once
 #include "Core/CoreMinimal.h"
-#include "ActorComponent.h"
 #include "RenderingComponent.h"
 #include "Mesh/StaticMesh.h"
+
+class Material;
 
 enum StaticMeshDirtyTag: unsigned int
 {
@@ -40,7 +41,9 @@ public:
 
 	inline static FColor DefalutColor = Vector3d(0.8, 0.8, 0.8);   //  1: Light Gray
 
+	MPROPERTY()
 	ObjectPtr<StaticMesh> MeshData;
+
 	ObjectPtr<StaticMesh> CollisionMesh;
 
 	FORCEINLINE virtual void MarkAsDirty(StaticMeshDirtyTag InTag);

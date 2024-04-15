@@ -38,9 +38,9 @@ public:
 
 	virtual void UpdateCamera(CameraComponent* InCamera) override;
 
-	virtual void AddLight(LightComponent* InLight, TransformComponent* InTransform) override {}
+	virtual void AddLight(LightComponent* InLight, TransformComponent* InTransform) override;
 
-	virtual void UpdateLight(LightComponent* InLight) override {}
+	virtual void UpdateLight(LightComponent* InLight) override;
 
 	// This function should belong to the CameraComponent or Views, but currently we have only one camera
 	virtual Matrix4d GetViewMatrix() override;
@@ -63,6 +63,9 @@ protected:
 	// We only have one camera
 	CameraComponent* MainCamera = nullptr;
 	TransformComponent* CameraTransform = nullptr;
+
+	LightComponent* MainLight = nullptr;
+	TransformComponent* LightTransform = nullptr;
 
 	THashSet<TransformComponent*> DirtyTransforms;
 

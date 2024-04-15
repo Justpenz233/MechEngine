@@ -12,7 +12,6 @@ class LightSceneProxy;
 }
 
 MCLASS(LightComponent)
-
 class LightComponent : public RenderingComponent
 {
 	friend class LightProxyBatch;

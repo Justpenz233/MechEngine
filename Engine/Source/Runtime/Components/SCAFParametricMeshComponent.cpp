@@ -29,7 +29,6 @@ using Ray     = bvh::v2::Ray<Scalar, 3>;
 
 SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh) : ParametricMeshComponent()
 {
-	InitMesh->Normlize();
 	MatrixX3d& V = InitMesh->verM;
 	MatrixX3i& F = InitMesh->triM;
 
@@ -49,6 +48,8 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	igl::doublearea(V, F, M);
 	std::vector<std::vector<int>> all_bnds;
 	igl::boundary_loop(F, all_bnds);
+
+	ASSERTMSG(!all_bnds.empty(), "no boundary found, the mesh should have at least one boundary");
 
 	// Heuristic primary boundary choice: longest
 	auto primary_bnd = std::max_element(all_bnds.begin(), all_bnds.end(), [](const std::vector<int> &a, const std::vector<int> &b) { return a.size()<b.size(); });
@@ -84,10 +85,10 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	igl::triangle::SCAFData scaf_data;
 
 	Eigen::VectorXi b; Eigen::MatrixXd bc;
-	igl::triangle::scaf_precompute(V, F, uv_init, scaf_data, igl::MappingEnergyType::SYMMETRIC_DIRICHLET, b, bc, 0);
+	igl::triangle::scaf_precompute(V, F, uv_init, scaf_data, igl::MappingEnergyType::LOG_ARAP, b, bc, 0);
 
 	// Solve the SCAF
-	igl::triangle::scaf_solve(scaf_data, 100);
+	igl::triangle::scaf_solve(scaf_data, 200);
 
 	// Plot the mesh
 

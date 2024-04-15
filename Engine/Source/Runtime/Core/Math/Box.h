@@ -38,6 +38,8 @@ struct TBox
 
 	explicit TBox(const std::vector<Vector3<T>>& Points)
 	{
+		Min = Vector3<T>::Constant(std::numeric_limits<T>::max());
+		Max = Vector3<T>::Constant(std::numeric_limits<T>::min());
 		for (auto& i : Points)
 		{
 			*this += i;
@@ -46,6 +48,8 @@ struct TBox
 
 	explicit TBox(const Eigen::MatrixX3d &Points)
 	{
+		Min = Vector3<T>::Constant(std::numeric_limits<T>::max());
+		Max = Vector3<T>::Constant(std::numeric_limits<T>::min());
 		for (int i = 0; i < Points.rows(); i++)
 		{
 			*this += Points.row(i);
