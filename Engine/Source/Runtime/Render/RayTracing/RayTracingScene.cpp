@@ -140,16 +140,17 @@ void RayTracingScene::Render()
 				// calculate light color, the light need to do polymorphically dispatch as material
 				auto light_data = LightProxy->get_light_data(0);
 				auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();
-				auto light_color = light_data.linear_color / distance_squared(light_pos, intersection.position_world);
+				auto light_color = light_data.linear_color * light_data.intensity
+				/ distance_squared(light_pos, intersection.position_world);
 
 				// calculate mesh color
-				auto light_dir = intersection.position_world - light_pos;
+				auto light_dir = light_pos - intersection.position_world;
 				auto view_dir = -ray->direction();
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 				Float3 mesh_color;
 				MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
 					[&](const material_base* material) {
-					mesh_color = material->evaluate(material_data, intersection, view_dir, light_dir);
+					mesh_color = material->shade(material_data, intersection, view_dir, light_dir);
 				});
 
 				// combine light and mesh color
@@ -213,7 +214,8 @@ ray_intersection RayTracingScene::intersect(const Var<Ray>& ray) const noexcept
 		it.primitive_id = TriangleId;
 		it.position_world = p;
 		it.triangle_normal_world = normal_world;
-		it.vertex_normal_world = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
+		it.vertex_normal_local = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
+		it.vertex_normal_world = normalize(m * it.vertex_normal_local);
 		it.depth = length(p - ray->origin());
 		it.back_face = dot(normal_world, ray->direction()) > 0.f;
 		it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;

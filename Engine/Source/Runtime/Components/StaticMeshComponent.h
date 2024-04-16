@@ -14,7 +14,6 @@ enum StaticMeshDirtyTag: unsigned int
 	DIRTY_NONE       = 0x0000,
 	DIRTY_RENDERDATA = 0x0001,   // Render Data dirty, need upload
 	DIRTY_REMESH       = 0x0010, // Property dirty, need remesh
-	DIRTY_MATERIAL       = 0x0100, // Property dirty, need remesh
 	DIRTY_ALL        = 0xFFFF
 };
 
@@ -58,8 +57,6 @@ public:
 
 	void SetVisible(bool InVisible);
 	FORCEINLINE bool IsVisible() const;
-
-	void SetMeshNormal(const MeshNormalOption& Option);
 
 	// Upload raw data to renderer
 	// Will be called when marked as DIRTY_RENDERDATA

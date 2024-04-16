@@ -35,9 +35,6 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	// Scale in case the model is too small or too large
 	SetMeshData(std::move(InitMesh));
 
-	// Use vertex normal
-	MeshData->SetupNormal(PerVertexNormal);
-
 	Vertices = V;
 	Indices = F;
 	Triangles.resize(F.rows());

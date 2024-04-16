@@ -62,7 +62,6 @@ void StaticCurveComponent::Remesh()
 	if (DrawMode == AsMesh)
 	{
 		MeshData = GenerateCurveMesh();
-		MeshData->SetupNormal(PerVertexNormal);
 	}
 }
 void StaticCurveComponent::PostEdit(Reflection::FieldAccessor& Field)

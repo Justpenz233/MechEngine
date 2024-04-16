@@ -31,7 +31,39 @@ class Material final : public Object
 {
 	REFLECTION_BODY(Material)
 public:
-	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);   //  1: Light Gray
+	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);//Light Gray
+
+	MPROPERTY()
+	MaterialMode Mode = BlinnPhong;
+
+	MPROPERTY()
+	NormalMode NormalType = VertexNormal;
+
+	/**
+	 * Base color is used as diffuse color for non-metallic materials
+	 * and as the specular color for metallic materials(because metal have no diffuse)
+	 */
+	MPROPERTY()
+	FLinearColor BaseColor = DefalutColor;
+
+	/**
+	 * Specular tint is used to tint the specular reflection.
+	 * This property is not physical based, but it's useful for artistic control.
+	 */
+	MPROPERTY()
+	FLinearColor SpecularTint = {1.0f, 1.0f, 1.0f};
+
+	/**
+	 * Metalness is used to control the balance between diffuse and specular reflection.
+	 * As math: specular_color = lerp(0.04, BaseColor, Metalness)
+	 * 0.04: The default specular reflection of non-metallic materials is 4%.
+	 * @see https://blog.selfshadow.com/publications/s2015-shading-course/hoffman/s2015_pbs_physics_math_slides.pdf
+	 */
+	MPROPERTY()
+	float Metalness = 0.0f;
+
+	MPROPERTY()
+	float Roughness = 0.5f;
 
 	Material();
 
@@ -43,21 +75,6 @@ public:
 	 * Should be called affter modifying the material properties.
 	 */
 	FORCEINLINE void UpdateMaterial();
-
-	MPROPERTY()
-	MaterialMode Mode = BlinnPhong;
-
-	MPROPERTY()
-	NormalMode NormalType = VertexNormal;
-
-	MPROPERTY()
-	FLinearColor Diffuse = DefalutColor;
-
-	MPROPERTY()
-	FLinearColor Specular = DefalutColor;
-
-	MPROPERTY()
-	float Metalness = 0.0f;
 
 	static ObjectPtr<Material> DefaultMaterial();
 
@@ -77,8 +94,8 @@ inline Material::Material(const Material& Other)
  : Object(Other) {
 	Mode = Other.Mode;
 	NormalType = Other.NormalType;
-	Diffuse = Other.Diffuse;
-	Specular = Other.Specular;
+	BaseColor = Other.BaseColor;
+	SpecularTint = Other.SpecularTint;
 	Metalness = Other.Metalness;
 	RegisterMaterial();
 }

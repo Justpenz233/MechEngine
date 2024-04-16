@@ -309,34 +309,14 @@ void StaticMesh::SetColor(const FColor& Color)
 	colM.row(0) = Color;
 }
 
-void StaticMesh::SetupNormal(const MeshNormalOption& Option)
-{
-	NormalOption = Option;
-	CalcNormal();
-}
-
 void StaticMesh::CalcNormal()
 {
-	if(NormalOption == PerFaceNormal)
-		igl::per_face_normals_stable(verM, triM, norM);
-	if(NormalOption == PerVertexNormal)
-	 	igl::per_vertex_normals(verM, triM, norM);
-	if(NormalOption == PerCornerNormal)
-		igl::per_corner_normals(verM, triM, 20, norM);
-	igl::per_vertex_normals(verM, triM, VertexNormal);
+	igl::per_vertex_normals(verM, triM, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE, VertexNormal);
 }
 
 bool StaticMesh::CheckNormalValid() const
 {
-	if (VertexNormal.rows() != verM.rows())
-		return false;
-	if (NormalOption == PerFaceNormal)
-		return norM.rows() == triM.rows();
-	if (NormalOption == PerVertexNormal)
-		return norM.rows() == verM.rows();
-	if (NormalOption == PerCornerNormal)
-		return norM.rows() == triM.rows() * 3;
-	return false;
+	return VertexNormal.rows() == verM.rows();
 }
 
 void StaticMesh::ReverseNormal()
@@ -394,6 +374,39 @@ void StaticMesh::RemoveFaces(const TArray<int>& FaceIndices)
 		triM.row(FaceIndex) = triM.row(triM.rows() - 1);
 		triM.conservativeResize(triM.rows() - 1, 3);
 	}
+}
+
+ObjectPtr<StaticMesh> StaticMesh::SubMesh(const TArray<int>& FaceIndices)
+{
+	MatrixX3d NewVerM;
+	MatrixX3i NewTriM;
+	THashSet<int> VertexSet;
+	for (int FaceIndex : FaceIndices)
+	{
+		VertexSet.insert(triM(FaceIndex, 0));
+		VertexSet.insert(triM(FaceIndex, 1));
+		VertexSet.insert(triM(FaceIndex, 2));
+	}
+	THashMap<int, int> VertexMap;
+	int Index = 0;
+	for (int VertexIndex : VertexSet)
+	{
+		VertexMap[VertexIndex] = Index;
+		Index++;
+	}
+	NewVerM.resize(VertexSet.size(), 3);
+	for (auto& [VertexIndex, NewIndex] : VertexMap)
+	{
+		NewVerM.row(NewIndex) = verM.row(VertexIndex);
+	}
+	NewTriM.resize(FaceIndices.size(), 3);
+	for (int i = 0; i < FaceIndices.size(); i++)
+	{
+		NewTriM(i, 0) = VertexMap[triM(FaceIndices[i], 0)];
+		NewTriM(i, 1) = VertexMap[triM(FaceIndices[i], 1)];
+		NewTriM(i, 2) = VertexMap[triM(FaceIndices[i], 2)];
+	}
+	return NewObject<StaticMesh>(NewVerM, NewTriM);
 }
 
 void StaticMesh::Clear()

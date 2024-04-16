@@ -140,7 +140,6 @@ void ParametricSurfaceComponent::Triangular() {
             MeshData->triM.row(TriangleIndex ++) = Vector3i{RightTop + VertexNum, Right + VertexNum, Right};
         }
     }
-    MeshData->SetupNormal(PerCornerNormal);
     assert(SupossedTriangleNum == TriangleIndex);
 }
 

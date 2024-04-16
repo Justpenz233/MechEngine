@@ -11,14 +11,6 @@ DECLARE_MULTICAST_DELEGATE(FOnMaterialUpdate);
 // Change to a new material
 DECLARE_MULTICAST_DELEGATE(FOnMaterialChange);
 
-// DEPRECATED, should move into material
-enum MeshNormalOption
-{
-	PerFaceNormal,    // Automatically calculated
-	PerVertexNormal,  // Automatically calculated
-	PerCornerNormal  // Automatically calculated
-};
-
 class Material;
 /**
  * StaticMesh is a data container of geometry, which stored in model space.
@@ -79,12 +71,6 @@ public:
 	void SetColor(const FColor& Color);
 
 	/**
-	 * Set and calc the normal as the normal option
-	 * @param Option Normal option of the mesh
-	 */
-	void SetupNormal(const MeshNormalOption& Option);
-
-	/**
 	 * Explict calculate the normal of the mesh
 	 * Should called when the mesh is modified
 	 */
@@ -125,6 +111,13 @@ public:
 	 * @param FaceIndices Indices of the faces to be deleted
 	 */
 	void RemoveFaces(const TArray<int>& FaceIndices);
+
+	/**
+	 * Submesh the mesh with given face indices
+	 * @param FaceIndices Indices of the faces to be submeshed
+	 * @return Submesh containing the given faces
+	 */
+	ObjectPtr<StaticMesh> SubMesh(const TArray<int>& FaceIndices);
 
 	/**
 	 * Remove the isolated vertices of the mesh(not used in any face)
@@ -203,7 +196,6 @@ protected:
 	ObjectPtr<Material> MaterialData; // Material of the mesh
 
 	FBox BoundingBox; // Bounding box of the mesh
-	MeshNormalOption  NormalOption = PerCornerNormal;   // Normal option
 	FORCEINLINE void UpdateBoundingBox();
 	FORCEINLINE void OnGeometryUpdate();
 };

@@ -69,12 +69,6 @@ void StaticMeshComponent::SetVisible(bool InVisible)
 	bVisible = InVisible;
 }
 
-void StaticMeshComponent::SetMeshNormal(const MeshNormalOption& Option)
-{
-	MeshData->SetupNormal(Option);
-	MarkAsDirty(DIRTY_RENDERDATA);
-}
-
 void StaticMeshComponent::UploadRenderingData()
 {
 	if(MeshData != nullptr && !MeshData->IsEmpty())

@@ -30,6 +30,7 @@ namespace MechEngine::Rendering
 	{
 		Float3 position_world;
 		Float3 triangle_normal_world;
+		Float3 vertex_normal_local;
 		Float3 vertex_normal_world;
 		Float depth;
 		Float2 uv;
