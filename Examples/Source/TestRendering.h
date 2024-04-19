@@ -26,6 +26,8 @@ inline auto TestRendering()
 		auto Cow = StaticMesh::LoadFromObj(Path("spot.obj"));
 		Cow->Normlize();
 
+		// auto Cow = BasicShapesLibrary::GenerateSphere(0.5);
+
 		auto Ball = world.SpawnActor<StaticMeshActor>("Point",
 			BasicShapesLibrary::GenerateSphere(0.04f));
 		Ball->SetTranslation({0., 0., 1.});
@@ -34,7 +36,7 @@ inline auto TestRendering()
 		CowActor->SetTranslation({0, 0, -0.1});
 		CowActor->SetRotation({M_PI_2, 0., 0.});
 
-		static bool LightMotion = false;
+		static bool LightMotion = true;
 		world.AddWidget<LambdaUIWidget>([=]() {
 			auto ScreenPos = Camera->GetCameraComponent()->Project(Ball->GetTranslation());
 			auto ClipSpace = Camera->GetCameraComponent()->ProjectClipSpace(Ball->GetTranslation());

@@ -43,6 +43,7 @@ void CameraSceneProxy::UploadDirtyData(Stream& stream)
 	if(!CameraComponent)
 	{
 		LOG_ERROR("No valid Camera in scene, raytracing will not work");
+		exit(0);
 		return;
 	}
 	if (bDirty)

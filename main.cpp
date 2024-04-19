@@ -9,6 +9,5 @@ int main(int argc, char *argv[])
 {
     GEditor.Init(argv[0], PROJECT_DIR);
 	GEditor.LoadWorld(TestRendering());
-	// GEditor.LoadWorld(MeshFittingMain());
     GEditor.Start();
 }

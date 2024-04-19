@@ -4,6 +4,8 @@
 
 #pragma once
 #include "material_base.h"
+#include "shading_function.h"
+
 namespace MechEngine::Rendering
 {
 	class blinn_phong_material : public material_base
@@ -15,11 +17,15 @@ namespace MechEngine::Rendering
 			auto normal = material_data.normal;
 			auto half_dir = normalize(light_dir + view_dir);
 			auto diffuse = material_data.base_color * (1.f - material_data.metalness);
-			diffuse = max(dot(normal, light_dir), 0.f) * diffuse;
-			auto specular = lerp(make_float3(0.04), material_data.base_color, material_data.metalness) * material_data.specular_tint;
+
+			// calc specular based on fresnel schlick and blinn-phong
+			auto f0 = lerp(make_float3(0.04), material_data.base_color, material_data.metalness);
+			auto f = fresnel_schlick(dot(view_dir, normal), f0);
+
 			auto shininess = 100.f / (200.f * material_data.roughness + 0.01f);
-			specular = pow(max(dot(normal, half_dir), 0.f), shininess) * specular;
-			return specular + diffuse;
+			auto specular = pow(max(dot(normal, half_dir), 0.f), shininess) * material_data.specular_tint;
+
+			return diffuse * (1.f - f) + specular * f;
 		}
 	};
 }

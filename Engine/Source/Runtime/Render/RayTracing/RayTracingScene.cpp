@@ -144,7 +144,7 @@ void RayTracingScene::Render()
 				/ distance_squared(light_pos, intersection.position_world);
 
 				// calculate mesh color
-				auto light_dir = light_pos - intersection.position_world;
+				auto light_dir = normalize(light_pos - intersection.position_world);
 				auto view_dir = -ray->direction();
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 				Float3 mesh_color;
@@ -154,7 +154,7 @@ void RayTracingScene::Render()
 				});
 
 				// combine light and mesh color
-				auto color = mesh_color * light_color;
+				auto color = mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
 				frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
 			}
 			$else
