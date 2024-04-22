@@ -3,14 +3,15 @@
 #include "Object/Object.h"
 
 
-CurveActor::CurveActor(String CurveFilePath)
-{
-    CurveComponent = AddComponent<StaticCurveComponent>(CurveFilePath);
-}
-
 CurveActor::CurveActor(ObjectPtr<Curve> CurveData)
 {
     CurveComponent = AddComponent<StaticCurveComponent>(CurveData);
+}
+
+CurveActor::CurveActor(TArray<FVector> CurveData)
+{
+	auto CurveObject = NewObject<Curve>(CurveData);
+	CurveComponent = AddComponent<StaticCurveComponent>(CurveObject);
 }
 
 CurveActor::CurveActor(TArray<FVector> CurveData, bool bClosed)

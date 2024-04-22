@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <igl/exact_geodesic.h>
+
 #include "StaticMeshComponent.h"
 
 /**
@@ -108,7 +110,26 @@ public:
 
 	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const
 	{
-		ASSERTMSG(false, "Not implemented");
-		return {};
+		auto FindNearestTriangle = [&](const FVector& Pos) {
+			double Distance = std::numeric_limits<double>::max();
+			int Best = 0;
+			for (int i = 0;i < MeshData->triM.rows();i ++)
+			{
+				FVector V0 = MeshData->verM.row(MeshData->triM(i, 0));
+				FVector V1 = MeshData->verM.row(MeshData->triM(i, 1));
+				FVector V2 = MeshData->verM.row(MeshData->triM(i, 2));
+				FVector Center = (V0 + V1 + V2) / 3.;
+				if (double CD = (Center - Pos).norm(); Distance > CD)
+				{
+					Distance = CD;
+					Best = i;
+				}
+			}
+			return Best;
+		};
+		int StartTriIndex = FindNearestTriangle(Start);
+		int EndTriIndex = FindNearestTriangle(End);
+		return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
+				StartTriIndex, EndTriIndex);;
 	}
 };

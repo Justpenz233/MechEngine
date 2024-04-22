@@ -37,6 +37,7 @@ public:
     StaticCurveComponent(String FilePath = "");
     StaticCurveComponent(ObjectPtr<Curve>);
 
+	virtual void Init() override;
     virtual void UploadRenderingData() override;
 	virtual void Remesh() override;
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
@@ -50,8 +51,6 @@ public:
     FVector SampleIndex(int Index) const { return CurveData->SampleIndex(Index); }
     FVector& operator [] (int Index) { return CurveData->operator[](Index); }
 
-	const TArray<FVector>& GetCurveData() const { return CurveData->GetData();}
-    
     template<class T>
     double CalcSimilarity(ObjectPtr<T> Others);
 };

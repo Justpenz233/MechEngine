@@ -5,71 +5,44 @@
 #pragma once
 #include "Core/CoreMinimal.h"
 #include "Object/Object.h"
-#include <cmath>
 #include <fstream>
-#include <limits>
+#include "Misc/Path.h"
 
 class Curve: public Object
 {
 protected:
+	bool bClosed{};
     String FilePath;
-    int Num;
     TArray<FVector> Lines;
 
 public:
-    bool bClosed;
+	Curve() = default;
 
-    Curve(String InFilePath = "") : FilePath(InFilePath) 
-    {
-        if(InFilePath != "")
-        {
-            ReadFromPath(InFilePath);
-        }
-    }
+	explicit Curve(const TArray<FVector>& InLines);
 
-    Curve(const TArray<FVector>& InLines, bool InClosed): bClosed(InClosed) { SetCurveData(InLines); }
-    
-    int GetPointsNum() {return Lines.size(); }
-    int GetEdgeNum() {return Lines.size(); }
+	explicit Curve(const TArray<FVector>& InLines, bool InClosed);
 
-    bool ReadFromPath(String InFilePath = "") 
-    {
-        if(InFilePath == "") InFilePath = FilePath;
-        std::ifstream File(InFilePath);
-        if(!File.good()){
-            LOG_ERROR("Open curve file: {0} failed", InFilePath);
-            return false;
-        }
-        else
-        {
-            File >> Num;
-            for(int i = 1;i <= Num;i ++)
-            {
-                FVector NewPoint;
-                File >> NewPoint[0] >> NewPoint[1] >> NewPoint[2];
-                if(i != Num && File.eof())
-                {
-                    LOG_ERROR("Curve file {0} format error, reach EOF early.", InFilePath);
-                    Lines.clear();
-                    return false;
-                }
-                Lines.push_back(NewPoint);
-            }
-            File.close();
-        }
-        return true;
-    }
 
-    inline FVector Sample(double u) const
+	FORCEINLINE int Num() const { return Lines.size(); }
+    FORCEINLINE int GetPointsNum() const { return Lines.size(); }
+    FORCEINLINE int GetEdgeNum() const { return bClosed ? Lines.size() : Lines.size() - 1; }
+	FORCEINLINE bool IsClosed() const { return bClosed; }
+
+	void SetCurveData(const TArray<FVector>& InLines);
+
+    bool ReadFromPath(const Path& InFilePath);
+
+	virtual FVector Sample(double u) const
     {
         ASSERTMSG(u <= 1., "Sample U: {0} out of bounds", u);
-        int Index = u * (Num - 1);
-        int NextIndex = std::min(Index + 1, Num - 1);
-        double u0 = u * (Num - 1) - Index;
+		int N = Num();
+        int Index = u * (N - 1);
+        int NextIndex = (Index + 1 == N ? (bClosed ? 0 : N - 1) : Index + 1);
+        double u0 = u * (N - 1) - Index;
         return Lines[Index] * (1. - u0) + Lines[NextIndex] * u0;
     }
 
-    FVector SampleTangent(double u) const
+	virtual FVector SampleTangent(double u) const
     {
         ASSERTMSG(u <= 1., "Sample U: {0} out of bounds", u);
         double u1 = std::clamp(u + 0.001, 0., 1.);
@@ -77,19 +50,19 @@ public:
         return (Sample(u1) - Sample(u2)).normalized();
     }
 
-    FVector SampleNormal(double u) const
+    virtual FVector SampleNormal(double u) const
     {
         ASSERTMSG(u <= 1., "Sample U: {0} out of bounds", u);
         return SampleTangent(u).cross(Sample(u)).normalized();
     }
 
-    inline FVector SampleIndex(int Index) const
+    FORCEINLINE FVector SampleIndex(int Index) const
     {
         ASSERTMSG(Index < Lines.size(), "Sample index out of bounds");
         return Lines[Index]; 
     }
 
-    FVector SampleTangentIndex(int Index) const
+    FORCEINLINE FVector SampleTangentIndex(int Index) const
     {
         ASSERTMSG(Index < Lines.size(), "Sample index out of bounds");
         if(Index == Lines.size() - 1)
@@ -97,7 +70,7 @@ public:
         return (Lines[(Index + 1) % Lines.size()] - Lines[Index]).normalized();
     }
 
-    FVector SampleNormalIndex(int Index) const
+    FORCEINLINE FVector SampleNormalIndex(int Index) const
     {
         ASSERTMSG(Index < Lines.size(), "Sample index out of bounds");
         if(Index == Lines.size() - 1)
@@ -105,17 +78,17 @@ public:
         return ((Lines[(Index + 1) % Lines.size()] - Lines[Index]).cross(Lines[Index])).normalized();
     }
 
-    void SetCurveData(const TArray<FVector>& InLines)
-    {
-	    Lines = InLines;
-    	Num = Lines.size();
-    }
+    FORCEINLINE FVector& operator [] (int Index) { return Lines[Index]; }
 
-    const TArray<FVector>& GetData(){ return Lines; }
+    FORCEINLINE bool IsValid() const { return GetPointsNum() > 0; }
 
-    FVector& operator [] (int Index) { return Lines[Index]; }
-
-    bool IsValid() { return GetPointsNum() > 0; }
+	/**
+	 * Calculate the the minimum distance between two curves
+	 * O(N*M) slow
+	 * @param Other
+	 * @return
+	 */
+	double Distance(const Curve& Other) const;
 
     template<class CurveType>
     double CalcSimilarity(ObjectPtr<CurveType> Others)

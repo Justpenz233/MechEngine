@@ -172,7 +172,7 @@ FVector ParametricSurfaceComponent::GetRulingLineDir() const
     return SampleThickness(0., 1., 0.) - SampleThickness(0., 0., 0.);
 }
 
-TArray<FVector> ParametricSurfaceComponent::GeodicShortestPath(const FVector& Start, const FVector& End) const
+TArray<FVector> ParametricSurfaceComponent::UVPath(const FVector& Start, const FVector& End) const
 {
 	FVector2 EndUV = SurfaceData->Projection(End);
 	FVector2 StartUV = SurfaceData->Projection(Start);

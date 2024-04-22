@@ -44,10 +44,20 @@ public:
 
     ~ParametricMeshActor() {};
 
+	FORCEINLINE bool ValidUV(const FVector2& UV) const
+	{
+		return SurfaceComponent->ValidUV(UV[0], UV[1]);
+	}
+
 	FORCEINLINE virtual bool ValidUV(double u, double v) const
 	{
 		return SurfaceComponent->ValidUV(u, v);
 	}
+
+	FORCEINLINE FVector Sample(const FVector2& UV)
+    {
+        return GetTransform() * SurfaceComponent->Sample(UV[0], UV[1]);
+    }
 
     FORCEINLINE FVector Sample(double u, double v)
     {

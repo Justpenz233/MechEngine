@@ -66,7 +66,13 @@ private:
 
 FORCEINLINE FVector SCAFParametricMeshComponent::Sample(double U, double V) const
 {
-	return SampleHit(U, V).Position;
+	// The SCAFP UV space is a torus, so U could be negative or greater than 1, normalize first
+	if(U > 1.) U -= 1.; if(U < 0.) U += 1.;
+	auto Hit = SampleHit(U, V);
+	if(Hit.Valid)
+		return SampleHit(U, V).Position;
+	else
+		return FVector::Zero();
 }
 
 FORCEINLINE bool SCAFParametricMeshComponent::ValidUV(double U, double V) const

@@ -60,12 +60,12 @@ public:
 	FORCEINLINE virtual FVector2 Projection(const FVector& Point) const override;
 
 	/**
-	 * Geodic Shortest Path, in practice, we assume UV shortest equivalent to 3D shortest
+	 * A UV Path, direct path from Start to End
 	 * @param Start Path Start Point
 	 * @param End Path End Point
 	 * @return A list of points that represent the shortest path from Start to End
 	 */
-	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const override;
+	TArray<FVector> UVPath(const FVector& Start, const FVector& End) const;
 
 	virtual void Remesh() override;
     /// Triangular this surface 
