@@ -3,21 +3,34 @@
 #include "Core/CoreMinimal.h"
 #include "Game/Actor.h"
 
+MCLASS(CameraActor)
 class CameraActor : public Actor
 {
+    REFLECTION_BODY(CameraActor)
 public:
     CameraActor();
-    ~CameraActor();
 
-    CameraComponent* GetCameraComponent() const;
+    FORCEINLINE CameraComponent* GetCameraComponent() const;
 
 	virtual void BeginPlay() override;
 
 private:
 
-    void MouseLeftDragRotation(Vector2f StartPos, Vector2f Delta);
+    MPROPERTY()
+    float TranslationSpeed = 0.02f; // Translation speed in world space unit
 
-	void MouseRightDragTranslation(Vector2f StartPos, Vector2f Delta);
+    void MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta);
 
-    CameraComponent* Camera;
+	void MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta);
+
+    void MouseWheelZoom(FVector2 Delta);
+
+    void KeyPressedEvent(int Key);
+
+    CameraComponent* Component;
 };
+
+FORCEINLINE CameraComponent* CameraActor::GetCameraComponent() const
+{
+    return Component;
+}

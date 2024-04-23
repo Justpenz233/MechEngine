@@ -75,10 +75,12 @@ public:
 	/**
 	 * Project clip space to world space
 	 * @see https://smiling-calcium-8e1.notion.site/Projection-transform-739348862c1248bf978af8121375d7b8?pvs=4
-	 * @param ClipPos Position in clip space
+	 * @param NormalClipPos Normalized position in clip space
 	 * @return Position in world space
 	 */
-	FORCEINLINE FVector UnProject(const Vector4d& ClipPos) const;
+	// FORCEINLINE FVector UnProject(const Vector4d& ClipPos) const;
+	FORCEINLINE FVector UnProject(const FVector& NormalClipPos) const;
+
 
 protected:
 	virtual void UploadRenderingData() override;
@@ -98,13 +100,6 @@ FORCEINLINE FMatrix4 CameraComponent::GetViewMatrix() const
 FORCEINLINE FMatrix4 CameraComponent::GetProjectionMatrix() const
 {
 	FMatrix4 Proj = FMatrix4::Zero();
-	// float f = 1.0f / std::tan(DegToRad(FovH) * 0.5f);
-	// Proj(0, 0) = f;
-	// Proj(1, 1) = f * GetAspectRatio();
-	// Proj(2, 2) = 100.0f / (100.0f - 1.f);
-	// Proj(2, 3) = -1.0f * 100.0f / (100.f - 1.f);
-	// Proj(3, 2) = 1.0f;
-
 	float f = 1.0f / std::tan(DegToRad(FovH) * 0.5f);
 	Proj(0, 0) = f;
 	Proj(1, 1) = f * GetAspectRatio();
@@ -126,7 +121,8 @@ FORCEINLINE FVector CameraComponent::Project(const FVector& Pos) const
 	return ScreenPos.w() == 0.? ScreenPos.head(3) : (ScreenPos.head(3) / ScreenPos.w()).eval();
 }
 
-FORCEINLINE FVector CameraComponent::UnProject(const Vector4d& ClipPos) const
+FORCEINLINE FVector CameraComponent::UnProject(const FVector& ClipPos) const
 {
-	return ((GetProjectionMatrix() * GetViewMatrix()).inverse() * ClipPos).head(3);
+	auto Pos = (GetProjectionMatrix() * GetViewMatrix()).inverse() * FVector4{ClipPos.x(), ClipPos.y(), ClipPos.z(), 1.};
+	return Pos.head(3) / Pos.w();
 }

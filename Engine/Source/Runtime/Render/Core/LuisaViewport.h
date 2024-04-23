@@ -26,13 +26,13 @@ public:
 
 	virtual std::pair<uint, uint> GetWindowSize() const override
 	{
-		auto Size = ImGui::GetIO().DisplaySize;
+		auto Size = ImGui::GetMainViewport()->Size;
 		return {static_cast<uint>(Size.x), static_cast<uint>(Size.y)};
 	}
 
 	virtual float GetAspectRatio() const override
 	{
-		auto Size = ImGui::GetIO().DisplaySize;
+		auto Size = ImGui::GetMainViewport()->Size;
 		return Size.x / Size.y;
 	}
 

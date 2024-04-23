@@ -38,13 +38,24 @@ inline auto TestRendering()
 
 		static bool LightMotion = true;
 		world.AddWidget<LambdaUIWidget>([=]() {
-			auto ScreenPos = Camera->GetCameraComponent()->Project(Ball->GetTranslation());
-			auto ClipSpace = Camera->GetCameraComponent()->ProjectClipSpace(Ball->GetTranslation());
-			auto UnprojectPos = Camera->GetCameraComponent()->UnProject(ClipSpace);
+			auto NormalClipSpace = Camera->GetCameraComponent()->Project(Ball->GetTranslation());
+			auto UnprojectPos = Camera->GetCameraComponent()->UnProject(NormalClipSpace);
 			ImGui::Begin("Test");
-			ImGui::Text("Point Position: (%.2f, %.2f, %.2f)", Ball->GetTranslation().x(), Ball->GetTranslation().y(), Ball->GetTranslation().z());
-			ImGui::Text("Screen Position: (%.2f, %.2f, %.2f)", ScreenPos.x(), ScreenPos.y(), ScreenPos.z());
+			ImGui::Text("World Position: (%.2f, %.2f, %.2f)", Ball->GetTranslation().x(), Ball->GetTranslation().y(), Ball->GetTranslation().z());
+			ImGui::Text("Clip Space Position: (%.2f, %.2f, %.2f)", NormalClipSpace.x(), NormalClipSpace.y(), NormalClipSpace.z());
 			ImGui::Text("Unproject Position: (%.2f, %.2f, %.2f)", UnprojectPos.x(), UnprojectPos.y(), UnprojectPos.z());
+			ImGui::NewLine();
+
+			FVector2 MousePos = {ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y};
+			FVector2 ViewportPos = world.GetViewport()->ScreenToViewport(MousePos);
+			ImGui::Text("ViewportPos Position: (%.2f, %.2f)", ViewportPos.x(), ViewportPos.y());
+
+			FVector2 NDCPos = world.GetViewport()->ViewportToNDC(ViewportPos);
+			ImGui::Text("NDC Space: (%.2f, %.2f, %.2f, %.2f)", NDCPos.x(), NDCPos.y(), NormalClipSpace.z(), 1.);
+
+			FVector MouseUP = Camera->GetCameraComponent()->UnProject({NDCPos.x(), NDCPos.y(), NormalClipSpace.z()});
+			ImGui::Text("Mouse UnProject: (%.2f, %.2f, %.2f,)", MouseUP.x(), MouseUP.y(), MouseUP.z());
+
 			ImGui::Toggle("Light Motion", &LightMotion);
 			ImGui::End();
 		});

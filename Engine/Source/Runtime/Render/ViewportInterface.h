@@ -12,9 +12,12 @@ class RenderPipeline;
 class UIWidget;
 class World;
 
-DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonDrag, Vector2f, Vector2f);
-DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseRightButtonDrag, Vector2f, Vector2f);
-
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonDrag, FVector2, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonDown, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonUp, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseRightButtonDrag, FVector2, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseScroll, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnKeyPressed, int);
 /**
  * An interface for a viewport.
  * Viewport is belong to the renderer. It should be responsible for rendering the UI and handle the input event.
@@ -92,6 +95,38 @@ public:
 	 */
 	virtual void PostFrame() { }
 
+
+
+
+public:
+	/**
+	 * Calculate the position relative to the viewport(app window), measured in pixels
+	 * @param ScreenPos The mouse position in screen(monitor) space in pixels
+	 * @return The position in viewport space
+	 */
+	[[nodiscard]] virtual FVector2 ScreenToViewport(const FVector2& ScreenPos) const;
+
+
+	/**
+	 * Convert viewport position to normalized device coordinates(NDC) space, which is the range of [-1, 1]^2
+	 * Not clamped if the viewport position is out of the viewport
+	 * @param ViewportPos The position in viewport space
+	 * @return The position in NDC space
+	 */
+	[[nodiscard]] virtual FVector2 ViewportToNDC(const FVector2& ViewportPos) const;
+
+	/**
+	 * Convert screen position to normalized device coordinates(NDC) space, which is the range of [-1, 1]^2
+	 * Not clamp if the screen position is out of the viewport
+	 * @param ScreenPos The mouse position in screen(monitor) space in pixels
+	 * @return The position in NDC space
+	 */
+	[[nodiscard]] virtual FVector2 ScreenToNDC(const FVector2& ScreenPos) const
+	{
+		return ViewportToNDC(ScreenToViewport(ScreenPos));
+	}
+
+
 	virtual void HandleInput()
 	{
 		HandleMouseInput();
@@ -105,7 +140,10 @@ public:
 
 	OnMouseLeftButtonDrag MouseLeftButtonDragEvent;
 	OnMouseRightButtonDrag MouseRightButtonDragEvent;
-
+	OnMouseLeftButtonDown MouseLeftButtonDownEvent;
+	OnMouseLeftButtonUp MouseLeftButtonUpEvent;
+	OnMouseScroll MouseScrollEvent;
+	OnKeyPressed KeyPressedEvent;
 protected:
 
 	virtual void HandleMouseInput();
