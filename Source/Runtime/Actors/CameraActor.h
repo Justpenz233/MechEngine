@@ -17,15 +17,19 @@ public:
 private:
 
     MPROPERTY()
-    float TranslationSpeed = 0.02f; // Translation speed in world space unit
+    float RotationSpeed = 1.f;
+
+    MPROPERTY()
+    float TranslationSpeed = 1.f;
+
+    MPROPERTY()
+    FVector FocusCenter = {0., 0., 0.};
 
     void MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta);
 
 	void MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta);
 
     void MouseWheelZoom(FVector2 Delta);
-
-    void KeyPressedEvent(int Key);
 
     CameraComponent* Component;
 };
