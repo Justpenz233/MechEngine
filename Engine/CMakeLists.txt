@@ -1,3 +1,0 @@
-set(ENGINE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(ENGINE_SOURCE_DIR ${ENGINE_ROOT_DIR}/Source)
-add_subdirectory(Source/)

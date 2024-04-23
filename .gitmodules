@@ -1,6 +1,6 @@
 [submodule "BuildTool"]
-	path = BuildTool
+	path = Source/BuildTool
 	url = https://github.com/Justpenz233/CPPReflection.git
 [submodule "Engine/3rd/luisa-compute"]
-	path = Engine/Source/3rd/luisa-compute
+	path = Source/3rd/luisa-compute
 	url = https://github.com/LuisaGroup/LuisaCompute.git
