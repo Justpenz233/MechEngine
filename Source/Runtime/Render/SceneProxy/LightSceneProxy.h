@@ -4,6 +4,7 @@
 
 #pragma once
 #include "SceneProxy.h"
+#include "Misc/Platform.h"
 #include "luisa/luisa-compute.h"
 
 
@@ -46,7 +47,12 @@ public:
 
 	virtual void UploadDirtyData(Stream& stream) override;
 
-	Var<lightData> get_light_data(uint light_id) const
+	[[nodiscard]] FORCEINLINE uint LightCount() const
+	{
+		return id;
+	}
+
+	[[nodiscard]] FORCEINLINE Var<lightData> get_light_data(const UInt& light_id) const
 	{
 		return light_buffer->read(light_id);
 	}

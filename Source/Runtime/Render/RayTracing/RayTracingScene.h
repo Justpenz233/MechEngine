@@ -131,7 +131,7 @@ protected:
 	// Material collection
 	unique_ptr<MaterialSceneProxy> MaterialProxy;
 
-	unique_ptr<Shader2D<>> MainShader;
+	unique_ptr<Shader2D<uint>> MainShader;
 
 	luisa::compute::Accel rtAccel;
 };

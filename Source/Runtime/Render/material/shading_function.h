@@ -8,8 +8,20 @@ namespace MechEngine::Rendering
 {
     using namespace luisa;
     using namespace luisa::compute;
-    Float3 fresnel_schlick(const Float & cos_theta, const Float3 &f0)
+
+    FORCEINLINE Float3 fresnel_schlick(const Float& cos_theta, const Float3 &f0)
     {
         return f0 + (1.f - f0) * pow(1.f - cos_theta, 5.f);
+    }
+
+    /**
+     * Gamma correct the color, all linear color from sRGB space should be gamma corrected before output
+     * @param color Linear color
+     * @param gamma Gamma value, default is 2.2
+     * @return Gamma corrected color
+     */
+    FORCEINLINE Float3 gamma_correct(const Float3& color, const Float& gamma = 2.2f)
+    {
+        return pow(color, 1.f / gamma);
     }
 }

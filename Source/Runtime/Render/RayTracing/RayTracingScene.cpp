@@ -9,6 +9,7 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
+#include "Render/material/shading_function.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 
@@ -124,7 +125,8 @@ void RayTracingScene::UploadData()
 void RayTracingScene::Render()
 {
 	if (!MainShader)
-		MainShader = luisa::make_unique<Shader2D<>>(device.compile<2>([&]() noexcept {
+		MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
+			[&](UInt LightCount) noexcept {
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
 			auto pixel       = make_float2(pixel_coord) + .5f;
@@ -137,25 +139,34 @@ void RayTracingScene::Render()
 
 			$if(intersection.valid())
 			{
+				Float3 color = make_float3(0.f);
 				// calculate light color, the light need to do polymorphically dispatch as material
-				auto light_data = LightProxy->get_light_data(0);
-				auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();
-				auto light_color = light_data.linear_color * light_data.intensity
-				/ distance_squared(light_pos, intersection.position_world);
+				$for(light_id, LightCount)
+				{
+					auto light_data = LightProxy->get_light_data(light_id);
+					auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();\
+					auto light_dir = normalize(light_pos - intersection.position_world);
+					auto light_visible =
+						!has_hit(make_ray(intersection.position_world + light_dir * 0.00001f, light_dir));
 
-				// calculate mesh color
-				auto light_dir = normalize(light_pos - intersection.position_world);
-				auto view_dir = -ray->direction();
-				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-				Float3 mesh_color;
-				MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
-					[&](const material_base* material) {
-					mesh_color = material->shade(material_data, intersection, view_dir, light_dir);
-				});
+					$if(light_visible)
+					{
+						auto light_color = light_data.linear_color * light_data.intensity / distance_squared(light_pos, intersection.position_world);
 
-				// combine light and mesh color
-				auto color = mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
-				frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
+						// calculate mesh color
+						auto view_dir = -ray->direction();
+						auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+						Float3 mesh_color;
+						MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
+							[&](const material_base* material) {
+							mesh_color = material->shade(material_data, intersection, view_dir, light_dir);
+						});
+
+						// combine light and mesh color
+						color += mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
+					};
+				};
+				frame_buffer()->write(pixel_coord, make_float4(gamma_correct(color), 1.f));
 			}
 			$else
 			{
@@ -164,7 +175,7 @@ void RayTracingScene::Render()
 
 		}));
 
-	stream << (*MainShader)().dispatch(GetWindosSize()) << synchronize();
+	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize()) << synchronize();
 }
 
 ray_tracing_hit RayTracingScene::trace_closest(const Var<Ray>& ray) const noexcept
