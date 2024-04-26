@@ -136,7 +136,7 @@ void RayTracingScene::Render()
 			auto intersection = intersect(ray);
 			auto x = intersection.position_world;
 			auto normal = intersection.vertex_normal_world;
-			auto w_0 = -ray->direction();
+			auto w_o = -ray->direction();
 
 			$if(intersection.valid())
 			{
@@ -148,6 +148,8 @@ void RayTracingScene::Render()
 					auto light_data = LightProxy->get_light_data(light_id);
 					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
 					auto light_dir = normalize(light_transform->get_location() - x);
+
+					auto w_i = light_dir;
 					Float3 light_color = make_float3(0.f);
 
 					$if(dot(light_dir, normal) > 0.f)
@@ -155,7 +157,7 @@ void RayTracingScene::Render()
 						// Dispatch light evaluate polymorphically, so that we can have different light type
 						LightProxy->light_virtual_call.dispatch(light_data.light_type,
 						[&](const light_base* light) {
-							light_color = light->l_i(light_data, light_transform.transformMatrix, x, light_dir);
+							light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
 						});
 					};
 
@@ -164,11 +166,11 @@ void RayTracingScene::Render()
 					Float3 mesh_color;
 					MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
 					[&](const material_base* material) {
-						mesh_color = material->shade(material_data, intersection, w_0, light_dir);
+						mesh_color = material->bxdf(material_data, intersection, w_o, w_i);
 					});
 
 					// combine light and mesh color
-					color += mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
+					color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
 
 				};
 				frame_buffer()->write(pixel_coord, make_float4(gamma_correct(color), 1.f));

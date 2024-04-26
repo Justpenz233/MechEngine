@@ -9,9 +9,21 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 
-    FORCEINLINE Float3 fresnel_schlick(const Float& cos_theta, const Float3 &f0)
+    /**
+     * Calculate the fresnel term using Schlick's approximation
+     * @param f0 Base color of the material, should be interpolated between 0.04 and the base color by metalness
+     * @param cos_theta Cosine of the angle between the normal and the half vector
+     * @param f90 The color when the view is perpendicular to the surface, default is 1
+     * @return Fresnel term
+     */
+    FORCEINLINE Float3 fresnel_schlick(const Float3 &f0, const Float& cos_theta, const Float3& f90 = make_float3(1.f))
     {
-        return f0 + (1.f - f0) * pow(1.f - cos_theta, 5.f);
+        return f0 + (f90 - f0) * pow(1.f - cos_theta, 5.f);
+    }
+
+    FORCEINLINE Float3 fresnel_schlick(const Float3& f0, const Float3& w_o, const Float3& h, const Float3& f90 = make_float3(1.f))
+    {
+        return f0 + (f90 - f0) * pow(1.f - saturate(dot(w_o, h)), 5.f);
     }
 
     /**
@@ -23,5 +35,14 @@ namespace MechEngine::Rendering
     FORCEINLINE Float3 gamma_correct(const Float3& color, const Float& gamma = 2.2f)
     {
         return pow(color, 1.f / gamma);
+    }
+
+    /**
+     * Calculate the half vector of two vectors
+     * @return Half vector
+     */
+    FORCEINLINE Float3 half_vector(const Float3& x, const Float3& y)
+    {
+        return normalize(x + y);
     }
 }

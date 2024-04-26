@@ -60,16 +60,24 @@ public:
 
 	virtual ~material_base() = default;
 
-	[[nodiscard]] Float3 shade(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const
+	/**
+	 * Evaluate the BxDF of the material at the given intersection point.
+	 * @param material_data  The material data for the current material, Contains textures and other material properties.
+	 * @param intersection  The intersection data for the surface point. Contatins the position, normal, uv.
+	 * @param w_o  The direction from the intersection point to the camera.  Output irradiance direction.
+	 * @param w_i The direction to the intersection point. Input irradiance direction.
+	 * @return The color of the material at the given intersection point.
+	 */
+	[[nodiscard]] Float3 bxdf(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const
 	{
 		material_parameters parameters{
-			.base_color = sample_base_color(material_data, intersection, w, w_i),
-			.metalness = sample_metalness(material_data, intersection, w, w_i),
-			.roughness = sample_roughness(material_data, intersection, w, w_i),
-			.specular_tint = sample_specular_tint(material_data, intersection, w, w_i),
-			.normal = sample_normal(material_data, intersection, w, w_i)
+			.base_color = sample_base_color(material_data, intersection, w_o, w_i),
+			.metalness = sample_metalness(material_data, intersection, w_o, w_i),
+			.roughness = sample_roughness(material_data, intersection, w_o, w_i),
+			.specular_tint = sample_specular_tint(material_data, intersection, w_o, w_i),
+			.normal = sample_normal(material_data, intersection, w_o, w_i)
 		};
-		return evaluate(parameters, intersection, w, w_i);
+		return evaluate(parameters, intersection, w_o, w_i);
 	}
 
 protected:
@@ -78,10 +86,10 @@ protected:
 	* This should calculate the color of the material at the given point.
 	* @param material_data  The material data for the current material, Contains textures and other material properties.
 	* @param intersection  The intersection data for the surface point. Contatins the position, normal, uv.
-	* @param w  The direction from the intersection point to the camera. Not normalized, contains the distance to the camera.
-	* @param w_i The direction from the intersection point outside, as in BRDF.
+	* @param w_o The direction from the intersection point to the camera.  Output irradiance direction.
+	* @param w_i The direction to the intersection point. Input irradiance direction.
 	*/
-	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const = 0;
+	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const = 0;
 
 	/**
 	 * Sample the diffuse property at the given intersection point.

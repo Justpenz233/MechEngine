@@ -12,22 +12,29 @@ namespace MechEngine::Rendering
 	{
 		using material_base::material_base;
 
-		virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const override
+
+		[[nodiscard]] static Float D(const Float3& normal, const Float3& half, const Float& roughness)
+		{
+			auto shiness = lerp(0.1f, 10.f, (1.f - roughness));
+			auto cos_theta_h = saturate(dot(normal, half));
+			return (shiness + 2.f) / (2.f * pi) * pow(cos_theta_h, shiness);
+		}
+
+		/**
+		 * Phsiacally based blinn-phong shading model, not normalized
+		 * @see https://www.zhihu.com/question/48050245/answer/108902674
+		 */
+		[[nodiscard]]
+		virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const override
 		{
 			auto normal = material_data.normal;
-			auto half_dir = normalize(light_dir + view_dir);
-			auto diffuse = material_data.base_color * (1.f - material_data.metalness);
+			auto half = normalize(w_i + w_o);
 
-			// Fresnel-Schlick approximation for specular reflection
-			auto f0 = lerp(make_float3(0.04), material_data.base_color, material_data.metalness);
-			// Fresnel-Schlick approximation for diffuse reflection
-			auto f = fresnel_schlick(saturate(dot(view_dir, normal)), f0);
-			auto f_d = (make_float3(1.) - f) * (1.f - material_data.metalness);
+			auto diffuse = material_data.base_color * (1.f - material_data.metalness) / pi;
 
-			auto shininess = 100.f / (200.f * material_data.roughness + 0.01f);
-			auto specular = pow(saturate(dot(normal, half_dir)), shininess) * material_data.specular_tint;
-
-			return diffuse * f_d + specular * f;
+			auto d = D(normal, half, material_data.roughness);
+			// G = N dot L and N dot V but be normalized
+			return d * 0.25f +  diffuse;
 		}
 	};
 }
