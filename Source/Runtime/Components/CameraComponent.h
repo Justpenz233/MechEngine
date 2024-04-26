@@ -117,12 +117,12 @@ FORCEINLINE FVector4 CameraComponent::ProjectClipSpace(const FVector& Pos) const
 
 FORCEINLINE FVector CameraComponent::Project(const FVector& Pos) const
 {
-	auto ScreenPos = ProjectClipSpace(Pos);
+	FVector4 ScreenPos = ProjectClipSpace(Pos);
 	return ScreenPos.w() == 0.? ScreenPos.head(3) : (ScreenPos.head(3) / ScreenPos.w()).eval();
 }
 
 FORCEINLINE FVector CameraComponent::UnProject(const FVector& ClipPos) const
 {
-	auto Pos = (GetProjectionMatrix() * GetViewMatrix()).inverse() * FVector4{ClipPos.x(), ClipPos.y(), ClipPos.z(), 1.};
-	return Pos.head(3) / Pos.w();
+	FVector4 Pos = (GetProjectionMatrix() * GetViewMatrix()).inverse() * FVector4{ClipPos.x(), ClipPos.y(), ClipPos.z(), 1.};
+	return Pos.w() == 0. ? Pos.head(3) : (Pos.head(3) / Pos.w()).eval();
 }

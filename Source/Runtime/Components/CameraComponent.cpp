@@ -1,6 +1,6 @@
 #include "CameraComponent.h"
 #include "Game/World.h"
-#include "Render/RendererInterface.h"
+#include "Render/GPUSceneInterface.h"
 
 
 void CameraComponent::PostEdit(Reflection::FieldAccessor& Field)

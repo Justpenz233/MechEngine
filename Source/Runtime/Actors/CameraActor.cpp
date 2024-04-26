@@ -68,6 +68,14 @@ void CameraActor::MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta)
 			auto UnProject1 = Component->UnProject({NDCSpace1.x(), NDCSpace1.y(), ClipSpaceZ});
 
 			auto Delta = UnProject1 - UnProject0;
+
+			std::cout << "ClipSpaceZ: " << ClipSpaceZ << std::endl;
+			std::cout << "NDCSpace0: " << NDCSpace0 << std::endl;
+			std::cout << "UnProject0: " << UnProject0 << std::endl;
+			std::cout << "NDCSpace1: " << NDCSpace1 << std::endl;
+			std::cout << "UnProject1: " << UnProject1 << std::endl;
+			std::cout << "Delta: " << Delta << std::endl;
+
 			FocusCenter = PreCenter - Delta;
 			SetTranslation(DownPos - Delta);
 		}

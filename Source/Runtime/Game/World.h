@@ -10,6 +10,11 @@
 #include "Actor.h"
 #include "Render/ViewportInterface.h"
 
+namespace MechEngine::Rendering
+{
+	class GPUSceneInterface;
+}
+
 DECLARE_MULTICAST_DELEGATE(KeyPressedEvent);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnActorSelectedDelegate, class Actor*)
 
@@ -26,7 +31,7 @@ public:
 	 * @param InViewport Viewport of currenty window, used for handle input and add UI widgets
 	 * @param InScene GPU Scene for this world, used for create a new GPU scene for this world. For component to upload GPU data
 	 */
-	void Init(class GPUSceneInterface* InScene, class ViewportInterface* InViewport);
+	void Init(Rendering::GPUSceneInterface* InScene, class ViewportInterface* InViewport);
     
     TFunction<void(double, World&)> TickFunction;
     TFunction<void(World&)> BeginPlayScript;
@@ -69,7 +74,7 @@ public:
 	void SelectActor(const ObjectPtr<class Actor>& InActor);
 
     FORCEINLINE Actor* GetSelectedActor() const;
-	FORCEINLINE class GPUSceneInterface* GetScene() const { return GPUScene; }
+    FORCEINLINE Rendering::GPUSceneInterface* GetScene() const { return GPUScene; }
 	FORCEINLINE class ViewportInterface* GetViewport() const { return Viewport; }
 
 	template<class T, class... Args>
@@ -82,8 +87,8 @@ public:
 
 
 private:
-	class GPUSceneInterface* GPUScene = nullptr;
-	class ViewportInterface* Viewport = nullptr;
+    Rendering::GPUSceneInterface* GPUScene = nullptr;
+	ViewportInterface* Viewport = nullptr;
 	bool bDirty = true;
 
 	TArray<ObjectPtr<Actor>> Actors;

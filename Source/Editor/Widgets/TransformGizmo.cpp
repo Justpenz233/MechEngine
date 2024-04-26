@@ -4,7 +4,7 @@
 #include "UI/UIWidget.h"
 #include "imgui.h"
 #include "Game/World.h"
-#include "Render/RendererInterface.h"
+#include "Render/GPUSceneInterface.h"
 #include <iostream>
 
 void TransformGizmo::Draw()

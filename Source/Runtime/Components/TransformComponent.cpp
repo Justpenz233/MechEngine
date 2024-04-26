@@ -4,7 +4,7 @@
 
 #include "TransformComponent.h"
 #include "Game/World.h"
-#include "Render/RendererInterface.h"
+#include "Render/GPUSceneInterface.h"
 
 
 void TransformComponent::PostEdit(Reflection::FieldAccessor& Field)

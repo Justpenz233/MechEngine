@@ -13,4 +13,10 @@ class PointLightComponent : public LightComponent
 public:
 	PointLightComponent() = default;
 	~PointLightComponent() = default;
+
+	FORCEINLINE double GetRadius() const { return Radius; }
+
+protected:
+	MPROPERTY()
+	double Radius = 1.0;
 };

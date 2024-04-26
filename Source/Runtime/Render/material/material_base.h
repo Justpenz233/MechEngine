@@ -25,7 +25,7 @@ struct materialData
 	bool bUseVertexNormal = true;
 
 	materialData() = default;
-	materialData(uint Tag, Material* InMaterial) :
+	materialData(uint Tag, ::Material* InMaterial) :
 	material_type(Tag),
 	base_color(ToLuisaVector(InMaterial->BaseColor)),
 	specular_tint(ToLuisaVector(InMaterial->SpecularTint)),
@@ -60,16 +60,16 @@ public:
 
 	virtual ~material_base() = default;
 
-	[[nodiscard]] Float3 shade(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const
+	[[nodiscard]] Float3 shade(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const
 	{
 		material_parameters parameters{
-			.base_color = sample_base_color(material_data, intersection, view_dir, light_dir),
-			.metalness = sample_metalness(material_data, intersection, view_dir, light_dir),
-			.roughness = sample_roughness(material_data, intersection, view_dir, light_dir),
-			.specular_tint = sample_specular_tint(material_data, intersection, view_dir, light_dir),
-			.normal = sample_normal(material_data, intersection, view_dir, light_dir)
+			.base_color = sample_base_color(material_data, intersection, w, w_i),
+			.metalness = sample_metalness(material_data, intersection, w, w_i),
+			.roughness = sample_roughness(material_data, intersection, w, w_i),
+			.specular_tint = sample_specular_tint(material_data, intersection, w, w_i),
+			.normal = sample_normal(material_data, intersection, w, w_i)
 		};
-		return evaluate(parameters, intersection, view_dir, light_dir);
+		return evaluate(parameters, intersection, w, w_i);
 	}
 
 protected:
@@ -78,28 +78,28 @@ protected:
 	* This should calculate the color of the material at the given point.
 	* @param material_data  The material data for the current material, Contains textures and other material properties.
 	* @param intersection  The intersection data for the surface point. Contatins the position, normal, uv.
-	* @param view_dir  The direction from the intersection point to the camera. Not normalized, contains the distance to the camera.
-	* @param light_dir  The direction from the intersection point to the light source. Not normalized, contains the distance to the light.
+	* @param w  The direction from the intersection point to the camera. Not normalized, contains the distance to the camera.
+	* @param w_i The direction from the intersection point outside, as in BRDF.
 	*/
-	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const = 0;
+	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const = 0;
 
 	/**
 	 * Sample the diffuse property at the given intersection point.
 	 * This give the material custom control over the diffuse color of the material.
 	 * @return diffuse color of the material at the given intersection point.
 	 */
-	[[nodiscard]] virtual Float3 sample_base_color(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.base_color; }
+	[[nodiscard]] virtual Float3 sample_base_color(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const { return material_data.base_color; }
 
-	[[nodiscard]] virtual Float3 sample_specular_tint(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.specular_tint; }
+	[[nodiscard]] virtual Float3 sample_specular_tint(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const { return material_data.specular_tint; }
 
-	[[nodiscard]] virtual Float sample_metalness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.metalness; }
+	[[nodiscard]] virtual Float sample_metalness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const { return material_data.metalness; }
 
-	[[nodiscard]] virtual Float sample_roughness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const { return material_data.roughness; }
+	[[nodiscard]] virtual Float sample_roughness(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const { return material_data.roughness; }
 	/**
 	* Sample the normal at the given intersection point.
 	* Will create shader variations based on the how the normal is sampled.
 	*/
-	[[nodiscard]] virtual Float3 sample_normal(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& view_dir, const Float3& light_dir) const
+	[[nodiscard]] virtual Float3 sample_normal(Expr<materialData> material_data, const ray_intersection& intersection, const Float3& w, const Float3& w_i) const
 	{
 		Float3 Normal;
 		$if (material_data.bUseTriangleNormal)

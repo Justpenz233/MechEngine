@@ -4,6 +4,7 @@
 
 #pragma once
 #include "TransformProxy.h"
+#include "StaticMeshSceneProxy.h"
 #include "Components/TransformComponent.h"
 #include "Render/Core/TypeConvertion.h"
 #include "Render/RayTracing/RayTracingScene.h"

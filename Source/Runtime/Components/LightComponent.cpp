@@ -4,6 +4,7 @@
 
 #pragma once
 #include "LightComponent.h"
+#include "Render/GPUSceneInterface.h"
 
 void LightComponent::BeginPlay()
 {

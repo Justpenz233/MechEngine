@@ -6,7 +6,7 @@
 #include "Math/MathType.h"
 #include "Object/Object.h"
 #include "Game/World.h"
-#include "Render/RendererInterface.h"
+#include "Render/GPUSceneInterface.h"
 
 enum MaterialMode
 {

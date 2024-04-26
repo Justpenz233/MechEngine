@@ -3,6 +3,8 @@
 //
 
 #include "StaticMeshSceneProxy.h"
+
+#include "MaterialSceneProxy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Render/RayTracing/RayTracingScene.h"
 

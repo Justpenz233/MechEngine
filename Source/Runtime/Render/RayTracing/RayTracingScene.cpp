@@ -3,15 +3,17 @@
 //
 
 #include "RayTracingScene.h"
-#include "Render/SceneProxy/TransformProxy.h"
 #include "Render/Core/TypeConvertion.h"
 #include <luisa/runtime/rtx/accel.h>
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
 #include "Render/material/shading_function.h"
+#include "Render/SceneProxy/StaticMeshSceneProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
+#include "Render/SceneProxy/MaterialSceneProxy.h"
 
 namespace MechEngine::Rendering
 {
@@ -19,15 +21,11 @@ namespace MechEngine::Rendering
 RayTracingScene::RayTracingScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept:
 GPUSceneInterface(stream, device), Window(InWindow)
 {
-	rtAccel = device.create_accel({});
-
 	CameraProxy = luisa::make_unique<CameraSceneProxy>(*this);
 	LightProxy = luisa::make_unique<LightSceneProxy>(*this);
 	TransformProxy = luisa::make_unique<TransformSceneProxy>(*this);
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
-
-	bindlessArray = device.create_bindless_array(bindless_array_capacity);
 	Viewport = InViewport;
 }
 
@@ -136,35 +134,42 @@ void RayTracingScene::Render()
 
 			auto ray = CameraProxy->GenerateRay(p);
 			auto intersection = intersect(ray);
+			auto x = intersection.position_world;
+			auto normal = intersection.vertex_normal_world;
+			auto w_0 = -ray->direction();
 
 			$if(intersection.valid())
 			{
 				Float3 color = make_float3(0.f);
-				// calculate light color, the light need to do polymorphically dispatch as material
+				// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
 				$for(light_id, LightCount)
 				{
+					// First calculate light color, as rendering equation is L_i(x, w_i)
 					auto light_data = LightProxy->get_light_data(light_id);
-					auto light_pos  = TransformProxy->get_transform_data(light_data.transform_id)->get_location();\
-					auto light_dir = normalize(light_pos - intersection.position_world);
-					auto light_visible =
-						!has_hit(make_ray(intersection.position_world + light_dir * 0.00001f, light_dir));
+					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
+					auto light_dir = normalize(light_transform->get_location() - x);
+					Float3 light_color = make_float3(0.f);
 
-					$if(light_visible)
+					$if(dot(light_dir, normal) > 0.f)
 					{
-						auto light_color = light_data.linear_color * light_data.intensity / distance_squared(light_pos, intersection.position_world);
-
-						// calculate mesh color
-						auto view_dir = -ray->direction();
-						auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-						Float3 mesh_color;
-						MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
-							[&](const material_base* material) {
-							mesh_color = material->shade(material_data, intersection, view_dir, light_dir);
+						// Dispatch light evaluate polymorphically, so that we can have different light type
+						LightProxy->light_virtual_call.dispatch(light_data.light_type,
+						[&](const light_base* light) {
+							light_color = light->l_i(light_data, light_transform.transformMatrix, x, light_dir);
 						});
-
-						// combine light and mesh color
-						color += mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
 					};
+
+					// calculate mesh color
+					auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+					Float3 mesh_color;
+					MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
+					[&](const material_base* material) {
+						mesh_color = material->shade(material_data, intersection, w_0, light_dir);
+					});
+
+					// combine light and mesh color
+					color += mesh_color * light_color * dot(light_dir, intersection.vertex_normal_world);
+
 				};
 				frame_buffer()->write(pixel_coord, make_float4(gamma_correct(color), 1.f));
 			}
@@ -176,68 +181,6 @@ void RayTracingScene::Render()
 		}));
 
 	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize()) << synchronize();
-}
-
-ray_tracing_hit RayTracingScene::trace_closest(const Var<Ray>& ray) const noexcept
-{
-	auto hit = rtAccel->intersect(ray, {});
-	return ray_tracing_hit {hit.inst, hit.prim, hit.bary};
-}
-
-Bool RayTracingScene::has_hit(const Var<Ray>& ray) const noexcept
-{
-	return rtAccel->intersect_any(ray, {});
-}
-
-ray_intersection RayTracingScene::intersect(const Var<Ray>& ray) const noexcept
-{
-	auto hit = trace_closest(ray);
-	ray_intersection it;
-	$if(!hit.miss())
-	{
-		auto InstanceId = hit.instance_id;
-		auto TriangleId = hit.primitive_id;
-		auto ToWorldTransform = get_instance_transform(InstanceId);
-		auto Tri = StaticMeshProxy->get_triangle(InstanceId, TriangleId);
-		auto bary = hit.barycentric;
-		auto v_buffer = StaticMeshProxy->get_static_mesh_data(InstanceId).vertex_id;
-		auto v0 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i0);
-		auto v1 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i1);
-		auto v2 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i2);
-
-		auto p0_local = v0->position();
-		auto p1_local = v1->position();
-		auto p2_local = v2->position();
-
-		auto dp0_local = p1_local - p0_local;
-		auto dp1_local = p2_local - p0_local;
-
-		auto m = make_float3x3(ToWorldTransform);
-		auto t = make_float3(ToWorldTransform[3]);
-		auto p = m * triangle_interpolate(bary, p0_local, p1_local, p2_local) + t;
-
-
-		auto c = cross(m * dp0_local, m * dp1_local);
-		auto normal_world = normalize(c);
-
-
-		it.instace_id = InstanceId;
-		it.primitive_id = TriangleId;
-		it.position_world = p;
-		it.triangle_normal_world = normal_world;
-		it.vertex_normal_local = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
-		it.vertex_normal_world = normalize(m * it.vertex_normal_local);
-		it.depth = length(p - ray->origin());
-		it.back_face = dot(normal_world, ray->direction()) > 0.f;
-		it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;
-		// .......
-	};
-	return it;
-}
-
-Float4x4 RayTracingScene::get_instance_transform(Expr<uint> instance_id) const noexcept
-{
-	return rtAccel->instance_transform(instance_id);
 }
 
 Image<float>& RayTracingScene::frame_buffer() const noexcept

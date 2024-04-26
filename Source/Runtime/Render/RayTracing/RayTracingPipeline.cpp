@@ -26,13 +26,13 @@ RayTracingPipeline::~RayTracingPipeline()
 	MainWindow->destroy();
 }
 
-GPUSceneInterface* RayTracingPipeline::NewScene(World* InWorld)
+Rendering::RayTracingScene* RayTracingPipeline::NewScene(World* InWorld)
 {
 	Scene = MakeUnique<Rendering::RayTracingScene>(Stream, Device, MainWindow.get(), Viewport.get());
 	return Scene.get();
 }
 
-void RayTracingPipeline::EraseScene(GPUSceneInterface*)
+void RayTracingPipeline::EraseScene(Rendering::GPUSceneInterface*)
 {
 
 }

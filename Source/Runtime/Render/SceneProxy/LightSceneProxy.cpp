@@ -6,6 +6,7 @@
 #include "Components/LightComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Render/Core/TypeConvertion.h"
+#include "Render/light/point_light.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
 namespace MechEngine::Rendering
@@ -14,7 +15,9 @@ LightSceneProxy::LightSceneProxy(RayTracingScene& InScene) noexcept
 	: SceneProxy(InScene)
 {
 	LightDatas.resize(light_max_number);
-	light_buffer = Scene.RegisterBuffer<lightData>(light_max_number);
+	light_buffer = Scene.RegisterBuffer<light_data>(light_max_number);
+
+	point_light_tag = light_virtual_call.create<point_light>();
 }
 
 void LightSceneProxy::AddLight(LightComponent* InLight, uint InTransformID)
@@ -42,13 +45,14 @@ void LightSceneProxy::UploadDirtyData(Stream& stream)
 	if( DirtyLights.empty()) { return; }
 	for(auto& Light : DirtyLights)
 	{
+		auto& LightData = LightDatas[LightIndexMap[Light].first];
+		LightData.intensity = Light->GetIntensity();
+		LightData.light_color = ToLuisaVector(Light->GetLightColor());
+		LightData.transform_id = LightIndexMap[Light].second;
 		if(auto Ptr = Cast<PointLightComponent>(Light))
 		{
-			auto& LightData = LightDatas[LightIndexMap[Light].first];
-			LightData.intensity = Ptr->GetIntensity();
-			LightData.linear_color = ToLuisaVector(Ptr->GetLightColor());
-			LightData.transform_id = LightIndexMap[Light].second;
-			LightData.samples_per_pixel = Ptr->GetSamplesPerPixel();
+			LightData.light_type = point_light_tag;
+			LightData.radius = Ptr->GetRadius();
 		}
 		else
 		{

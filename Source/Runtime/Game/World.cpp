@@ -113,7 +113,7 @@ void World::BindKeyPressedEvent(int Key, ObjectPtr<T> Object, void(T::* FuncPtr)
 	}
 }
 
-void World::Init(class GPUSceneInterface* InScene, class ViewportInterface* InViewport)
+void World::Init(Rendering::GPUSceneInterface* InScene, class ViewportInterface* InViewport)
 {
 	Viewport = InViewport;
 	GPUScene = InScene;

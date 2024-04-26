@@ -5,29 +5,8 @@
 #pragma once
 #include "SceneProxy.h"
 #include "Misc/Platform.h"
+#include "Render/light/light_base.h"
 #include "luisa/luisa-compute.h"
-
-
-namespace MechEngine::Rendering
-{
-class RayTracingScene;
-
-// data structure for all the lights, some data maybe not used in different light types
-struct lightData
-{
-	luisa::compute::uint transform_id;
-
-	float intensity;
-
-	luisa::compute::float3 linear_color;
-
-	int samples_per_pixel;
-};
-
-}
-
-LUISA_STRUCT(MechEngine::Rendering::lightData, transform_id, intensity, linear_color, samples_per_pixel)
-{};
 
 class LightComponent;
 namespace MechEngine::Rendering
@@ -52,17 +31,23 @@ public:
 		return id;
 	}
 
-	[[nodiscard]] FORCEINLINE Var<lightData> get_light_data(const UInt& light_id) const
+	[[nodiscard]] FORCEINLINE Var<light_data> get_light_data(const UInt& light_id) const
 	{
 		return light_buffer->read(light_id);
 	}
 
+	Polymorphic<light_base> light_virtual_call;
 protected:
 	//Light collection
 	uint id = 0;
 	static constexpr auto light_max_number = 256u;
-	vector<lightData> LightDatas;
-	BufferView<lightData> light_buffer;
+	vector<light_data> LightDatas;
+	BufferView<light_data> light_buffer;
+
+
+	uint point_light_tag;
+	uint directional_light_tag;
+
 	// component to [lightid, transformid]
 	map<LightComponent*, std::pair<uint, uint>> LightIndexMap;
 	set<LightComponent*> DirtyLights;
