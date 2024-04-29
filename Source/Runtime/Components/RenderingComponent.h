@@ -7,6 +7,11 @@
 #include "ActorComponent.h"
 #include "Game/World.h"
 
+namespace MechEngine::Rendering
+{
+	class GPUSceneInterface;
+}
+
 /**
 * RenderingComponent is a base class for components that are used to render or visualize things in the world.
 * This component should have methods to upload data to the GPU by interacting with GPU Scene.

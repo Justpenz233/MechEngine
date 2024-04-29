@@ -26,6 +26,8 @@ public:
 
     World() = default;
 
+	~World();
+
 	/**
 	 * Initialize the world with a viewport and a render pipeline, will create a new GPU scene for this world
 	 * @param InViewport Viewport of currenty window, used for handle input and add UI widgets
@@ -99,6 +101,8 @@ private:
 	TMap<int, KeyPressedEvent> KeyEvents;
 	OnActorSelectedDelegate OnActorSelectedEvent;
 	bool OnKeyPressed(int Key);
+
+	TArray<ObjectPtr<class StaticCurveComponent>> DebugCurves;
 
 	friend class Editor;
 };

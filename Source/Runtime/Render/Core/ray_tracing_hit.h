@@ -34,6 +34,7 @@ namespace MechEngine::Rendering
 		Float3 vertex_normal_world;
 		Float depth;
 		Float2 uv;
+		UInt2 pixel_coord;
 		UInt instace_id;
 		UInt primitive_id;
 		UInt material_id;

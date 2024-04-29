@@ -25,7 +25,7 @@ class LuisaViewport;
  * Nameing Convention:
  * CPU data and methods are names by UpperCamelCase
  * GPU data and methods are names by lower_snake_case
- * The bridge between CPU and GPU data structure is named by lowerCamelCase
+ * The bridge between CPU and GPU data structure is named by lower_snake_case
  ************************************************************************************/
 class RayTracingScene : public GPUSceneInterface
 {

@@ -47,12 +47,17 @@ if (NOT TARGET bvh)
     add_subdirectory(bvh)
 endif ()
 
+if(NOT TARGET tinysplinecxx)
+    add_subdirectory(tinyspline)
+endif ()
+
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
         igl_copyleft::cgal
         igl_restricted::triangle
         spdlog::spdlog_header_only
+        tinysplinecxx
         magic_enum
         pmp
         luisa::compute

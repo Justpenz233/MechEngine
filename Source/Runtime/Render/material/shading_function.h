@@ -9,6 +9,13 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 
+    template<class T>
+    FORCEINLINE T pow5(const T& x)
+    {
+        auto x2 = x * x;
+        return x2 * x2 * x;
+    }
+
     /**
      * Calculate the fresnel term using Schlick's approximation
      * @param f0 Base color of the material, should be interpolated between 0.04 and the base color by metalness
@@ -18,12 +25,12 @@ namespace MechEngine::Rendering
      */
     FORCEINLINE Float3 fresnel_schlick(const Float3 &f0, const Float& cos_theta, const Float3& f90 = make_float3(1.f))
     {
-        return f0 + (f90 - f0) * pow(1.f - cos_theta, 5.f);
+        return f0 + (f90 - f0) * pow5(1.f - cos_theta);
     }
 
     FORCEINLINE Float3 fresnel_schlick(const Float3& f0, const Float3& w_o, const Float3& h, const Float3& f90 = make_float3(1.f))
     {
-        return f0 + (f90 - f0) * pow(1.f - saturate(dot(w_o, h)), 5.f);
+        return f0 + (f90 - f0) * pow5(1.f - saturate(dot(w_o, h)));
     }
 
     /**

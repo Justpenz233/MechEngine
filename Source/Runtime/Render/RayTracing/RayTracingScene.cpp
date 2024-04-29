@@ -8,12 +8,14 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
+#include "Render/Core/bxdf_context.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
+#include "Render/SceneProxy/LineSceneProxy.h"
 
 namespace MechEngine::Rendering
 {
@@ -26,6 +28,18 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	TransformProxy = luisa::make_unique<TransformSceneProxy>(*this);
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
+	LineProxy = luisa::make_unique<LineSceneProxy>(*this);
+	g_buffer_view.base_color = device.create_image<float>(PixelStorage::R11G11B10,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer_view.normal = device.create_image<float>(PixelStorage::R11G11B10,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer_view.depth = device.create_image<float>(PixelStorage::FLOAT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer_view.instance_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer_view.material_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
 }
 
@@ -133,7 +147,7 @@ void RayTracingScene::Render()
 			p *= make_float2(1.f, -1.f);
 
 			auto ray = CameraProxy->GenerateRay(p);
-			auto intersection = intersect(ray);
+			auto intersection = intersect(ray); intersection.pixel_coord = pixel_coord;
 			auto x = intersection.position_world;
 			auto normal = intersection.vertex_normal_world;
 			auto w_o = -ray->direction();
@@ -163,20 +177,30 @@ void RayTracingScene::Render()
 
 					// calculate mesh color
 					auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+					g_buffer_view.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
+					g_buffer_view.material_id->write(pixel_coord, make_uint4(intersection.material_id));
+
+					bxdf_context context{
+						.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
+						.material_data = MaterialProxy->get_material_data(intersection.material_id),
+						.g_buffer = g_buffer_view
+					};
 					Float3 mesh_color;
 					MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
 					[&](const material_base* material) {
-						mesh_color = material->bxdf(material_data, intersection, w_o, w_i);
+						material->fill_g_buffer(context);
+						mesh_color = material->bxdf(context);
 					});
 
 					// combine light and mesh color
 					color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
-
 				};
 				frame_buffer()->write(pixel_coord, make_float4(gamma_correct(color), 1.f));
 			}
 			$else
 			{
+				g_buffer_view.instance_id->write(pixel_coord, make_uint4(~0u));
+				g_buffer_view.material_id->write(pixel_coord, make_uint4(~0u));
 				frame_buffer()->write(pixel_coord, make_float4(1.f));
 			};
 

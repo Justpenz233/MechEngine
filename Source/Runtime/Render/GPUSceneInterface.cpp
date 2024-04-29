@@ -10,6 +10,7 @@
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
+#include "Render/SceneProxy/LineSceneProxy.h"
 
 namespace MechEngine::Rendering
 {

@@ -11,7 +11,6 @@
 enum MaterialMode
 {
 	BlinnPhong,
-	CookTorrance,
 	Disney,
 	GGX,
 	Custom // should provide a shader pointer

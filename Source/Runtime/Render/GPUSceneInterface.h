@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "Core/g_buffer.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
 #include "Math/MathType.h"
@@ -24,6 +25,7 @@ namespace MechEngine::Rendering
 	class StaticMeshSceneProxy;
 	class ray_tracing_hit;
 	class ray_intersection;
+	class LineSceneProxy;
 
 	using namespace luisa;
 	using namespace luisa::compute;
@@ -140,6 +142,8 @@ namespace MechEngine::Rendering
 	protected:
 		luisa::compute::Accel rtAccel;
 		BindlessArray bindlessArray;
+		GBuffer g_buffer_view;
+
 		size_t _bindless_buffer_count{0u};
 		size_t _bindless_tex2d_count{0u};
 		size_t _bindless_tex3d_count{0u};
@@ -259,6 +263,9 @@ namespace MechEngine::Rendering
 
 		// Material collection
 		unique_ptr<MaterialSceneProxy> MaterialProxy;
+
+		// Line collection
+		unique_ptr<LineSceneProxy> LineProxy;
 
 	};
 }

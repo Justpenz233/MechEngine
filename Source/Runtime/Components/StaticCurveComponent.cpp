@@ -9,18 +9,9 @@
 #include "Game/Actor.h"
 #include "Mesh/BasicShapesLibrary.h"
 
-StaticCurveComponent::StaticCurveComponent(String FilePath)
-{
-}
-
 StaticCurveComponent::StaticCurveComponent(ObjectPtr<Curve> NewCurve)
 {
 	CurveData = NewCurve;
-}
-
-void StaticCurveComponent::Init()
-{
-	StaticMeshComponent::Init();
 }
 
 void StaticCurveComponent::UploadRenderingData()
@@ -40,25 +31,9 @@ void StaticCurveComponent::UploadRenderingData()
 			// 	Color.transpose());
 		}
 	}
-	else if (DrawMode == Continuous)
-	{
-		// double Step = 1. / SampleNum;
-		// for (double u = 0.; u < 1.; u += Step)
-		// {
-		// 	double NextU = (u + Step);
-		// 	if (NextU > 1.f)
-		// 		NextU -= 1.;
-		// 	RenderData.add_points(Eigen::RowVector3d(CurveData->Sample(u)), Eigen::RowVector3d(Color));
-		//
-		// 	RenderData.add_edges(
-		// 		CurveData->Sample(u).transpose(),
-		// 		CurveData->Sample(NextU).transpose(),
-		// 		Color.transpose());
-		// }
-	}
 	else if (DrawMode == AsMesh)
 	{
-		StaticMeshComponent::UploadRenderingData();
+
 	}
 }
 void StaticCurveComponent::Remesh()

@@ -4,9 +4,17 @@
 
 #include "Core/CoreMinimal.h"
 #include "World.h"
+#include "Components/StaticCurveComponent.h"
+#include "Actors/CameraActor.h"
+#include "Components/CameraComponent.h"
 #include "Game/Actor.h"
 
 World* GWorld = nullptr;
+
+World::~World()
+{
+
+}
 
 bool World::OnKeyPressed(int Key)
 {
@@ -29,6 +37,18 @@ void World::BeginPlay()
 	//Init world
 	if(BeginPlayScript)
     	BeginPlayScript(*this);
+
+	// Check if contains at least one camera
+	bool HasCamera = false;
+	for (auto& Actor: Actors) {
+		if (Actor->GetComponent<CameraComponent>()) {
+			HasCamera = true;
+			break;
+		}
+	}
+	if (!HasCamera) {
+		SpawnActor<CameraActor>("Camera")->SetTranslation({-5, 0, 0});
+	}
 
 	for(auto actor : Actors)
 		actor->BeginPlay();
