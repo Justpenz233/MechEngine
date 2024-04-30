@@ -46,8 +46,9 @@ void TransformGizmo::Draw()
 	Eigen::Matrix4f proj = World->GetScene()->GetProjectionMatrix().cast<float>();
 	const Eigen::Matrix4f T0 = SelectedActor->GetTransformMatrix().cast<float>();
 	Eigen::Matrix4f T = T0.eval();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+	auto WindowSize = ImGui::GetMainViewport()->WorkSize;
+	auto WindowPos = ImGui::GetMainViewport()->Pos;
+	ImGuizmo::SetRect(WindowPos.x, WindowPos.y, WindowSize.x, WindowSize.y);
 	ImGuizmo::AllowAxisFlip(false);
 	ImGuizmo::Manipulate(view.data(), proj.data(), TransformGizmo::operation, ImGuizmo::LOCAL, T.data(), NULL, NULL);
 	const float diff = (T - T0).array().abs().maxCoeff();
