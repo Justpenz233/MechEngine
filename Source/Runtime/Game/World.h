@@ -9,6 +9,7 @@
 #include "Object/Object.h"
 #include "Actor.h"
 #include "Render/ViewportInterface.h"
+#include "Render/Core/ViewMode.h"
 
 namespace MechEngine::Rendering
 {
@@ -82,6 +83,11 @@ public:
 	template<class T, class... Args>
 	T* AddWidget(Args&&... args);
 
+
+	/************************************************************************
+	 *						Rendering functions
+	 ************************************************************************/
+	void SetViewMode(const ViewMode& Mode) const;
 
 	virtual void DebugDrawPoint(const FVector& Point, const FVector& Color);
 

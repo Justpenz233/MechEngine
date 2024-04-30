@@ -29,18 +29,20 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
 	LineProxy = luisa::make_unique<LineSceneProxy>(*this);
-	g_buffer_view.base_color = device.create_image<float>(PixelStorage::R11G11B10,
+	g_buffer.base_color = device.create_image<float>(PixelStorage::R11G11B10,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer_view.normal = device.create_image<float>(PixelStorage::R11G11B10,
+	g_buffer.normal = device.create_image<float>(PixelStorage::R11G11B10,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer_view.depth = device.create_image<float>(PixelStorage::FLOAT1,
+	g_buffer.depth = device.create_image<float>(PixelStorage::FLOAT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer_view.instance_id = device.create_image<uint>(PixelStorage::INT1,
+	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer_view.material_id = device.create_image<uint>(PixelStorage::INT1,
+	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.frame_buffer = &Window->framebuffer();
 	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
+	CompileShader();
 }
 
 void RayTracingScene::AddStaticMesh(StaticMeshComponent* InMesh, TransformComponent* InTransform)
@@ -136,8 +138,28 @@ void RayTracingScene::UploadData()
 
 void RayTracingScene::Render()
 {
-	if (!MainShader)
-		MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
+	ASSERTMSG(g_buffer.frame_buffer, "Frame buffer is not initialized");
+	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize());
+
+	if(ViewMode != ViewMode::FrameBuffer)
+		stream << (*ViewModeShader)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+
+	stream << synchronize();
+}
+
+ImageView<float> RayTracingScene::frame_buffer() noexcept
+{
+	return Window->framebuffer();
+}
+
+uint2 RayTracingScene::GetWindosSize() const noexcept
+{
+	return Window->framebuffer().size();
+}
+
+void RayTracingScene::CompileShader()
+{
+	MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
 			[&](UInt LightCount) noexcept {
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
@@ -177,13 +199,13 @@ void RayTracingScene::Render()
 
 					// calculate mesh color
 					auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-					g_buffer_view.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
-					g_buffer_view.material_id->write(pixel_coord, make_uint4(intersection.material_id));
+					g_buffer.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
+					g_buffer.material_id->write(pixel_coord, make_uint4(intersection.material_id));
 
 					bxdf_context context{
 						.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
 						.material_data = MaterialProxy->get_material_data(intersection.material_id),
-						.g_buffer = g_buffer_view
+						.g_buffer = g_buffer
 					};
 					Float3 mesh_color;
 					MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
@@ -199,24 +221,29 @@ void RayTracingScene::Render()
 			}
 			$else
 			{
-				g_buffer_view.instance_id->write(pixel_coord, make_uint4(~0u));
-				g_buffer_view.material_id->write(pixel_coord, make_uint4(~0u));
+				g_buffer.fill_color(pixel_coord, make_float4(1.f));
 				frame_buffer()->write(pixel_coord, make_float4(1.f));
 			};
-
 		}));
 
-	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize()) << synchronize();
+	ViewModeShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
+	{
+		auto pixel_coord = dispatch_id().xy();
+		$switch(ViewMode)
+		{
+			// $case(static_cast<uint>(ViewMode::DepthBuffer))
+			// {
+			// 	frame_buffer()->write(pixel_coord, g_buffer_view.depth->read(pixel_coord));
+			// };
+			$case(static_cast<uint>(ViewMode::NormalWorldBuffer))
+			{
+				frame_buffer()->write(pixel_coord, g_buffer.normal->read(pixel_coord));
+			};
+			$case(static_cast<uint>(ViewMode::BaseColorBuffer))
+			{
+				frame_buffer()->write(pixel_coord, g_buffer.base_color->read(pixel_coord));
+			};
+		};
+	}));
 }
-
-Image<float>& RayTracingScene::frame_buffer() const noexcept
-{
-	return Window->framebuffer();
-}
-
-uint2 RayTracingScene::GetWindosSize() const noexcept
-{
-	return Window->framebuffer().size();
-}
-
 }

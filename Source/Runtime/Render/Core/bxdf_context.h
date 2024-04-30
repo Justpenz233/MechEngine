@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "g_buffer.h"
+#include "gbuffer.h"
 #include "ray_tracing_hit.h"
 #include "luisa/luisa-compute.h"
 #include "Render/Core/material_data.h"
@@ -22,7 +22,7 @@ namespace MechEngine::Rendering
         const ray_intersection& intersection;
         Float3 w_o;
         Float3 w_i;
-        GBuffer& g_buffer;
+        gbuffer& g_buffer;
         Var<materialData> material_data;
     };
 }

@@ -3,7 +3,8 @@
 //
 
 #pragma once
-#include "Core/g_buffer.h"
+#include "Core/gbuffer.h"
+#include "Core/ViewMode.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
 #include "Math/MathType.h"
@@ -29,8 +30,6 @@ namespace MechEngine::Rendering
 
 	using namespace luisa;
 	using namespace luisa::compute;
-
-
 	/**
 	 * GPU scene interface provides the interface to control the rendering scene.
 	 * Basically provide interface to register, update, and delete rendering components.
@@ -133,6 +132,10 @@ namespace MechEngine::Rendering
 		 */
 		virtual void Render() = 0;
 
+		void ViewModeSet(ViewMode InMode) { ViewMode = InMode; }
+
+		[[nodiscard]] ViewMode GetViewMode() const noexcept { return ViewMode; }
+
 
 
 	/***********************************************************************************************
@@ -140,9 +143,10 @@ namespace MechEngine::Rendering
 	*					Resiger resource and manage ownerships by these interface                  *
 	***********************************************************************************************/
 	protected:
-		luisa::compute::Accel rtAccel;
+		ViewMode ViewMode = FrameBuffer;
+		Accel rtAccel;
 		BindlessArray bindlessArray;
-		GBuffer g_buffer_view;
+		gbuffer g_buffer;
 
 		size_t _bindless_buffer_count{0u};
 		size_t _bindless_tex2d_count{0u};
@@ -164,24 +168,51 @@ namespace MechEngine::Rendering
 			return p;
 		}
 
+		/***********************************************************************************************
+		* 								  Bindless resource create								       *
+		*						Provide interface to create bindless resources					       *
+		************************************************************************************************/
 		template<typename T>
-		[[nodiscard]] luisa::compute::BufferView<T> RegisterBuffer(size_t n) noexcept {
-			return create<luisa::compute::Buffer<T>>(n)->view();
+		[[nodiscard]] BufferView<T> RegisterBuffer(size_t n) noexcept {
+			return create<Buffer<T>>(n)->view();
 		}
 
 		template<typename T>
-		[[nodiscard]] auto RegisterBindless(luisa::compute::BufferView<T> buffer) noexcept {
+		[[nodiscard]] auto RegisterBindless(const Image<T> &image, Sampler sampler) noexcept {
+			auto tex2d_id = _bindless_tex2d_count++;
+			bindlessArray.emplace_on_update(tex2d_id, image, sampler);
+			return static_cast<uint>(tex2d_id);
+		}
+
+		template<typename T>
+		[[nodiscard]] auto RegisterBindless(BufferView<T> buffer) noexcept {
 			auto buffer_id = _bindless_buffer_count++;
 			bindlessArray.emplace_on_update(buffer_id, buffer);
 			return static_cast<uint>(buffer_id);
 		}
 
 		template<typename T>
-		[[nodiscard]] std::pair<luisa::compute::BufferView<T>, uint /* bindless id */> RegisterBindlessBuffer(size_t n) noexcept {
+		[[nodiscard]] std::pair<BufferView<T>, uint /* bindless id */> RegisterBindlessBuffer(size_t n) noexcept {
 			auto view = RegisterBuffer<T>(n);
 			auto buffer_id = RegisterBindless(view);
 			return std::make_pair(view, buffer_id);
 		}
+
+		[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept = 0;
+
+		/***********************************************************************************************
+		* 								  Bindless resource access								       *
+		*						Provide interface to access bindless resources					       *
+		************************************************************************************************/
+
+		template<typename T, typename I>
+		[[nodiscard]] auto bindelss_buffer(I &&i) const noexcept { return bindlessArray->buffer<T>(std::forward<I>(i)); }
+
+		template<typename I>
+		[[nodiscard]] auto bindless_texture_2d(I &&i) const noexcept { return bindlessArray->tex2d(std::forward<I>(i)); }
+
+		template<typename I>
+		[[nodiscard]] auto bindless_texture_3d(I &&i) const noexcept { return bindlessArray->tex3d(std::forward<I>(i)); }
 
 		FORCEINLINE Accel& GetAccel() { return rtAccel; }
 		FORCEINLINE Stream& GetStream() noexcept { return stream; }

@@ -37,7 +37,6 @@ protected:
 	ViewportInterface* Viewport;
 
 public:
-
 	virtual void AddStaticMesh(StaticMeshComponent* InMesh, TransformComponent* InTransform) override;
 
 	virtual void UpdateStaticMesh(StaticMeshComponent* InMesh) override;
@@ -67,14 +66,14 @@ public:
 	virtual void Render() override;
 	// ---------------------------------------------------------
 
-	[[nodiscard]] Image<float>& frame_buffer() const noexcept;
+	[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept override;
 
 	uint2 GetWindosSize() const noexcept;
-
-
-
 protected:
 	unique_ptr<Shader2D<uint>> MainShader;
+	unique_ptr<Shader2D<uint>> ViewModeShader;
+
+	void CompileShader();
 };
 
 

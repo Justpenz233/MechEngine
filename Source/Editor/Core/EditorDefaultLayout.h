@@ -16,6 +16,18 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 		MainGizmoManager->ToggleVisible();
 	} });
 
+	MainMenuBar->AddItem("View/Buffer/FrameBuffer", "", { [=]() {
+		CurrentWorld->SetViewMode(FrameBuffer);
+	}});
+
+	MainMenuBar->AddItem("View/Buffer/NormalWorld", "", { [=]() {
+		CurrentWorld->SetViewMode(NormalWorldBuffer);
+	}});
+
+	MainMenuBar->AddItem("View/Buffer/BaseColor", "", { [=]() {
+		CurrentWorld->SetViewMode(BaseColorBuffer);
+	}});
+
 	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Save Selected Mesh", "");
 
 	CurrentWorld->AddWidget<WorldOutliner>();

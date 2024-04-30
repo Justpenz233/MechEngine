@@ -8,6 +8,7 @@
 #include "Actors/CameraActor.h"
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
+#include "Render/GPUSceneInterface.h"
 
 World* GWorld = nullptr;
 
@@ -108,6 +109,11 @@ void World::SelectActor(const ObjectPtr<Actor>& InActor)
 	SelectedActor = InActor;
 	InActor->SetSelected(true);
 	OnActorSelectedEvent.Broadcast(InActor.get());
+}
+
+void World::SetViewMode(const ViewMode& Mode) const
+{
+	GetScene()->ViewModeSet(Mode);
 }
 
 void World::DebugDrawPoint(const FVector& Point, const FVector& Color)
