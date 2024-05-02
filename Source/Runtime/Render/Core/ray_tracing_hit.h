@@ -28,13 +28,17 @@ namespace MechEngine::Rendering
 
 	struct ray_intersection
 	{
-		Float3 position_world;
+		Float4 vertex_ndc[3];
+
 		Float3 triangle_normal_world;
 		Float3 vertex_normal_local;
 		Float3 vertex_normal_world;
 		Float depth;
+
+		Float3 position_world;
 		Float2 uv;
 		UInt2 pixel_coord;
+
 		UInt instace_id;
 		UInt primitive_id;
 		UInt material_id;

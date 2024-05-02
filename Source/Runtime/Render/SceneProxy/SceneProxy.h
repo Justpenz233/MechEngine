@@ -32,6 +32,8 @@ public:
 	explicit SceneProxy(RayTracingScene& InScene);
 
 	virtual void UploadDirtyData(luisa::compute::Stream& stream) = 0;
+	virtual void PreRenderPass(luisa::compute::Stream& stream) {}
+	virtual void PostRenderPass(luisa::compute::Stream& stream) {}
 
 protected:
 	RayTracingScene& Scene;

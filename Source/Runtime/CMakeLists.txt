@@ -30,20 +30,13 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_HEADER_FILES} ${E
 add_library(MechEngineRuntime SHARED ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILES})
 target_compile_features(MechEngineRuntime PUBLIC cxx_std_20)
 
-#Enable LTO
-#include(CheckIPOSupported)
-#check_ipo_supported(RESULT supported OUTPUT error)
-#if(supported)
-#    set_target_properties(MechEngineRuntime PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
-#endif ()
-
-# Enable windows export all symbols
 set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-# should move to subdirectory
 target_include_directories(MechEngineRuntime PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(MechEngineRuntime PUBLIC "UI")
 target_include_directories(MechEngineRuntime PUBLIC "UI/Imgui")
 target_include_directories(MechEngineRuntime PUBLIC "Core")
+target_include_directories(MechEngineRuntime PUBLIC "Classes")
+
 
 target_link_libraries(MechEngineRuntime PUBLIC ThirdParty)
 ## Reflection

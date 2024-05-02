@@ -34,6 +34,18 @@ namespace MechEngine::Rendering
     }
 
     /**
+     * Convert linear color to sRGB color space
+     * @param x Linear color
+     * @return sRGB color
+     */
+    FORCEINLINE auto inear_to_srgb(const Float3& x) noexcept
+    {
+        return saturate(select(1.055f * pow(x, 1.0f / 2.4f) - 0.055f,
+                               12.92f * x,
+                               x <= 0.00031308f));
+    }
+
+    /**
      * Gamma correct the color, all linear color from sRGB space should be gamma corrected before output
      * @param color Linear color
      * @param gamma Gamma value, default is 2.2
@@ -41,7 +53,9 @@ namespace MechEngine::Rendering
      */
     FORCEINLINE Float3 gamma_correct(const Float3& color, const Float& gamma = 2.2f)
     {
-        return pow(color, 1.f / gamma);
+        return saturate(select(1.055f * pow(color, 1.0f / gamma) - 0.055f,
+                               12.92f * color,
+                               color <= 0.00031308f));
     }
 
     /**

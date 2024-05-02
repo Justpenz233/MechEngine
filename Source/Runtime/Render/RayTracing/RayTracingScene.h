@@ -70,7 +70,7 @@ public:
 
 	uint2 GetWindosSize() const noexcept;
 protected:
-	unique_ptr<Shader2D<uint>> MainShader;
+	unique_ptr<Shader2D<view_data, uint>> MainShader;
 	unique_ptr<Shader2D<uint>> ViewModeShader;
 
 	void CompileShader();

@@ -18,17 +18,14 @@ struct gbuffer
     luisa::compute::Image<float>* frame_buffer{nullptr};
 
 
-    /***
-     * Fill all the color of the pixel at pixel_coord with given color.
-     * Used for clear the gbuffer
-     */
-    void fill_color(const luisa::compute::UInt2& pixel_coord,const luisa::compute::Float4& color) const noexcept
+    void set_default(const luisa::compute::UInt2& pixel_coord,
+        const luisa::compute::Float4& background_color = luisa::make_float4(1.)) const noexcept
     {
-        base_color->write(pixel_coord, color);
-        normal->write(pixel_coord, color);
-        // depth->write(pixel_coord, color);
-        // instance_id->write(pixel_coord, color);
-        // material_id->write(pixel_coord, color);
+        base_color->write(pixel_coord, background_color);
+        normal->write(pixel_coord, background_color);
+        depth->write(pixel_coord, luisa::compute::make_float4(1.));
+        instance_id->write(pixel_coord, luisa::compute::make_uint4(~0u));
+        material_id->write(pixel_coord, luisa::compute::make_uint4(~0u));
     }
 };
 };

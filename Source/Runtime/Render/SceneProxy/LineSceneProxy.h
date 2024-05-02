@@ -8,6 +8,11 @@
 
 namespace MechEngine::Rendering
 {
+    struct view_data;
+}
+
+namespace MechEngine::Rendering
+{
     using namespace luisa;
     using namespace luisa::compute;
     struct lines_data
@@ -27,14 +32,11 @@ namespace MechEngine::Rendering
 
     struct point_data
     {
-        // Vertex buffer id in bindless array
-        uint vertex_id = ~0u;
-
         // Transform id
         uint transform_id = ~0u;
 
         // size of the point, in pixel
-        float size = -1.f;
+        float radius = -1.f;
 
         // color of the point
         float3 color;
@@ -42,7 +44,7 @@ namespace MechEngine::Rendering
 }
 
 LUISA_STRUCT(MechEngine::Rendering::lines_data, vertex_id, transform_id, thickness, color) {};
-LUISA_STRUCT(MechEngine::Rendering::point_data, vertex_id, transform_id, size, color) {};
+LUISA_STRUCT(MechEngine::Rendering::point_data, transform_id, radius, color) {};
 
 
 namespace MechEngine::Rendering
@@ -74,8 +76,17 @@ namespace MechEngine::Rendering
         //  */
         // void UpdateThickness();
 
+    public:
+        void CompileShader();
+
+        virtual void PostRenderPass(Stream& stream) override;
+
     protected:
         static constexpr uint32_t MaxCurveCount = 1024;
+        static constexpr uint32_t MaxPointCount = 1024;
         BufferView<lines_data> lines_data_buffer;
+        BufferView<point_data> points_data_buffer;
+        unique_ptr<Shader2D<>> DrawLineShader;
+        unique_ptr<Shader1D<view_data>> DrawPointsShader;
     };
 }

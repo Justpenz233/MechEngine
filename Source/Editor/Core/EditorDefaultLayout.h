@@ -20,6 +20,10 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 		CurrentWorld->SetViewMode(FrameBuffer);
 	}});
 
+	MainMenuBar->AddItem("View/Buffer/Depth", "", { [=]() {
+		CurrentWorld->SetViewMode(DepthBuffer);
+	}});
+
 	MainMenuBar->AddItem("View/Buffer/NormalWorld", "", { [=]() {
 		CurrentWorld->SetViewMode(NormalWorldBuffer);
 	}});

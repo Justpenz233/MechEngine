@@ -28,6 +28,25 @@ void CameraSceneProxy::UpdateCamera(::CameraComponent* InCameraComponent)
 	bDirty = true;
 }
 
+view_data CameraSceneProxy::GetCurrentViewData()
+{
+	auto view_matrix = CameraComponent->GetViewMatrix();
+	auto projection_matrix = CameraComponent->GetProjectionMatrix();
+	auto view_projection_matrix = projection_matrix * view_matrix;
+	return view_data{
+		.projection_type = 0,
+		.aspect_ratio = CameraComponent->GetAspectRatio(),
+		.fov_h =  CameraComponent->GetFovH(),
+		.viewport_size = Scene.GetWindosSize(),
+		.view_matrix = ToLuisaMatrix(view_matrix),
+		.projection_matrix = ToLuisaMatrix(projection_matrix),
+		.inverse_view_matrix = ToLuisaMatrix(view_matrix.inverse().eval()),
+		.inverse_projection_matrix = ToLuisaMatrix(projection_matrix.inverse().eval()),
+		.view_projection_matrix = ToLuisaMatrix(view_projection_matrix.eval()),
+		.inverse_view_projection_matrix = ToLuisaMatrix(view_projection_matrix.inverse().eval()),
+	};
+}
+
 FMatrix4 CameraSceneProxy::GetViewMatrix(uint Index) const
 {
 	return CameraComponent->GetViewMatrix();

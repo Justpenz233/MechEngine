@@ -5,6 +5,7 @@
 #include "GPUSceneInterface.h"
 #include "Core/ray_tracing_hit.h"
 #include "Core/VertexData.h"
+#include "Core/view_data.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
@@ -38,7 +39,7 @@ namespace MechEngine::Rendering
         return rtAccel->intersect_any(ray, {});
     }
 
-    ray_intersection GPUSceneInterface::intersect(const Var<Ray>& ray) const noexcept
+    ray_intersection GPUSceneInterface::intersect(const Var<Ray>& ray, Var<view_data> view) const noexcept
     {
         auto hit = trace_closest(ray);
         ray_intersection it;
@@ -58,6 +59,10 @@ namespace MechEngine::Rendering
             auto p1_local = v1->position();
             auto p2_local = v2->position();
 
+            auto p0_world = (ToWorldTransform * make_float4(p0_local, 1.f)).xyz();
+            auto p1_world = (ToWorldTransform * make_float4(p1_local, 1.f)).xyz();
+            auto p2_world = (ToWorldTransform * make_float4(p2_local, 1.f)).xyz();
+
             auto dp0_local = p1_local - p0_local;
             auto dp1_local = p2_local - p0_local;
 
@@ -65,18 +70,19 @@ namespace MechEngine::Rendering
             auto t = make_float3(ToWorldTransform[3]);
             auto p = m * triangle_interpolate(bary, p0_local, p1_local, p2_local) + t;
 
-
             auto c = cross(m * dp0_local, m * dp1_local);
             auto normal_world = normalize(c);
 
-
+            it.vertex_ndc[0] = view->world_to_ndc(p0_world);
+            it.vertex_ndc[1] = view->world_to_ndc(p1_world);
+            it.vertex_ndc[2] = view->world_to_ndc(p2_world);
             it.instace_id = InstanceId;
             it.primitive_id = TriangleId;
             it.position_world = p;
             it.triangle_normal_world = normal_world;
             it.vertex_normal_local = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
             it.vertex_normal_world = normalize(m * it.vertex_normal_local);
-            it.depth = length(p - ray->origin());
+            it.depth = view->world_to_normal_ndc(p).z;
             it.back_face = dot(normal_world, ray->direction()) > 0.f;
             it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;
             // .......
@@ -92,5 +98,15 @@ namespace MechEngine::Rendering
     Var<transformData> GPUSceneInterface::get_transform(Expr<uint> transform_id) const noexcept
     {
         return TransformProxy->get_transform_data(transform_id);
+    }
+
+    Var<Triangle> GPUSceneInterface::get_triangle(const UInt& instance_id, const UInt& triangle_index) const
+    {
+        return StaticMeshProxy->get_triangle(instance_id, triangle_index);
+    }
+
+    Var<Vertex> GPUSceneInterface::get_vertex(const UInt& instance_id, const UInt& vertex_index) const
+    {
+        return StaticMeshProxy->get_vertex(instance_id, vertex_index);
     }
 }

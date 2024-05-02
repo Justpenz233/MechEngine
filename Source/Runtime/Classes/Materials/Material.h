@@ -32,9 +32,27 @@ class Material final : public Object
 public:
 	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);//Light Gray
 
+	/**
+	 * Whether to show the wireframe of the mesh.
+	 */
+	MPROPERTY()
+	bool bShowWireframe = false;
+
+	/**
+	 * Whether to fill the faces of the mesh.
+	 */
+	MPROPERTY()
+	bool bFillFaces = true;
+
 	MPROPERTY()
 	MaterialMode Mode = BlinnPhong;
 
+	/**
+	 * The normal type of the material.
+	 * FaceNormal: Use the face normal as the normal.
+	 * VertexNormal: Use the vertex normal as the normal.
+	 * Will support normal map in the future.
+	 */
 	MPROPERTY()
 	NormalMode NormalType = VertexNormal;
 

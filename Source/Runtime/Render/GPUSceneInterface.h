@@ -4,7 +4,9 @@
 
 #pragma once
 #include "Core/gbuffer.h"
+#include "Core/VertexData.h"
 #include "Core/ViewMode.h"
+#include "Core/view_data.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
 #include "Math/MathType.h"
@@ -147,6 +149,7 @@ namespace MechEngine::Rendering
 		Accel rtAccel;
 		BindlessArray bindlessArray;
 		gbuffer g_buffer;
+		view_data view_data_buffer;
 
 		size_t _bindless_buffer_count{0u};
 		size_t _bindless_tex2d_count{0u};
@@ -198,6 +201,12 @@ namespace MechEngine::Rendering
 			return std::make_pair(view, buffer_id);
 		}
 
+		template<uint dim, typename Def>
+		auto RegisterShader(Def &&def) noexcept {
+			static_assert(dim == 1u || dim == 2u || dim == 3u);
+			return device.compile<dim>(std::forward<Def>(def));
+		}
+
 		[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept = 0;
 
 		/***********************************************************************************************
@@ -244,9 +253,10 @@ namespace MechEngine::Rendering
 		/**
 		 * Calaculate the hit position shading information
 		* @param ray Ray to trace
+		* @param view Current view
 		* @return Instersection of primitve information of the ray
 		*/
-		ray_intersection intersect(const Var<Ray> &ray) const noexcept;
+		ray_intersection intersect(const Var<Ray>& ray, Var<view_data> view) const noexcept;
 
 		/**
 		* Get the transform data of a transform by instance id
@@ -255,13 +265,16 @@ namespace MechEngine::Rendering
 		*/
 		Float4x4 get_instance_transform(Expr<uint> instance_id) const noexcept;
 
-
 		/**
 		* Get the transform data of a transform by id
 		* @param transform_id Transform ID
 		* @return Transform data
 		*/
 		Var<transformData> get_transform(Expr<uint> transform_id) const noexcept;
+
+		Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const;
+
+		Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const;
 
 
 

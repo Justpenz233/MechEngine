@@ -9,6 +9,7 @@
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
 #include "Render/Core/bxdf_context.h"
+#include "Render/Core/draw_lines.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -133,13 +134,14 @@ void RayTracingScene::UploadData()
 	TransformProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
+	view_data_buffer = CameraProxy->GetCurrentViewData();
 	stream << rtAccel.build() << synchronize();
 }
 
 void RayTracingScene::Render()
 {
 	ASSERTMSG(g_buffer.frame_buffer, "Frame buffer is not initialized");
-	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize());
+	stream << (*MainShader)(view_data_buffer, LightProxy->LightCount()).dispatch(GetWindosSize());
 
 	if(ViewMode != ViewMode::FrameBuffer)
 		stream << (*ViewModeShader)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
@@ -159,71 +161,88 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 
 void RayTracingScene::CompileShader()
 {
-	MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
-			[&](UInt LightCount) noexcept {
+	MainShader = luisa::make_unique<Shader2D<view_data, uint>>(device.compile<2>(
+			[&](Var<view_data> view, UInt LightCount) noexcept {
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
 			auto pixel       = make_float2(pixel_coord) + .5f;
-			auto Resolution  = make_float2(GetWindosSize());
-			auto p           = (pixel * 2.0f - Resolution) / Resolution;
+			auto resolution  = make_float2(view.viewport_size);
+			auto p           = (pixel * 2.0f - resolution) / resolution;
 			p *= make_float2(1.f, -1.f);
 
 			auto ray = CameraProxy->GenerateRay(p);
-			auto intersection = intersect(ray); intersection.pixel_coord = pixel_coord;
-			auto x = intersection.position_world;
-			auto normal = intersection.vertex_normal_world;
-			auto w_o = -ray->direction();
+			auto intersection = intersect(ray, view);
+			intersection.pixel_coord = pixel_coord; // Ugly, to do someting
 
+			Float3 pixel_color = make_float3(1.f);
 			$if(intersection.valid())
 			{
-				Float3 color = make_float3(0.f);
+				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+				g_buffer.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
+				g_buffer.material_id->write(pixel_coord, make_uint4(intersection.material_id));
+				/************************************************************************
+				 *								Shading
+				 ************************************************************************/
 				// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-				$for(light_id, LightCount)
+				$if (material_data->fill_faces == 1u)
 				{
-					// First calculate light color, as rendering equation is L_i(x, w_i)
-					auto light_data = LightProxy->get_light_data(light_id);
-					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
-					auto light_dir = normalize(light_transform->get_location() - x);
-
-					auto w_i = light_dir;
-					Float3 light_color = make_float3(0.f);
-
-					$if(dot(light_dir, normal) > 0.f)
+					auto x = intersection.position_world;
+					auto normal = intersection.vertex_normal_world;
+					auto w_o = -ray->direction();
+					pixel_color = make_float3(0.f);
+					$for(light_id, LightCount)
 					{
-						// Dispatch light evaluate polymorphically, so that we can have different light type
-						LightProxy->light_virtual_call.dispatch(light_data.light_type,
-						[&](const light_base* light) {
-							light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+						// First calculate light color, as rendering equation is L_i(x, w_i)
+						auto light_data = LightProxy->get_light_data(light_id);
+						auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
+						auto light_dir = normalize(light_transform->get_location() - x);
+
+						auto w_i = light_dir;
+						Float3 light_color = make_float3(0.f);
+
+						$if(dot(light_dir, normal) > 0.f)
+						{
+							// Dispatch light evaluate polymorphically, so that we can have different light type
+							LightProxy->light_virtual_call.dispatch(light_data.light_type,
+							[&](const light_base* light) {
+								light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+							});
+						};
+
+						// calculate mesh color
+						bxdf_context context{
+							.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
+							.material_data = MaterialProxy->get_material_data(intersection.material_id),
+							.g_buffer = g_buffer
+						};
+						Float3 mesh_color;
+						MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
+						[&](const material_base* material) {
+							material->fill_g_buffer(context);
+							mesh_color = material->bxdf(context);
 						});
+
+						// combine light and mesh color
+						pixel_color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
 					};
-
-					// calculate mesh color
-					auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-					g_buffer.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
-					g_buffer.material_id->write(pixel_coord, make_uint4(intersection.material_id));
-
-					bxdf_context context{
-						.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
-						.material_data = MaterialProxy->get_material_data(intersection.material_id),
-						.g_buffer = g_buffer
-					};
-					Float3 mesh_color;
-					MaterialProxy->material_virtual_call.dispatch(material_data.material_type,
-					[&](const material_base* material) {
-						material->fill_g_buffer(context);
-						mesh_color = material->bxdf(context);
-					});
-
-					// combine light and mesh color
-					color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
 				};
-				frame_buffer()->write(pixel_coord, make_float4(gamma_correct(color), 1.f));
+
+				$if(material_data->show_wireframe == 1)
+				{
+					//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
+					//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
+					pixel_color = select(pixel_color, make_float3(0.f, 0.f, 0.f),
+						IsWireFrame(view, pixel,
+							intersection.vertex_ndc[0],
+							intersection.vertex_ndc[1],
+							intersection.vertex_ndc[2], 0.5f));
+				};
 			}
 			$else
 			{
-				g_buffer.fill_color(pixel_coord, make_float4(1.f));
-				frame_buffer()->write(pixel_coord, make_float4(1.f));
+				g_buffer.set_default(pixel_coord, make_float4(1.f));
 			};
+			frame_buffer()->write(pixel_coord, make_float4(pixel_color, 1.f));
 		}));
 
 	ViewModeShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
@@ -231,10 +250,10 @@ void RayTracingScene::CompileShader()
 		auto pixel_coord = dispatch_id().xy();
 		$switch(ViewMode)
 		{
-			// $case(static_cast<uint>(ViewMode::DepthBuffer))
-			// {
-			// 	frame_buffer()->write(pixel_coord, g_buffer_view.depth->read(pixel_coord));
-			// };
+			$case(static_cast<uint>(ViewMode::DepthBuffer))
+			{
+				frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(pixel_coord).x));
+			};
 			$case(static_cast<uint>(ViewMode::NormalWorldBuffer))
 			{
 				frame_buffer()->write(pixel_coord, g_buffer.normal->read(pixel_coord));

@@ -3,7 +3,7 @@
 //
 #pragma once
 #include "Core/CoreMinimal.h"
-#include "Core/Curve.h"
+#include "Curve/Curve.h"
 #include "Mesh/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
 

@@ -44,15 +44,15 @@ public:
 		return data_buffer->read(mesh_index);
 	}
 
-	Var<Triangle> get_triangle(const UInt& mesh_index, const UInt& triangle_index) const
+	Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const
 	{
-		auto mesh_data = data_buffer->read(mesh_index);
+		auto mesh_data = data_buffer->read(instance_id);
 		return bindlessArray->buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
 	}
 
-	Var<Vertex> get_vertex(const UInt& mesh_index, const UInt& vertex_index) const
+	Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const
 	{
-		auto mesh_data = data_buffer->read(mesh_index);
+		auto mesh_data = data_buffer->read(instance_id);
 		return bindlessArray->buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);
 	}
 

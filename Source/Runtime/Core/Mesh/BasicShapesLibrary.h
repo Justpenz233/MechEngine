@@ -5,7 +5,7 @@
 #pragma once
 
 
-#include "Curve.h"
+#include "Curve/Curve.h"
 #include "StaticMesh.h"
 
 class BasicShapesLibrary {

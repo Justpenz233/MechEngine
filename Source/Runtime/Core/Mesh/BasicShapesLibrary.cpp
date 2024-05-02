@@ -15,7 +15,7 @@
 
 #include "CoreMinimal.h"
 #include "Math/FTransform.h"
-#include "Curve.h"
+#include "Curve/Curve.h"
 #include "Object/Object.h"
 #include "StaticMesh.h"
 

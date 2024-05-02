@@ -44,7 +44,7 @@ public:
 	std::function<void()> BeginPlayFunction;
 	virtual void BeginPlay();
 
-	std::function<void(double, ObjectPtr<Actor>)> TickFunction;
+	std::function<void(double, Actor*)> TickFunction;
     virtual void Tick(double DeltaTime);
 
 	std::function<void()> EndPlayFunction;

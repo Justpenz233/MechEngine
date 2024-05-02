@@ -8,6 +8,7 @@
 #include <luisa/dsl/builtin.h>
 
 #include "Math/MathType.h"
+#include "Render/Core/view_data.h"
 
 class CameraComponent;
 class TransformComponent;
@@ -47,6 +48,8 @@ public:
 	void AddCamera(CameraComponent* InCameraComponent, uint InTransformID);
 
 	void UpdateCamera(CameraComponent* InCameraComponent);
+
+	view_data GetCurrentViewData();
 
 	auto GenerateRay(Expr<float2> uv)
 	{

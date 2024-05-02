@@ -4,7 +4,7 @@
 
 #include "StaticCurveComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Core/Curve.h"
+#include "Curve/Curve.h"
 #include "CoreMinimal.h"
 #include "Game/Actor.h"
 #include "Mesh/BasicShapesLibrary.h"
