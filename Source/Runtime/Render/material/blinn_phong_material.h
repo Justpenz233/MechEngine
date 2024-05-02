@@ -30,7 +30,8 @@ namespace MechEngine::Rendering
 			auto normal = material_data.normal;
 			auto half = normalize(w_i + w_o);
 
-			auto diffuse = material_data.base_color * (1.f - material_data.metalness) / pi;
+			auto diffuse = srgb_to_linear(material_data.base_color)
+			* (1.f - material_data.metalness) / pi;
 
 			auto d = D(normal, half, material_data.roughness);
 			// G = N dot L and N dot V but be normalized

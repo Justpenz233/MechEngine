@@ -5,6 +5,7 @@
 #pragma once
 
 #include "light_base.h"
+#include "Render/material/shading_function.h"
 
 namespace MechEngine::Rendering
 {
@@ -18,7 +19,7 @@ namespace MechEngine::Rendering
             auto light_pos = light_transform[3].xyz();
             auto distance = clamp(length(x - light_pos), 0.01f, 1000.f);
             auto attenuation = 1.f / (distance * distance);
-            return data.intensity * data.light_color * attenuation;
+            return data.intensity * srgb_to_linear(data.light_color) * attenuation;
         }
     };
 }

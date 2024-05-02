@@ -242,7 +242,7 @@ void RayTracingScene::CompileShader()
 			{
 				g_buffer.set_default(pixel_coord, make_float4(1.f));
 			};
-			frame_buffer()->write(pixel_coord, make_float4(pixel_color, 1.f));
+			frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(pixel_color), 1.f));
 		}));
 
 	ViewModeShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)

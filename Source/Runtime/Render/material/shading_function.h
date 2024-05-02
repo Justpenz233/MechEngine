@@ -38,24 +38,18 @@ namespace MechEngine::Rendering
      * @param x Linear color
      * @return sRGB color
      */
-    FORCEINLINE auto inear_to_srgb(const Float3& x) noexcept
+    FORCEINLINE auto linear_to_srgb(const Float3& x) noexcept
     {
         return saturate(select(1.055f * pow(x, 1.0f / 2.4f) - 0.055f,
                                12.92f * x,
                                x <= 0.00031308f));
     }
 
-    /**
-     * Gamma correct the color, all linear color from sRGB space should be gamma corrected before output
-     * @param color Linear color
-     * @param gamma Gamma value, default is 2.2
-     * @return Gamma corrected color
-     */
-    FORCEINLINE Float3 gamma_correct(const Float3& color, const Float& gamma = 2.2f)
+    FORCEINLINE auto srgb_to_linear(const Float3& x) noexcept
     {
-        return saturate(select(1.055f * pow(color, 1.0f / gamma) - 0.055f,
-                               12.92f * color,
-                               color <= 0.00031308f));
+        return select(pow((x + 0.055f) / 1.055f, 2.4f),
+                      x / 12.92f,
+                      x <= 0.04045f);
     }
 
     /**
