@@ -38,11 +38,6 @@ public:
 	MPROPERTY()
 	bool bShowWireframe = false;
 
-	/**
-	 * Whether to fill the faces of the mesh.
-	 */
-	MPROPERTY()
-	bool bFillFaces = true;
 
 	MPROPERTY()
 	MaterialMode Mode = BlinnPhong;

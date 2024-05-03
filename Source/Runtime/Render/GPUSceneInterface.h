@@ -129,6 +129,7 @@ namespace MechEngine::Rendering
 		 */
 		virtual FMatrix4 GetProjectionMatrix() = 0;
 
+
 		/**
 		 * Render the scene
 		 */
@@ -137,6 +138,17 @@ namespace MechEngine::Rendering
 		void ViewModeSet(ViewMode InMode) { ViewMode = InMode; }
 
 		[[nodiscard]] ViewMode GetViewMode() const noexcept { return ViewMode; }
+
+		/***********************************************************************************************
+		*								Shaders 									                   *
+		*					Base shaders for all types pipeline						                   *
+		**********************************************************************************************/
+	public:
+		virtual void CompileShader();
+
+
+	protected:
+		unique_ptr<Shader2D<uint>> ViewModePass;
 
 
 

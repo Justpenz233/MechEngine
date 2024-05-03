@@ -28,6 +28,29 @@ namespace MechEngine::Rendering
     {
     }
 
+    void GPUSceneInterface::CompileShader()
+    {
+        ViewModePass = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
+        {
+            auto pixel_coord = dispatch_id().xy();
+            $switch(ViewMode)
+            {
+                $case(static_cast<uint>(ViewMode::DepthBuffer))
+                {
+                    frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(pixel_coord).x));
+                };
+                $case(static_cast<uint>(ViewMode::NormalWorldBuffer))
+                {
+                    frame_buffer()->write(pixel_coord, g_buffer.normal->read(pixel_coord));
+                };
+                $case(static_cast<uint>(ViewMode::BaseColorBuffer))
+                {
+                    frame_buffer()->write(pixel_coord, g_buffer.base_color->read(pixel_coord));
+                };
+            };
+        }));
+    }
+
     ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
     {
         auto hit = rtAccel->intersect(ray, {});

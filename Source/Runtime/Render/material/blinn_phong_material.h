@@ -29,13 +29,16 @@ namespace MechEngine::Rendering
 		{
 			auto normal = material_data.normal;
 			auto half = normalize(w_i + w_o);
+			auto linear_base_color = srgb_to_linear(material_data.base_color);
 
-			auto diffuse = srgb_to_linear(material_data.base_color)
-			* (1.f - material_data.metalness) / pi;
+			auto diffuse = linear_base_color * (1.f - material_data.metalness) / pi;
+
+			auto f0 = lerp(0.04f, linear_base_color, material_data.metalness);
+			auto F = fresnel_schlick(f0, dot(half, w_o));
 
 			auto d = D(normal, half, material_data.roughness);
 			// G = N dot L and N dot V but be normalized
-			return d * 0.25f +  diffuse;
+			return F * d * 0.25f +  diffuse;
 		}
 	};
 }
