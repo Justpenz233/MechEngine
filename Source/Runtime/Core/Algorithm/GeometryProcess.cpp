@@ -4,10 +4,6 @@
 
 #include "GeometryProcess.h"
 #include "../Mesh/StaticMesh.h"
-#include <pmp/algorithms/hole_filling.h>
-#include "pmp/surface_mesh.h"
-#include "pmp/algorithms/numerics.h"
-#include "pmp/algorithms/smoothing.h"
 #include "igl/swept_volume.h"
 #include "Math/FTransform.h"
 #include "igl/vertex_components.h"
@@ -16,131 +12,17 @@ namespace MechEngine::Algorithm::GeometryProcess
 {
 	bool FillSmallestHole(Eigen::MatrixX3d& Vertices, Eigen::MatrixX3i& Triangles)
 	{
-		pmp::SurfaceMesh mesh_;
-		pmp::matrices_to_mesh(Vertices, Triangles, mesh_);
-		pmp::Halfedge hmin;
-		unsigned int  lmin(mesh_.n_halfedges());
-		for (auto h : mesh_.halfedges())
-		{
-			if (mesh_.is_boundary(h))
-			{
-				pmp::Scalar	  l(0);
-				pmp::Halfedge hh = h;
-				do
-				{
-					++l;
-					if (!mesh_.is_manifold(mesh_.to_vertex(hh)))
-					{
-						l += lmin + 42; // make sure this hole is not chosen
-						break;
-					}
-					hh = mesh_.next_halfedge(hh);
-				}
-				while (hh != h);
-
-				if (l < lmin)
-				{
-					lmin = l;
-					hmin = h;
-				}
-			}
-		}
-
-		// close smallest hole
-		if (hmin.is_valid())
-		{
-			try
-			{
-				fill_hole(mesh_, hmin);
-			}
-			catch (const pmp::InvalidInputException& e)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
-		MatrixXd V = Vertices;
-		MatrixXi F = Triangles;
-		pmp::mesh_to_matrices(mesh_, V, F);
-		Vertices = V;
-		Triangles = F;
 		return true;
 	}
 
 	bool FillAllHoles(Eigen::MatrixX3d& Vertices, Eigen::MatrixX3i& Triangles)
 	{
-		bool			 Flag = false;
-		pmp::SurfaceMesh mesh_;
-		pmp::matrices_to_mesh(Vertices, Triangles, mesh_);
-		while (true)
-		{
-			pmp::Halfedge hmin;
-			unsigned int  lmin(mesh_.n_halfedges());
-			for (auto h : mesh_.halfedges())
-			{
-				if (mesh_.is_boundary(h))
-				{
-					pmp::Scalar	  l(0);
-					pmp::Halfedge hh = h;
-					do
-					{
-						++l;
-						if (!mesh_.is_manifold(mesh_.to_vertex(hh)))
-						{
-							l += lmin + 42; // make sure this hole is not chosen
-							break;
-						}
-						hh = mesh_.next_halfedge(hh);
-					}
-					while (hh != h);
-
-					if (l < lmin)
-					{
-						lmin = l;
-						hmin = h;
-					}
-				}
-			}
-			// close smallest hole
-			if (hmin.is_valid())
-			{
-				try
-				{
-					fill_hole(mesh_, hmin);
-				}
-				catch (const pmp::InvalidInputException& e)
-				{
-					break;
-				}
-				Flag = true;
-			}
-			else
-				break;
-		}
-		if (Flag)
-		{
-			MatrixXd V = Vertices;
-			MatrixXi F = Triangles;
-			pmp::mesh_to_matrices(mesh_, V, F);
-			Vertices = V;
-			Triangles = F;
-		}
-		return Flag;
+		return true;
 	}
 
 	void SmoothMesh(Eigen::MatrixX3d& Vertices, Eigen::MatrixX3i& Triangles, int Iteration, bool UseUniformLaplacian)
 	{
-		pmp::SurfaceMesh mesh_;
-		pmp::matrices_to_mesh(Vertices, Triangles, mesh_);
-		pmp::explicit_smoothing(mesh_, Iteration, UseUniformLaplacian);
-		MatrixXd V = Vertices;
-		MatrixXi F = Triangles;
-		pmp::mesh_to_matrices(mesh_, V, F);
-		Vertices = V;
-		Triangles = F;
+
 	}
 
 

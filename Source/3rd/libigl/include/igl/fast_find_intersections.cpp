@@ -48,7 +48,6 @@ IGL_INLINE bool igl::fast_find_intersections(
 
   // Determine if V1,F1 and V2,F2 point to the same data
   const bool self_test = (&V1 == &V2) && (&F1 == &F2);
-  if(stinker){ printf("%s\n",self_test?"🍎&(V1,F1) == 🍎&(V2,F2)":"🍎≠🍊"); }
 
   int num_if = 0;
   int num_ee = 0;
@@ -146,7 +145,6 @@ IGL_INLINE bool igl::fast_find_intersections(
         yes_shared_edge = c != -1;
         if(yes_shared_edge)
         {
-          if(stinker){ printf("    ⚠️  shared edge\n"); }
           if(stinker)
           {
             printf("    %d: %d %d %d\n",f1,F1(f1,0),F1(f1,1),F1(f1,2));
@@ -165,7 +163,6 @@ IGL_INLINE bool igl::fast_find_intersections(
           yes_shared_verted = shared_vertex(f1,f2,sf,sg);
           if(yes_shared_verted)
           {
-            if(stinker){ printf("    ⚠️  shared vertex\n"); }
             // Just to be sure. c≠sf
             const int c = (sf+1)%3;
             assert(F1(f1,sf) == F1(f2,sg));
@@ -203,7 +200,6 @@ IGL_INLINE bool igl::fast_find_intersections(
           append_intersection(f1,f2,false,v1,v2);
         }
       }
-      if(stinker) { printf("    %s\n",found_intersection? "☠️":"❌"); }
       if(num_if && first_only) { break; }
     }
     if(num_if && first_only) { break; }

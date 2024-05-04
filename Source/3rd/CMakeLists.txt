@@ -1,7 +1,9 @@
 add_definitions(-w)
 set (ThirdPartyDir ${CMAKE_CURRENT_SOURCE_DIR})
 
-find_package(Boost REQUIRED)
+# Use system packages if available
+find_package(Boost)
+find_package(Eigen)
 
 if (NOT TARGET luisa::compute)
     option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" OFF)
@@ -39,10 +41,6 @@ if (NOT TARGET libigl)
     add_subdirectory(libigl)
 endif()
 
-if (NOT TARGET pmp)
-    add_subdirectory(libpmp)
-endif ()
-
 if (NOT TARGET bvh)
     add_subdirectory(bvh)
 endif ()
@@ -59,7 +57,6 @@ target_link_libraries(ThirdParty INTERFACE
         spdlog::spdlog_header_only
         tinysplinecxx
         magic_enum
-        pmp
         luisa::compute
         bvh
 )
