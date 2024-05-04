@@ -4,8 +4,8 @@
 
 #include "MaterialSceneProxy.h"
 #include "Render/material/material_base.h"
-#include "Render/Core/TypeConvertion.h"
 #include "Render/material/blinn_phong_material.h"
+#include "Render/material/disney_material.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
 Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
@@ -14,6 +14,7 @@ Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
 	material_data_buffer = Scene.RegisterBuffer<materialData>(MaxMaterials);
 
 	MaterialModeTagMap[BlinnPhong] = material_virtual_call.create<blinn_phong_material>();
+	MaterialModeTagMap[Disney] = material_virtual_call.create<disney_material>();
 }
 
 uint Rendering::MaterialSceneProxy::TryAddMaterial(Material* InMaterial)
@@ -43,7 +44,7 @@ void Rendering::MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
 	ASSERTMSG(MaterialIDMap.contains(InMaterial), "Material is not in the map, add to scene first!");
 	bNeedUpdate = true;
 	uint ID = MaterialIDMap[InMaterial];
-	uint Tag = MaterialDataVector[ID].material_type;
+	uint Tag = MaterialModeTagMap[InMaterial->Mode];
 	MaterialDataVector[ID] = materialData(Tag, InMaterial);
 }
 

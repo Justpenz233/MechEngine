@@ -12,7 +12,6 @@ enum MaterialMode
 {
 	BlinnPhong,
 	Disney,
-	GGX,
 	Custom // should provide a shader pointer
 };
 enum NormalMode
@@ -30,7 +29,7 @@ class Material final : public Object
 {
 	REFLECTION_BODY(Material)
 public:
-	inline static FColor DefalutColor = FLinearColor(0.8, 0.8, 0.8);//Light Gray
+	inline static FColor DefalutColor = FLinearColor(1., 1., 1.);
 
 	/**
 	 * Whether to show the wireframe of the mesh.
@@ -40,7 +39,7 @@ public:
 
 
 	MPROPERTY()
-	MaterialMode Mode = BlinnPhong;
+	MaterialMode Mode = Disney;
 
 	/**
 	 * The normal type of the material.
@@ -73,6 +72,9 @@ public:
 	 */
 	MPROPERTY()
 	float Metalness = 0.0f;
+
+	MPROPERTY()
+	float Specular = 0.5f;
 
 	MPROPERTY()
 	float Roughness = 0.5f;

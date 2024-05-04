@@ -38,7 +38,11 @@ namespace MechEngine::Rendering
 
 			auto d = D(normal, half, material_data.roughness);
 			// G = N dot L and N dot V but be normalized
-			return F * d * 0.25f +  diffuse;
+
+			// auto g = dot(normal, w_i) * dot(normal, w_o);
+			// return F * d * g  / (4.f * g) * material_data.specular_tint + diffuse;
+			return F * d * 0.25f * material_data.specular_tint + diffuse;
+
 		}
 	};
 }

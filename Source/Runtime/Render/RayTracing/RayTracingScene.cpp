@@ -209,19 +209,21 @@ void RayTracingScene::CompileShader()
 						});
 					};
 
-					// calculate mesh color
-					bxdf_context context{
-						.g_buffer = g_buffer,
-						.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
-						.material_data = MaterialProxy->get_material_data(intersection.material_id)
+					Float3 mesh_color = make_float3(0.f);
+					$if(dot(w_o, normal) > 0.f)
+					{
+						// calculate mesh color
+						bxdf_context context{
+							.g_buffer = g_buffer,
+							.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
+							.material_data = MaterialProxy->get_material_data(intersection.material_id)
+						};
+						MaterialProxy->material_virtual_call.dispatch(
+							material_data.material_type,[&](const material_base* material) {
+								material->fill_g_buffer(context);
+								mesh_color = material->bxdf(context);
+						});
 					};
-					Float3 mesh_color;
-					MaterialProxy->material_virtual_call.dispatch(
-						material_data.material_type,[&](const material_base* material) {
-							material->fill_g_buffer(context);
-							mesh_color = material->bxdf(context);
-					});
-
 					// combine light and mesh color
 					pixel_color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
 				};

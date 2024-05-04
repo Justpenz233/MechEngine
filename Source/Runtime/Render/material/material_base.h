@@ -6,6 +6,7 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
+#include "Render/Core/material_data.h"
 
 
 namespace MechEngine::Rendering
@@ -17,6 +18,7 @@ struct material_parameters
 {
 	Float3 base_color;
 	Float metalness;
+	Float specular;
 	Float roughness;
 	Float3 specular_tint;
 	Float3 normal;
@@ -38,6 +40,7 @@ public:
 	{
 		material_parameters parameters{
 			.base_color = sample_base_color(context),
+			.specular = context.material_data->specular,
 			.metalness = sample_metalness(context),
 			.roughness = sample_roughness(context),
 			.specular_tint = sample_specular_tint(context),

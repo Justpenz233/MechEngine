@@ -17,6 +17,7 @@ namespace MechEngine::Rendering
         uint show_wireframe = false;
         float3 base_color;
         float metalness;
+        float specular;
         float roughness;
         float3 specular_tint;
 
@@ -31,6 +32,7 @@ namespace MechEngine::Rendering
         base_color(ToLuisaVector(InMaterial->BaseColor)),
         specular_tint(ToLuisaVector(InMaterial->SpecularTint)),
         metalness(InMaterial->Metalness),
+        specular(InMaterial->Specular),
         roughness(InMaterial->Roughness),
         bUseTriangleNormal(InMaterial->NormalType == FaceNormal),
         bUseVertexNormal(InMaterial->NormalType == VertexNormal)
@@ -39,4 +41,4 @@ namespace MechEngine::Rendering
 }
 LUISA_STRUCT(MechEngine::Rendering::materialData,
     material_type, show_wireframe,
-    base_color, metalness, roughness, specular_tint, bUseTriangleNormal, bUseVertexNormal){};
+    base_color, metalness, specular, roughness, specular_tint, bUseTriangleNormal, bUseVertexNormal){};
