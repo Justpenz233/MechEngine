@@ -39,9 +39,11 @@ view_data CameraSceneProxy::GetCurrentViewData()
 		.fov_h =  CameraComponent->GetFovH(),
 		.viewport_size = Scene.GetWindosSize(),
 		.view_matrix = ToLuisaMatrix(view_matrix),
-		.projection_matrix = ToLuisaMatrix(projection_matrix),
 		.inverse_view_matrix = ToLuisaMatrix(view_matrix.inverse().eval()),
+
+		.projection_matrix = ToLuisaMatrix(projection_matrix),
 		.inverse_projection_matrix = ToLuisaMatrix(projection_matrix.inverse().eval()),
+		
 		.view_projection_matrix = ToLuisaMatrix(view_projection_matrix.eval()),
 		.inverse_view_projection_matrix = ToLuisaMatrix(view_projection_matrix.inverse().eval()),
 	};

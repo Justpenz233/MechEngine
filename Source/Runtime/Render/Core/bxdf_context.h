@@ -18,11 +18,12 @@ namespace MechEngine::Rendering
      */
     struct bxdf_context
     {
+		gbuffer& g_buffer;
+
         Expr<Ray> ray;
         const ray_intersection& intersection;
         Float3 w_o;
         Float3 w_i;
-        gbuffer& g_buffer;
         Var<materialData> material_data;
     };
 }

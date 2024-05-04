@@ -211,9 +211,9 @@ void RayTracingScene::CompileShader()
 
 					// calculate mesh color
 					bxdf_context context{
+						.g_buffer = g_buffer,
 						.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
-						.material_data = MaterialProxy->get_material_data(intersection.material_id),
-						.g_buffer = g_buffer
+						.material_data = MaterialProxy->get_material_data(intersection.material_id)
 					};
 					Float3 mesh_color;
 					MaterialProxy->material_virtual_call.dispatch(
