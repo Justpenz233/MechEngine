@@ -6,10 +6,12 @@
 #include "Widgets/MenuBarWidgets/SaveMeshMenuBar.h"
 #include "Widgets/WorldEditor/WorldOutliner.h"
 #include "UI/ImguiPlus.h"
+#include "Widgets/WorldEditor/ViewGizmo.h"
 
 inline void LoadDefaultEditorLayout(World* CurrentWorld)
 {
 	auto MainGizmoManager = CurrentWorld->AddWidget<TransformGizmo>();
+	auto MainViewGizmo = CurrentWorld->AddWidget<ViewGizmo>();
 	auto MainMenuBar = CurrentWorld->AddWidget<MenuBar>("MainMenuBar");
 
 	MainMenuBar->AddItem("View/Edit Object", "", { [=]() {

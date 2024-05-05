@@ -30,14 +30,10 @@ endif()
 if (NOT TARGET libigl)
     option(LIBIGL_USE_STATIC_LIBRARY "Use libigl as static library" OFF)
     option(LIBIGL_INSTALL "Enable installation of libigl targets" OFF)
-    # use external imgui
-    option(LIBIGL_IMGUI "Build target igl::imgui" OFF)
+    option(LIBIGL_IMGUI "Build target igl::imgui" OFF)     # use external imgui
     option(LIBIGL_GLFW "Build target igl::glfw" OFF)
-    # use CGAL for mesh boolean
-    option(LIBIGL_COPYLEFT_CGAL "Build target igl_copyleft::cgal" ON)
-
-    # for SCAF parametaerization
-    option(LIBIGL_RESTRICTED_TRIANGLE "Build target igl_restricted::triangle" ON)
+    option(LIBIGL_COPYLEFT_CGAL "Build target igl_copyleft::cgal" ON) # use CGAL for mesh boolean
+    option(LIBIGL_RESTRICTED_TRIANGLE "Build target igl_restricted::triangle" ON) # for SCAF parametaerization
     add_subdirectory(libigl)
 endif()
 

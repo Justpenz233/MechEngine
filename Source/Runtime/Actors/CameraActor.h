@@ -12,6 +12,11 @@ public:
 
     FORCEINLINE CameraComponent* GetCameraComponent() const;
 
+    FORCEINLINE FVector GetFocusCenter() const;
+
+    template<typename T>
+    FORCEINLINE void SetView(const Eigen::MatrixX4<T>& InView);
+
 	virtual void BeginPlay() override;
 
 private:
@@ -37,4 +42,15 @@ private:
 FORCEINLINE CameraComponent* CameraActor::GetCameraComponent() const
 {
     return Component;
+}
+
+FORCEINLINE FVector CameraActor::GetFocusCenter() const
+{
+    return FocusCenter;
+}
+
+template<typename T>
+FORCEINLINE void CameraActor::SetView(const Eigen::MatrixX4<T>& InView)
+{
+
 }

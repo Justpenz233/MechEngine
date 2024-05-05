@@ -32,6 +32,7 @@ void WorldOutliner::Draw()
 		std::string DisplayName = UI::GetObjectDisplayName(Cast<Object>(Actor));
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
+		ImGui::PushID(Actor.get());
 		if(ImGui::Selectable(DisplayName.c_str(), Actor->IsSelected(), ImGuiSelectableFlags_SpanAllColumns))
 		{
 			World->SelectActor(Actor);
@@ -44,6 +45,7 @@ void WorldOutliner::Draw()
 			ImGui::SetNextWindowSize(ImVec2(300, WindowSize.y * 0.6));
 			UI::DrawActorPanel(Actor);
 		}
+		ImGui::PopID();
 	}
 	ImGui::EndTable();
 	ImGui::End();

@@ -51,5 +51,9 @@ namespace MechEngine
 		AsyncLogger->flush_on(spdlog::level::level_enum::info);
 		AsyncLogger->set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
         AsyncLogger->info("Set default logger, {}", FileName);
+
+
+		TempLogger = spdlog::stdout_color_mt("TempLogger");
+		TempLogger->set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
     }
 }

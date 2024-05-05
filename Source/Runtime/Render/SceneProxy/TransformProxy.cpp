@@ -43,7 +43,8 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 
 uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
 {
-	ASSERTMSG(TransformIndexMap.count(InTransform) == 0, "TransformComponent already exist in scene!");
+	if(TransformIndexMap.count(InTransform))
+		return TransformIndexMap[InTransform];
 	uint NewId = Id++;
 	TransformIndexMap[InTransform] = NewId;
 	DirtyTransforms.insert(InTransform);

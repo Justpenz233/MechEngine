@@ -50,6 +50,12 @@ namespace MechEngine {
         MechEngine::Logger::Get().GetDefaultLogger()->critical(std::forward<Args>(args)...);
     }
 
+    template <class... Args>
+    void LOG_TEMP(Args&&... args)
+    {
+        MechEngine::Logger::Get().GetTempLogger()->info(std::forward<Args>(args)...);
+    }
+
 
     #define ASSERTMSG(Expr, ...) \
         __M_AssertMSG(#Expr, Expr, __FILE__, __LINE__, __VA_ARGS__)

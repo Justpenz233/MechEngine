@@ -111,6 +111,16 @@ void World::SelectActor(const ObjectPtr<Actor>& InActor)
 	OnActorSelectedEvent.Broadcast(InActor.get());
 }
 
+CameraActor* World::GetCurrentCamera() const
+{
+	for (auto& Actor: Actors) {
+		if (auto Component = Actor->GetComponent<CameraComponent>()) {
+			return Cast<CameraActor>(Component->GetOwner());
+		}
+	}
+	return nullptr;
+}
+
 void World::SetViewMode(const ViewMode& Mode) const
 {
 	GetScene()->ViewModeSet(Mode);

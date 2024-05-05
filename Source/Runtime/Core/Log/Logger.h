@@ -4,6 +4,8 @@
 
 #pragma once
 #include <spdlog/async_logger.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include "Misc/Platform.h"
 
 namespace MechEngine
 {
@@ -15,9 +17,14 @@ namespace MechEngine
     	~Logger();
         static Logger& Get();
 
-    	[[nodiscard]] std::shared_ptr<spdlog::async_logger>& GetDefaultLogger()
+    	[[nodiscard]] FORCEINLINE std::shared_ptr<spdlog::async_logger>& GetDefaultLogger()
     	{
     		return AsyncLogger;
+    	}
+
+    	[[nodiscard]] FORCEINLINE std::shared_ptr<spdlog::logger>& GetTempLogger()
+	    {
+    		return TempLogger;
     	}
 
     private:
@@ -25,6 +32,7 @@ namespace MechEngine
 
     	std::shared_ptr<spdlog::async_logger> AsyncLogger;
 
+    	std::shared_ptr<spdlog::logger> TempLogger;
 
     };
 }

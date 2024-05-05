@@ -9,6 +9,8 @@
 #include <bvh/v2/vec.h>
 #include <bvh/v2/ray.h>
 #include <bvh/v2/node.h>
+#include <igl/doublearea.h>
+
 #include "igl/exact_geodesic.h"
 #include "igl/boundary_loop.h"
 #include "igl/flipped_triangles.h"

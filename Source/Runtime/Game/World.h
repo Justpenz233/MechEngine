@@ -69,20 +69,28 @@ public:
 
 	void DestroyActor(const ObjectPtr<class Actor>& InActor);
 
-    template<class T>
-    void BindKeyPressedEvent(int Key, ObjectPtr<T> Object, void(T::* FuncPtr)());
-
     TArray<ObjectPtr<class Actor>> GetAllActors() { return Actors; }
 
 	void SelectActor(const ObjectPtr<class Actor>& InActor);
+
+	class CameraActor* GetCurrentCamera() const;
 
     FORCEINLINE Actor* GetSelectedActor() const;
     FORCEINLINE Rendering::GPUSceneInterface* GetScene() const { return GPUScene; }
 	FORCEINLINE class ViewportInterface* GetViewport() const { return Viewport; }
 
-	template<class T, class... Args>
-	T* AddWidget(Args&&... args);
+	template<class T>
+	void BindKeyPressedEvent(int Key, ObjectPtr<T> Object, void(T::* FuncPtr)());
 
+    /**
+     * Add a widget to the world, the widget will be rendered in the viewport
+     * @tparam T Widget type, whoule be derived from UIWidget
+     * @tparam Args Constructor arguments for the widget
+     * @param args Constructor arguments for the widget
+     * @return The widget pointer
+     */
+    template<class T, class... Args>
+	T* AddWidget(Args&&... args);
 
 	/************************************************************************
 	 *						Rendering functions

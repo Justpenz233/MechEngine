@@ -73,7 +73,6 @@ namespace MechEngine::Rendering
         virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const override
         {
             auto N = material_data.normal;
-            auto half = normalize(w_i + w_o);
 
             auto NdotL = dot(N, w_i);
             auto NdotV = dot(N, w_o);
@@ -100,9 +99,9 @@ namespace MechEngine::Rendering
             // Based on Hanrahan-Krueger brdf approximation of isotropic bssrdf
             // 1.25 scale is used to (roughly) preserve albedo
             // Fss90 used to "flatten" retroreflection based on roughness
-            Float Fss90 = LdotH*LdotH * material_data.roughness;
-            Float Fss = lerp(1.0f, Fss90, FL) * lerp(1.0f, Fss90, FV);
-            Float ss = 1.25f * (Fss * (1.f / (NdotL + NdotV) - .5f) + .5f);
+            // Float Fss90 = LdotH*LdotH * material_data.roughness;
+            // Float Fss = lerp(1.0f, Fss90, FL) * lerp(1.0f, Fss90, FV);
+            // Float ss = 1.25f * (Fss * (1.f / (NdotL + NdotV) - .5f) + .5f);
 
             // specular
             Float aspect = 1.f;
