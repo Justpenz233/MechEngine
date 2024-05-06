@@ -24,6 +24,14 @@ public:
 
 	void UpdateLight(LightComponent* InLight);
 
+	/**
+	 * Get the light type tag uint
+	 * Return ~0u if the light type is not supported
+	 * @param InLight
+	 * @return light type tag
+	 */
+	uint GetLightTypeTag(LightComponent* InLight);
+
 	virtual void UploadDirtyData(Stream& stream) override;
 
 	[[nodiscard]] FORCEINLINE uint LightCount() const
@@ -44,7 +52,7 @@ protected:
 	vector<light_data> LightDatas;
 	BufferView<light_data> light_buffer;
 
-
+	uint const_light_tag;
 	uint point_light_tag;
 	uint directional_light_tag;
 

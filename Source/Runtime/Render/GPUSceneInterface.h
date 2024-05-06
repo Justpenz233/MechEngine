@@ -77,7 +77,7 @@ namespace MechEngine::Rendering
 		virtual void EraseMesh(StaticMeshComponent* InMesh) = 0;
 
 		/**
-		 * Update a transform
+		 * Try to update a transform render data, the transform may not exist in the scene
 		 * @param InTransform Transformcomponent to update
 		 */
 		virtual void UpdateTransform(TransformComponent* InTransform) = 0;

@@ -19,6 +19,19 @@ void CameraActor::BeginPlay()
 	World->GetViewport()->MouseScrollEvent.AddObjectFunction(this, &CameraActor::MouseWheelZoom);
 }
 
+void CameraActor::LookAt(const FVector& Target)
+{
+	FocusCenter = Target;
+	auto Forward = (Target - GetLocation()).normalized();
+	SetRotation(FQuat::FromTwoVectors(FVector{1, 0, 0}, Forward));
+}
+
+void CameraActor::LookAt()
+{
+	auto Forward = (FocusCenter - GetLocation()).normalized();
+	SetRotation(FQuat::FromTwoVectors(FVector{1, 0, 0}, Forward));
+}
+
 void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)
 {
 	static FVector2 LastPos = {0.f, 0.f};

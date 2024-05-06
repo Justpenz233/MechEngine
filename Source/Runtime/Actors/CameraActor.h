@@ -14,8 +14,24 @@ public:
 
     FORCEINLINE FVector GetFocusCenter() const;
 
+    /**
+     * Set the view matrix of the camera
+     * @tparam T matrix scalar type
+     * @param InView New view matrix
+     */
     template<typename T>
     FORCEINLINE void SetView(const Eigen::MatrixX4<T>& InView);
+
+    /**
+     * Set the camera to look at the target position
+     * @param Target the target position
+     */
+    void LookAt(const FVector &Target);
+
+    /**
+     * Set the camera to look at the current target position
+     */
+    void LookAt();
 
 	virtual void BeginPlay() override;
 

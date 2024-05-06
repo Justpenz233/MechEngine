@@ -21,9 +21,7 @@ TransformSceneProxy::TransformSceneProxy(RayTracingScene& InScene)
 void TransformSceneProxy::UploadDirtyData(Stream& stream)
 {
 	if (DirtyTransforms.empty())
-	{
 		return;
-	}
 
 	for (TransformComponent* Component : DirtyTransforms)
 	{
@@ -53,8 +51,8 @@ uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
 
 void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)
 {
-	ASSERTMSG(TransformIndexMap.count(InTransform), "TransformComponent not exist in scene!");
-	DirtyTransforms.insert(InTransform);
+	if(TransformIndexMap.count(InTransform))
+		DirtyTransforms.insert(InTransform);
 }
 
 }
