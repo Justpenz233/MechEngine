@@ -191,41 +191,51 @@ void RayTracingScene::CompileShader()
 				auto x      = intersection.position_world;
 				auto normal = intersection.vertex_normal_world;
 				auto w_o    = -ray->direction();
+				auto reflect_dir = reflect(-w_o, normal);
+
 				pixel_color = make_float3(0.f);
 				$for(light_id, LightCount) {
 					// First calculate light color, as rendering equation is L_i(x, w_i)
 					auto light_data = LightProxy->get_light_data(light_id);
 					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
 					auto light_dir = normalize(light_transform->get_location() - x);
+					auto calc_lighting = [&](const Float3& w_i) {
+						Float3 light_color = make_float3(0.f);
 
-					auto w_i = light_dir;
-					Float3 light_color = make_float3(0.f);
-
-					$if(dot(light_dir, normal) > 0.f) {
-						// Dispatch light evaluate polymorphically, so that we can have different light type
-						LightProxy->light_virtual_call.dispatch(
-							light_data.light_type,[&](const light_base* light) {
-								light_color = light->l_i(light_data, light_transform.transformMatrix, x,w_i);
-						});
-					};
-
-					Float3 mesh_color = make_float3(0.f);
-					$if(dot(w_o, normal) > 0.f)
-					{
-						// calculate mesh color
-						bxdf_context context{
-							.g_buffer = g_buffer,
-							.ray = ray, .intersection = intersection, .w_o = w_o, .w_i = w_i,
-							.material_data = MaterialProxy->get_material_data(intersection.material_id)
+						$if(dot(w_i, normal) >= 0.f)
+						{
+							// Dispatch light evaluate polymorphically, so that we can have different light type
+							LightProxy->light_virtual_call.dispatch(
+								light_data.light_type, [&](const light_base* light) {
+									light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+								});
 						};
-						MaterialProxy->material_virtual_call.dispatch(
-							material_data.material_type,[&](const material_base* material) {
-								material->fill_g_buffer(context);
-								mesh_color = material->bxdf(context);
-						});
+
+						Float3 mesh_color = make_float3(0.f);
+						$if(dot(w_o, normal) >= 0.f)
+						{
+							// calculate mesh color
+							bxdf_context context{
+								.g_buffer = g_buffer,
+								.ray = ray,
+								.intersection = intersection,
+								.w_o = w_o,
+								.w_i = w_i,
+								.material_data = MaterialProxy->get_material_data(intersection.material_id)
+							};
+							MaterialProxy->material_virtual_call.dispatch(
+								material_data.material_type, [&](const material_base* material) {
+									material->fill_g_buffer(context);
+									mesh_color = material->bxdf(context);
+								});
+						};
+						// combine light and mesh color
+						return mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
 					};
-					// combine light and mesh color
-					pixel_color += mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
+
+					// Only two sample, one is light dir, one is reflect dir
+					// pixel_color += calc_lighting(light_dir) * 0.5f + calc_lighting(reflect_dir) * 0.5f;
+					pixel_color += calc_lighting(light_dir);
 				};
 
 				$if(material_data->show_wireframe == 1)

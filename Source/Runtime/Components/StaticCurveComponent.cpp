@@ -78,7 +78,7 @@ void StaticCurveComponent::LoadFromFile(String FilePath)
 void StaticCurveComponent::SetRadius(double NewRadius)
 {
 	Radius = NewRadius;
-	MarkAsDirty(DIRTY_REMESH);
+	Remesh();
 }
 
 template<class T>

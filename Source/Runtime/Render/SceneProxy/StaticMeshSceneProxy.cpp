@@ -40,6 +40,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	for (auto MeshComponent: NewMeshes)
 	{
 		auto MeshData = MeshComponent->MeshData;
+		if(!MeshData || MeshData->IsEmpty())
+			continue;
 		int VertexNum = MeshData->GetVertexNum();
 		int TriangleNum = MeshData->GetFaceNum();
 		vector<Vertex> Vertices(VertexNum);

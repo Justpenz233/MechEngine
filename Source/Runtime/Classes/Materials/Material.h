@@ -8,6 +8,10 @@
 #include "Game/World.h"
 #include "Render/GPUSceneInterface.h"
 
+namespace MechEngine::Rendering
+{
+struct materialData;
+}
 enum MaterialMode
 {
 	BlinnPhong,
@@ -28,7 +32,34 @@ MCLASS(Material)
 class Material final : public Object
 {
 	REFLECTION_BODY(Material)
+
 public:
+	Material();
+
+	Material(const Material& Other);
+
+	FORCEINLINE void SetBaseColor(const FColor& InColor);
+	FORCEINLINE void SetShowWireframe(bool bShow);
+	FORCEINLINE void SetMode(MaterialMode InMode);
+	FORCEINLINE void SetNormalType(NormalMode InType);
+	FORCEINLINE void SetSpecularTint(const FColor& InColor);
+	FORCEINLINE void SetMetalness(float InMetalness);
+	FORCEINLINE void SetSpecular(float InSpecular);
+	FORCEINLINE void SetRoughness(float InRoughness);
+
+
+	FORCEINLINE void PostEdit(Reflection::FieldAccessor& Field) override;
+
+	/**
+	 * Should be called affter modifying the material properties.
+	 */
+	FORCEINLINE void UpdateMaterial();
+
+	static ObjectPtr<Material> DefaultMaterial();
+
+protected:
+	friend class MechEngine::Rendering::materialData;
+	friend class MechEngine::Rendering::MaterialSceneProxy;
 	inline static FColor DefalutColor = FLinearColor(1., 1., 1.);
 
 	/**
@@ -79,20 +110,6 @@ public:
 	MPROPERTY()
 	float Roughness = 0.5f;
 
-	Material();
-
-	Material(const Material& Other);
-
-	FORCEINLINE void PostEdit(Reflection::FieldAccessor& Field) override;
-
-	/**
-	 * Should be called affter modifying the material properties.
-	 */
-	FORCEINLINE void UpdateMaterial();
-
-	static ObjectPtr<Material> DefaultMaterial();
-
-protected:
 	/**
 	* Register the material to the renderer. Should be called affter creating the material.
 	*/
@@ -112,6 +129,46 @@ inline Material::Material(const Material& Other)
 	SpecularTint = Other.SpecularTint;
 	Metalness = Other.Metalness;
 	RegisterMaterial();
+}
+
+FORCEINLINE void Material::SetBaseColor(const FColor& InColor) {
+	BaseColor = InColor;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetShowWireframe(bool bShow) {
+	bShowWireframe = bShow;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetMode(MaterialMode InMode) {
+	Mode = InMode;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetNormalType(NormalMode InType) {
+	NormalType = InType;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetSpecularTint(const FColor& InColor) {
+	SpecularTint = InColor;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetMetalness(float InMetalness) {
+	Metalness = InMetalness;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetSpecular(float InSpecular) {
+	Specular = InSpecular;
+	UpdateMaterial();
+}
+
+FORCEINLINE void Material::SetRoughness(float InRoughness) {
+	Roughness = InRoughness;
+	UpdateMaterial();
 }
 
 FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field) {

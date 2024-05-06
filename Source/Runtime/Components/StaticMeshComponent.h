@@ -12,8 +12,8 @@ class Material;
 enum StaticMeshDirtyTag: unsigned int
 {
 	DIRTY_NONE       = 0x0000,
-	DIRTY_RENDERDATA = 0x0001,   // Render Data dirty, need upload
-	DIRTY_REMESH       = 0x0010, // Property dirty, need remesh
+	DIRTY_RENDERDATA = 0x0001,   // Render Data dirty, need upload, include material and geometry
+	DIRTY_REMESH       = 0x0010, // Property dirty, need remesh geometry. Alough static mesh should not be remeshed, but it is possible to remesh it. FOR NOW
 	DIRTY_ALL        = 0xFFFF
 };
 
@@ -58,12 +58,12 @@ public:
 	void SetVisible(bool InVisible);
 	FORCEINLINE bool IsVisible() const;
 
-	// Upload raw data to renderer
-	// Will be called when marked as DIRTY_RENDERDATA
 	virtual void UploadRenderingData() override;
 
-	// Interface to remesh this geometry
-	// Will be called when marked as DIRTY_REMESH
+	/**
+	 * Interface to remesh this geometry
+	 * Will be called when marked as DIRTY_REMESH
+	 */
 	virtual void Remesh();
 
 	ObjectPtr<StaticMesh> GetMeshData();
@@ -75,6 +75,12 @@ public:
 	void SmoothMesh(int Iteration = 5, bool UseUniform = false);
 
 	bool FillHoles();
+
+	/**
+	 * Set the color of the mesh, this is a quick interface to set the base color of the current mesh material
+	 * @param InColor color to set
+	 */
+	void SetColor(const FColor& InColor);
 
 protected:
 	StaticMeshDirtyTag Dirty = DIRTY_ALL;

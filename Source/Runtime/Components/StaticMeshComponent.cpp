@@ -117,8 +117,14 @@ void StaticMeshComponent::SmoothMesh(int Iteration, bool UseUniform)
 bool StaticMeshComponent::FillHoles()
 {
 	bool Flag = MeshData->FillHoles();
-	if(Flag) MarkAsDirty(DIRTY_RENDERDATA);
+	if (Flag)
+		MarkAsDirty(DIRTY_RENDERDATA);
 	return Flag;
+}
+void StaticMeshComponent::SetColor(const FColor& InColor)
+{
+	if (MeshData && MeshData->GetMaterial() != nullptr)
+		MeshData->GetMaterial()->SetBaseColor(InColor);
 };
 
 bool StaticMeshComponent::IsDirty()
