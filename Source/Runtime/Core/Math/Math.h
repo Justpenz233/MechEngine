@@ -18,6 +18,18 @@ constexpr FORCEINLINE double RadToDeg(T Rad)
 }
 
 template <class T>
+constexpr FORCEINLINE Vector3<T> DegToRad(const Vector3<T>& DegVector)
+{
+	return {DegToRad(DegVector.x()), DegToRad(DegVector.y()), DegToRad(DegVector.z())};
+}
+
+template <class T>
+constexpr FORCEINLINE Vector3<T> RadToDeg(const Vector3<T>& RadVector)
+{
+	return {RadToDeg(RadVector.x()), RadToDeg(RadVector.y()), RadToDeg(RadVector.z())};
+}
+
+template <class T>
 constexpr FORCEINLINE T Frac(T x)
 {
 	return x - std::floor(x);
@@ -59,13 +71,17 @@ static constexpr FORCEINLINE T Sign( const T A )
 	return (A > static_cast<T>(0)) ? static_cast<T>(1) : ((A < static_cast<T>(0)) ? static_cast<T>(-1) : static_cast<T>(0));
 }
 
+template <class T1, class T2>
+constexpr FORCEINLINE T1 Lerp(const T1 A, const T1 B, const T2 T)
+{
+	return A * (static_cast<T2>(1.) - T) + B * T;
+}
+
 template <class T>
 constexpr FORCEINLINE T Pow2(const T A)
 {
 	return A * A;
 }
-
-
 
 template <class T1, class T2>
 FVector MakeVector3d(Eigen::Vector2<T1> XY, T2 Z = 0.)

@@ -178,82 +178,85 @@ void RayTracingScene::CompileShader()
 			auto intersection = intersect(ray, view);
 			intersection.pixel_coord = pixel_coord; // Ugly, to do someting
 
-			Float3 pixel_color = make_float3(1.f);
 			$if(intersection.valid())
 			{
+				auto x      = intersection.position_world;
+				auto w_o    = -ray->direction();
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-				g_buffer.instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
-				g_buffer.material_id->write(pixel_coord, make_uint4(intersection.material_id));
 				/************************************************************************
 				 *								Shading
 				 ************************************************************************/
+
 				// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-				auto x      = intersection.position_world;
-				auto normal = intersection.vertex_normal_world;
-				auto w_o    = -ray->direction();
-				auto reflect_dir = reflect(-w_o, normal);
-
-				pixel_color = make_float3(0.f);
-				$for(light_id, LightCount) {
-					// First calculate light color, as rendering equation is L_i(x, w_i)
-					auto light_data = LightProxy->get_light_data(light_id);
-					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
-					auto light_dir = normalize(light_transform->get_location() - x);
-					auto calc_lighting = [&](const Float3& w_i) {
-						Float3 light_color = make_float3(0.f);
-
-						$if(dot(w_i, normal) >= 0.f)
-						{
-							// Dispatch light evaluate polymorphically, so that we can have different light type
-							LightProxy->light_virtual_call.dispatch(
-								light_data.light_type, [&](const light_base* light) {
-									light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
-								});
-						};
-
-						Float3 mesh_color = make_float3(0.f);
-						$if(dot(w_o, normal) >= 0.f)
-						{
-							// calculate mesh color
-							bxdf_context context{
-								.g_buffer = g_buffer,
-								.ray = ray,
-								.intersection = intersection,
-								.w_o = w_o,
-								.w_i = w_i,
-								.material_data = MaterialProxy->get_material_data(intersection.material_id)
-							};
-							MaterialProxy->material_virtual_call.dispatch(
-								material_data.material_type, [&](const material_base* material) {
-									material->fill_g_buffer(context);
-									mesh_color = material->bxdf(context);
-								});
-						};
-						// combine light and mesh color
-						return mesh_color * light_color * dot(w_i, intersection.vertex_normal_world);
-					};
-
-					// Only two sample, one is light dir, one is reflect dir
-					// pixel_color += calc_lighting(light_dir) * 0.5f + calc_lighting(reflect_dir) * 0.5f;
-					pixel_color += calc_lighting(light_dir);
+				bxdf_context context{
+					.ray = ray,
+					.intersection = intersection,
+					.w_o = w_o,
+					.material_data = MaterialProxy->get_material_data(intersection.material_id)
 				};
 
+				material_parameters bxdf_parameters;
+				MaterialProxy->material_virtual_call.dispatch(
+				material_data.material_type, [&](const material_base* material) {
+					bxdf_parameters = material->calc_material_parameters(context);
+				});
+				g_buffer.write(pixel_coord, bxdf_parameters, intersection);
+
+				auto normal = bxdf_parameters.normal;
+				auto reflect_dir = reflect(-w_o, normal);
+
+				Float3 pixel_color = make_float3(0.f);
+				$if(dot(w_o, normal) > 0.f)
+				{
+					$for(light_id, LightCount) {
+						// First calculate light color, as rendering equation is L_i(x, w_i)
+						auto light_data = LightProxy->get_light_data(light_id);
+						auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
+						auto light_dir = normalize(light_transform->get_location() - x);
+
+						auto calc_lighting = [&](const Float3& w_i)
+						{
+							Float3 light_color = make_float3(0.f);
+							Float3 mesh_color = make_float3(0.f);
+							$if(dot(w_i, normal) > 0.f)
+							{
+								context.w_i = w_i;
+								// Dispatch light evaluate polymorphically, so that we can have different light type
+								LightProxy->light_virtual_call.dispatch(
+									light_data.light_type, [&](const light_base* light) {
+										light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+									});
+								MaterialProxy->material_virtual_call.dispatch(
+								material_data.material_type, [&](const material_base* material) {
+									mesh_color = material->bxdf(context, bxdf_parameters);
+								});
+							};
+							return mesh_color * light_color * dot(w_i, normal);
+						};
+
+						// Only two sample, one is light dir, one is reflect dir
+						pixel_color += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
+					};
+				};
+
+				// Draw wireframe pass
+				//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
+				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
 				$if(material_data->show_wireframe == 1)
 				{
-					//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-					//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
 					pixel_color = select(pixel_color, make_float3(0.f, 0.f, 0.f),
 						IsWireFrame(view, pixel,
 							intersection.vertex_ndc[0],
 							intersection.vertex_ndc[1],
 							intersection.vertex_ndc[2], 0.5f));
 				};
+				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(pixel_color), 1.f));
 			}
 			$else
 			{
 				g_buffer.set_default(pixel_coord, make_float4(1.f));
+				frame_buffer()->write(pixel_coord, make_float4(1.f));
 			};
-			frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(pixel_color), 1.f));
 		}));
 }
 }

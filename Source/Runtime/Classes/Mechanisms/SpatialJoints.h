@@ -59,8 +59,13 @@ public:
      * @param TargetLocation World space
      * @return ObjectPtr<StaticMesh> Linkage mesh
      */
-    ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation);
-    virtual ObjectPtr<StaticMesh> CreateJointMesh() override;
+    virtual ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation);
+
+	/**
+	 * Create and assemble the joint mesh, will be called when BeginPlay
+	 * @return The joint mesh
+	 */
+	virtual ObjectPtr<StaticMesh> CreateJointMesh() override;
 
 	void AddNextJoint(ObjectPtr<SpatialJointComponent> NextJoint) { NextJointComponents.push_back(NextJoint); }
 };

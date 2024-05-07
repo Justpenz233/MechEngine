@@ -32,7 +32,6 @@ public:
         auto WindowSize = ImGui::GetMainViewport()->WorkSize;
         auto WindowPos = ImGui::GetMainViewport()->WorkPos;
 
-        // ImVec2 WorldOutlinerPos = {WindowPos.x + WindowSize.x - 300, WindowPos.y};
         ImVec2 Pos = {WindowPos.x + WindowSize.x - 400, WindowPos.y};
         ImVec2 Size = {100, 100};
 
@@ -48,7 +47,7 @@ public:
                     1, 0, 0, 0,
                     0, 0, 0, 1;
 
-            Matrix4d TransfomInverse = SwapMatrix.transpose() * ViewMatrix.cast<double>();
+            Matrix4d TransfomInverse = SwapMatrix.inverse() * ViewMatrix.cast<double>();
             Affine3d NewTransform(TransfomInverse);
             Camera->SetTransform(NewTransform.inverse());
         }

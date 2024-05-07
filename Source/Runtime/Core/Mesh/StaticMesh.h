@@ -241,6 +241,7 @@ FORCEINLINE Math::FBox StaticMesh::GetBoundingBox() const
 
 FORCEINLINE void StaticMesh::OnGeometryUpdate()
 {
+	ASSERTMSG(triM.maxCoeff() < verM.rows(), "Invalid triangle index");
 	UpdateBoundingBox();
 	CalcNormal();
 }

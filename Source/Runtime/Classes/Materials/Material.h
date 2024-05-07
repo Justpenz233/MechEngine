@@ -6,10 +6,10 @@
 #include "Math/MathType.h"
 #include "Object/Object.h"
 #include "Game/World.h"
-#include "Render/GPUSceneInterface.h"
 
 namespace MechEngine::Rendering
 {
+class MaterialSceneProxy;
 struct materialData;
 }
 enum MaterialMode
@@ -53,7 +53,7 @@ public:
 	/**
 	 * Should be called affter modifying the material properties.
 	 */
-	FORCEINLINE void UpdateMaterial();
+	void UpdateMaterial();
 
 	static ObjectPtr<Material> DefaultMaterial();
 
@@ -113,13 +113,8 @@ protected:
 	/**
 	* Register the material to the renderer. Should be called affter creating the material.
 	*/
-	FORCEINLINE void RegisterMaterial();
+	void RegisterMaterial();
 };
-
-inline Material::Material()
-{
-	RegisterMaterial();
-}
 
 inline Material::Material(const Material& Other)
  : Object(Other) {
@@ -173,14 +168,6 @@ FORCEINLINE void Material::SetRoughness(float InRoughness) {
 
 FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field) {
 	UpdateMaterial();
-}
-
-FORCEINLINE void Material::RegisterMaterial() {
-	GWorld->GetScene()->AddMaterial(this);
-}
-
-FORCEINLINE void Material::UpdateMaterial() {
-	GWorld->GetScene()->UpdateMaterial(this);
 }
 
 inline ObjectPtr<Material> Material::DefaultMaterial() {

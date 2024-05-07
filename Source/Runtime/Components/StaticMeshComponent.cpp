@@ -6,7 +6,7 @@
 #include "Game/Actor.h"
 #include "Game/World.h"
 #include "Materials/Material.h"
-#include "Render/RendererInterface.h"
+#include "Render/GPUSceneInterface.h"
 
 StaticMeshComponent::StaticMeshComponent()
 {

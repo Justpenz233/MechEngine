@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "gbuffer.h"
 #include "ray_tracing_hit.h"
 #include "luisa/luisa-compute.h"
 #include "Render/Core/material_data.h"
@@ -18,8 +17,6 @@ namespace MechEngine::Rendering
      */
     struct bxdf_context
     {
-		gbuffer& g_buffer;
-
         Expr<Ray> ray;
         const ray_intersection& intersection;
         Float3 w_o;

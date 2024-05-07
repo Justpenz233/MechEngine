@@ -6,7 +6,6 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
-#include "Render/Core/material_data.h"
 
 
 namespace MechEngine::Rendering
@@ -34,31 +33,29 @@ public:
 	/**
 	 * Evaluate the BxDF of the material at the given intersection point.
 	 * @param context  The context for the current bxdf evaluation.
+	 * @param parameters The material parameters for the current material.
 	 * @return The color of the material at the given intersection point.
 	 */
-	[[nodiscard]] Float3 bxdf(const bxdf_context& context) const
+	[[nodiscard]] Float3 bxdf(const bxdf_context& context, const material_parameters& parameters) const
 	{
-		material_parameters parameters{
+		return evaluate(parameters, context.intersection, context.w_o, context.w_i);
+	}
+
+	/**
+	 * Calculate the material parameters for the current material. May have user defined calculation.
+	 * @param context The context for the current bxdf evaluation.
+	 * @return The material parameters for the current material.
+	 */
+	[[nodiscard]] material_parameters calc_material_parameters(const bxdf_context& context) const
+	{
+		return material_parameters{
 			.base_color = sample_base_color(context),
-			.specular = context.material_data->specular,
+			.specular = context.material_data.specular,
 			.metalness = sample_metalness(context),
 			.roughness = sample_roughness(context),
 			.specular_tint = sample_specular_tint(context),
 			.normal = sample_normal(context)
 		};
-		return evaluate(parameters, context.intersection, context.w_o, context.w_i);
-	}
-
-	/**
-	 * Fill the g-buffer with the material properties.
-	 * @param context  The context for the current bxdf evaluation.
-	 */
-	void fill_g_buffer(const bxdf_context& context) const
-	{
-		auto pixel_coord = context.intersection.pixel_coord;
-		context.g_buffer.base_color->write(pixel_coord, make_float4(sample_base_color(context), 1.f));
-		context.g_buffer.normal->write(pixel_coord, make_float4(sample_normal(context), 1.f));
-		context.g_buffer.depth->write(pixel_coord, make_float4(context.intersection.depth));
 	}
 
 
