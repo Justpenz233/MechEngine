@@ -173,6 +173,7 @@ template <class T, typename... Args>
 ObjectPtr<T> NewObject(Args &&...args)
 {
 	static_assert(IsObject<T>, " must be a subclass of Object");
+	static_assert(!std::is_abstract_v<T>, "T is a abstract class, please check the base class of T");
 	static_assert(std::constructible_from<T, Args...>, "T must be constructible by Args, please check the constructor of T");
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
