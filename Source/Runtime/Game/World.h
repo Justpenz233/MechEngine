@@ -126,7 +126,6 @@ template <class T, typename... Args>
 ObjectPtr<T> World::SpawnActor(const String& ActorName, Args&&... args)
 {
 	static_assert(std::derived_from<T, Actor>, "ERROR SpawnActor: class T is not subclass of Actor");
-	static_assert(std::constructible_from<T, Args...>, "T must be constructible by Args, please check the constructor of T");
 	auto NewActor = NewObject<T>(std::forward<Args>(args)...);
 	NewActor->SetName(ActorName);
 	NewActor->World = this;
