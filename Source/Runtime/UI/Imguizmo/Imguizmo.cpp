@@ -31,6 +31,8 @@
 #include "imgui_internal.h"
 #include "Imguizmo.h"
 
+#include <iostream>
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <malloc.h>
 #endif
@@ -116,8 +118,8 @@ namespace IMGUIZMO_NAMESPACE
       m16[7] = 0.0;
       m16[8] = (right + left) / temp2;
       m16[9] = (top + bottom) / temp3;
-      m16[10] = (-zfar - znear) / temp4;
-      m16[11] = -1.0f;
+      m16[10] = -(-zfar - znear) / temp4;
+      m16[11] = 1.0f;
       m16[12] = 0.0;
       m16[13] = 0.0;
       m16[14] = (-temp * zfar) / temp4;
@@ -156,9 +158,9 @@ namespace IMGUIZMO_NAMESPACE
    {
       float X[3], Y[3], Z[3], tmp[3];
 
-      tmp[0] = eye[0] - at[0];
-      tmp[1] = eye[1] - at[1];
-      tmp[2] = eye[2] - at[2];
+      tmp[0] = at[0] - eye[0];
+      tmp[1] = at[1] - eye[1];
+      tmp[2] = at[2] - eye[2];
       Normalize(tmp, Z);
       Normalize(up, Y);
       Cross(Y, Z, tmp);
@@ -2765,14 +2767,7 @@ namespace IMGUIZMO_NAMESPACE
       }
    }
 
-   void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
-   {
-      // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
-      ComputeContext(view, projection, matrix, (operation & SCALE) ? LOCAL : mode);
-      ViewManipulate(view, length, position, size, backgroundColor);
-   }
-
-   void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor, float* NewViewDir)
    {
       static bool isDraging = false;
       static bool isClicking = false;
@@ -2780,6 +2775,7 @@ namespace IMGUIZMO_NAMESPACE
       static vec_t interpolationUp;
       static vec_t interpolationDir;
       static int interpolationFrames = 0;
+   	  static float interpolationLength = 0.f;
       const vec_t referenceUp = makeVect(0.f, 1.f, 0.f);
 
       matrix_t svgView, svgProjection;
@@ -2801,7 +2797,7 @@ namespace IMGUIZMO_NAMESPACE
 
       vec_t dir = makeVect(viewInverse.m[2][0], viewInverse.m[2][1], viewInverse.m[2][2]);
       vec_t up = makeVect(viewInverse.m[1][0], viewInverse.m[1][1], viewInverse.m[1][2]);
-      vec_t eye = dir * distance;
+      vec_t eye = -dir * distance;
       vec_t zero = makeVect(0.f, 0.f);
       LookAt(&eye.x, &zero.x, &up.x, cubeView.m16);
 
@@ -2904,20 +2900,6 @@ namespace IMGUIZMO_NAMESPACE
             }
          }
       }
-      if (interpolationFrames)
-      {
-         interpolationFrames--;
-         vec_t newDir = viewInverse.v.dir;
-         newDir.Lerp(interpolationDir, 0.2f);
-         newDir.Normalize();
-
-         vec_t newUp = viewInverse.v.up;
-         newUp.Lerp(interpolationUp, 0.3f);
-         newUp.Normalize();
-         newUp = interpolationUp;
-         vec_t newEye = camTarget + newDir * length;
-         LookAt(&newEye.x, &camTarget.x, &newUp.x, view);
-      }
       isInside = gContext.mbMouseOver && ImRect(position, position + size).Contains(io.MousePos);
 
       if (io.MouseDown[0] && (fabsf(io.MouseDelta[0]) || fabsf(io.MouseDelta[1])) && isClicking)
@@ -2934,7 +2916,17 @@ namespace IMGUIZMO_NAMESPACE
             int cy = (overBox - cx * 9) / 3;
             int cz = overBox % 3;
             interpolationDir = makeVect(1.f - (float)cx, 1.f - (float)cy, 1.f - (float)cz);
+         	interpolationDir = -interpolationDir;
             interpolationDir.Normalize();
+
+         	NewViewDir[0] = interpolationDir.x;
+         	NewViewDir[1] = interpolationDir.y;
+         	NewViewDir[2] = interpolationDir.z;
+         	isClicking = false;
+         	isDraging = false;
+         	return true;
+
+
 
             if (fabsf(Dot(interpolationDir, referenceUp)) > 1.0f - 0.01f)
             {
@@ -2993,5 +2985,6 @@ namespace IMGUIZMO_NAMESPACE
 
       // restore view/projection because it was used to compute ray
       ComputeContext(svgView.m16, svgProjection.m16, gContext.mModelSource.m16, gContext.mMode);
+   	return false;
    }
 }};

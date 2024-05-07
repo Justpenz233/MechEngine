@@ -311,7 +311,7 @@ void StaticMesh::SetColor(const FColor& Color)
 
 void StaticMesh::CalcNormal()
 {
-	igl::per_vertex_normals(verM, triM, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE, VertexNormal);
+	igl::per_vertex_normals(verM, triM, VertexNormal);
 }
 
 bool StaticMesh::CheckNormalValid() const

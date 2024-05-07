@@ -180,8 +180,8 @@ void RayTracingScene::CompileShader()
 
 			$if(intersection.valid())
 			{
-				auto x      = intersection.position_world;
-				auto w_o    = -ray->direction();
+				auto x  = intersection.position_world;
+				auto w_o  = normalize(-ray->direction());
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 				/************************************************************************
 				 *								Shading
@@ -206,37 +206,34 @@ void RayTracingScene::CompileShader()
 				auto reflect_dir = reflect(-w_o, normal);
 
 				Float3 pixel_color = make_float3(0.f);
-				$if(dot(w_o, normal) > 0.f)
-				{
-					$for(light_id, LightCount) {
-						// First calculate light color, as rendering equation is L_i(x, w_i)
-						auto light_data = LightProxy->get_light_data(light_id);
-						auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
-						auto light_dir = normalize(light_transform->get_location() - x);
 
-						auto calc_lighting = [&](const Float3& w_i)
+				$for(light_id, LightCount) {
+					// First calculate light color, as rendering equation is L_i(x, w_i)
+					auto light_data = LightProxy->get_light_data(light_id);
+					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
+					auto light_dir = normalize(light_transform->get_location() - x);
+
+					auto calc_lighting = [&](const Float3& w_i) {
+						Float3 light_color = make_float3(0.f);
+						Float3 mesh_color = make_float3(0.f);
+						$if(dot(w_i, normal) >= 0.f)
 						{
-							Float3 light_color = make_float3(0.f);
-							Float3 mesh_color = make_float3(0.f);
-							$if(dot(w_i, normal) > 0.f)
-							{
-								context.w_i = w_i;
-								// Dispatch light evaluate polymorphically, so that we can have different light type
-								LightProxy->light_virtual_call.dispatch(
-									light_data.light_type, [&](const light_base* light) {
-										light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
-									});
-								MaterialProxy->material_virtual_call.dispatch(
+							context.w_i = w_i;
+							// Dispatch light evaluate polymorphically, so that we can have different light type
+							LightProxy->light_virtual_call.dispatch(
+								light_data.light_type, [&](const light_base* light) {
+								light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+							});
+							MaterialProxy->material_virtual_call.dispatch(
 								material_data.material_type, [&](const material_base* material) {
 									mesh_color = material->bxdf(context, bxdf_parameters);
-								});
-							};
-							return mesh_color * light_color * dot(w_i, normal);
+							});
 						};
-
-						// Only two sample, one is light dir, one is reflect dir
-						pixel_color += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
+						return mesh_color * light_color * max(dot(w_i, normal), 0.001f);
 					};
+
+					// Only two sample, one is light dir, one is reflect dir
+					pixel_color += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
 				};
 
 				// Draw wireframe pass

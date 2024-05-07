@@ -36,20 +36,12 @@ public:
         ImVec2 Size = {100, 100};
 
         ImGuizmo::BeginFrame();
-        ImGuizmo::ViewManipulate(ViewMatrix.data(), Length, Pos, Size, 0x10101010);
-
-        if((PreView - ViewMatrix).maxCoeff() > 1e-2)
+    	float Dir[3];
+        if (ImGuizmo::ViewManipulate(ViewMatrix.data(), Length, Pos, Size, 0x10101010, Dir))
         {
-            Matrix4d SwapMatrix;
-            SwapMatrix
-                <<  0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    1, 0, 0, 0,
-                    0, 0, 0, 1;
-
-            Matrix4d TransfomInverse = SwapMatrix.inverse() * ViewMatrix.cast<double>();
-            Affine3d NewTransform(TransfomInverse);
-            Camera->SetTransform(NewTransform.inverse());
+        	auto Forward = FVector(Dir[0], Dir[1], Dir[2]);
+			Camera->SetTranslation(FocusCenter - Forward * Length);
+			Camera->LookAt(FocusCenter);
         }
     }
 };
