@@ -11,6 +11,7 @@
 #include "Render/ViewportInterface.h"
 #include "Render/Core/ViewMode.h"
 
+class TimerManager;
 namespace MechEngine::Rendering
 {
 	class GPUSceneInterface;
@@ -25,7 +26,7 @@ class World : public Object
 {
 public:
 
-    World() = default;
+    World();
 
 	~World();
 
@@ -101,6 +102,8 @@ public:
 
 	virtual void DebugDrawLine(const FVector& Start, const FVector& End, const FVector& Color);
 
+	FORCEINLINE TimerManager* GetTimerManager();
+
 
 private:
     Rendering::GPUSceneInterface* GPUScene = nullptr;
@@ -117,6 +120,8 @@ private:
 	bool OnKeyPressed(int Key);
 
 	TArray<ObjectPtr<class StaticCurveComponent>> DebugCurves;
+
+	UniquePtr<TimerManager> TimerManager;
 
 	friend class Editor;
 };
@@ -174,5 +179,9 @@ FORCEINLINE Actor* World::GetSelectedActor() const
 	return SelectedActor.lock().get();
 }
 
+FORCEINLINE TimerManager* World::GetTimerManager()
+{
+	return TimerManager.get();
+}
 
 extern World* GWorld;

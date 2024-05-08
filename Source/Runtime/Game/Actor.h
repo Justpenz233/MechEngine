@@ -9,6 +9,8 @@
 DECLARE_MULTICAST_DELEGATE(FOnTransformUpdate);
 // Actor is an actor in the world, which contains a transform data and also hierarchy information
 class TransformComponent;
+class World;
+
 MCLASS(Actor)
 class Actor : public Object
 {
@@ -49,7 +51,9 @@ public:
 
 	std::function<void()> EndPlayFunction;
 	virtual void EndPlay();
-	
+
+	FORCEINLINE class World* GetWorld() const;
+
 	FORCEINLINE bool IsSelected() const;
 	void SetSelected(bool InSelected);
 	virtual void OnSelected();
@@ -91,7 +95,6 @@ public:
 
 	FORCEINLINE TArray<ObjectPtr<ActorComponent>> GetAllComponents();
 
-
 	template <class T, typename... Args> requires IsActorComponent<T>
 	ObjectPtr<T> AddComponent(Args&&... args);
 
@@ -108,6 +111,11 @@ public:
 
 friend class World;
 };
+
+FORCEINLINE World* Actor::GetWorld() const
+{
+	return World;
+}
 
 FORCEINLINE TransformComponent* Actor::GetTransformComponent() const
 {

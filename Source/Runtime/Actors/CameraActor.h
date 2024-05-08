@@ -33,15 +33,24 @@ public:
      */
     void LookAt();
 
+	/**
+	 * Blend the camera to the target transform
+	 * @param TargetTransform the target transform
+	 * @param Duration the duration of the blending
+	 */
+	void BlendeTo(const FTransform& TargetTransform, double Duration = 1.);
+
 	virtual void BeginPlay() override;
 
 private:
-
     MPROPERTY()
     float RotationSpeed = 1.f;
 
     MPROPERTY()
     float TranslationSpeed = 1.f;
+
+	MPROPERTY()
+	bool bFoucsOnTarget = true;
 
     MPROPERTY()
     FVector FocusCenter = {0., 0., 0.};

@@ -9,9 +9,14 @@
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
 #include "Render/GPUSceneInterface.h"
+#include "TimerManager.h"
 
 World* GWorld = nullptr;
 
+World::World()
+{
+	TimerManager = MakeUnique<class TimerManager>();
+}
 World::~World()
 {
 
@@ -60,13 +65,15 @@ void World::BeginPlay()
 
 void World::Tick(double DeltaTime)
 {
-	for (auto Object: Actors) {
+	for (auto& Object: Actors) {
 		if(!Object->HasBeginPlay) {
 			Object->BeginPlay();
 		}
 	}
 
-	for (auto Object: Actors) {
+	TimerManager->Tick(DeltaTime);
+
+	for (auto& Object: Actors) {
 		Object->Tick(DeltaTime);
 	}
 

@@ -5,6 +5,7 @@
 
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
+#include "Game/TimerManager.h"
 
 CameraActor::CameraActor()
 {
@@ -22,14 +23,41 @@ void CameraActor::BeginPlay()
 void CameraActor::LookAt(const FVector& Target)
 {
 	FocusCenter = Target;
-	auto Forward = (Target - GetLocation()).normalized();
-	SetRotation(FQuat::FromTwoVectors(FVector{1, 0, 0}, Forward));
+	// First head to Z axis then head to the target
+	FVector Forward = (FocusCenter - GetLocation()).normalized();
+	FVector Right = FVector{0, 1, 0};
+	FVector Up = FVector{0, 0, 1};
+	// if forward is parallel to Z axis, then we need to rotate around X axis
+	if (abs(Forward.dot(Up)) > 0.99)
+	{
+		Up = Forward.cross(Right).normalized();
+		Right = Up.cross(Forward).normalized();
+	}
+	else
+	{
+		Right = Up.cross(Forward).normalized();
+		Up = Forward.cross(Right).normalized();
+	}
+	FMatrix RotationMatrix = Eigen::Matrix3d::Identity();
+	RotationMatrix.col(0) = Forward;
+	RotationMatrix.col(1) = Right;
+	RotationMatrix.col(2) = Up;
+	SetRotation(FQuat{RotationMatrix});
 }
 
 void CameraActor::LookAt()
 {
 	auto Forward = (FocusCenter - GetLocation()).normalized();
-	SetRotation(FQuat::FromTwoVectors(FVector{1, 0, 0}, Forward));
+	SetRotation(FQuat::FromTwoVectors(FVector{ 1, 0, 0 }, Forward));
+}
+
+void CameraActor::BlendeTo(const FTransform& TargetTransform, double Duration)
+{
+	GetWorld()->GetTimerManager()->AddTimer(Duration,
+		[TargetTransform, this]() {
+			FTransform CurrentTransform = GetFTransform();
+			SetTransform(CurrentTransform.LerpTo(TargetTransform, 0.5));
+	});
 }
 
 void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)

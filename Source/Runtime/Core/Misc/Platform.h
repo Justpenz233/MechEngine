@@ -22,3 +22,7 @@
 #ifndef uint
 typedef unsigned int uint;
 #endif
+
+#ifndef uint8
+typedef unsigned char uint8;
+#endif
