@@ -23,6 +23,10 @@ RenderPipeline(width, height, title)
 
 RayTracingPipeline::~RayTracingPipeline()
 {
+	// Release viewport first so ImGui context is still valid
+	Viewport.reset();
+
+	// Destroy main window
 	MainWindow->destroy();
 }
 

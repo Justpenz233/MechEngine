@@ -4,7 +4,6 @@
 
 #include "WorldOutliner.h"
 #include "imgui.h"
-#include "imgui_internal.h"
 #include "Game/Actor.h"
 #include "Game/World.h"
 #include "Widgets/WidgetUtils.h"
@@ -16,10 +15,10 @@ void WorldOutliner::Draw()
 	auto WindowPos = ImGui::GetMainViewport()->WorkPos;
 
 	// Set Next window at most right
-	ImGui::SetNextWindowPos(ImVec2(WindowPos.x + WindowSize.x - 300, WindowPos.y));
-	ImGui::SetNextWindowSize(ImVec2(300, WindowSize.y * 0.4));
+	ImGui::SetNextWindowPos(ImVec2(WindowPos.x + WindowSize.x - 300, WindowPos.y), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(300, WindowSize.y), ImGuiCond_FirstUseEver);
 
-	ImGui::Begin( ICON_FA_EARTH_ASIA "  World Outliner", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+	ImGui::Begin( ICON_FA_EARTH_ASIA "  World Outliner", nullptr);
 	ImGui::BeginTable("WorldOutliner", 2, ImGuiTableFlags_BordersH);
 
 	// Table header with colorful "Name" "Type"
@@ -27,6 +26,7 @@ void WorldOutliner::Draw()
 	ImGui::TableSetupColumn("Type");
 	ImGui::TableHeadersRow();
 
+	ObjectPtr<Actor> SelectedActor = nullptr;
 	for (auto Actor : World->GetAllActors())
 	{
 		std::string DisplayName = UI::GetObjectDisplayName(Cast<Object>(Actor));
@@ -41,13 +41,15 @@ void WorldOutliner::Draw()
 		ImGui::Text("%s", Actor->ClassName().c_str());
 		if(Actor->IsSelected())
 		{
-			ImGui::SetNextWindowPos(ImVec2(WindowPos.x + WindowSize.x - 300, WindowPos.y + WindowSize.y * 0.4));
-			ImGui::SetNextWindowSize(ImVec2(300, WindowSize.y * 0.6));
-			UI::DrawActorPanel(Actor);
+			SelectedActor = Actor;
 		}
 		ImGui::PopID();
 	}
 	ImGui::EndTable();
 	ImGui::End();
 
+	if(SelectedActor)
+	{
+		UI::DrawActorPanel(SelectedActor);
+	}
 }

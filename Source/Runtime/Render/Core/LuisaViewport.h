@@ -44,7 +44,22 @@ public:
 
 	virtual void LoadViewportStyle() override
 	{
-		ImGui::GetIO().IniFilename = nullptr;
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
+		ImGui::StyleColorsDark();
+
+		auto LayoutFilePaht = Path::ProjectConfigDir() / "EditorLayout.config";
+		if(!exists(LayoutFilePaht))
+		{
+			ImGui::LoadIniSettingsFromDisk((Path::EngineConfigDir() / "DefaultEditorLayout.config").string().c_str());
+		}
+		else
+		{
+			ImGui::LoadIniSettingsFromDisk(LayoutFilePaht.string().c_str());
+		}
+		char* copy = new char[LayoutFilePaht.string().length() + 1];
+		strcpy(copy, LayoutFilePaht.string().c_str());
+		ImGui::GetIO().IniFilename = copy;
 
 		// Set Style
 		ImGuiStyle * style = &ImGui::GetStyle();
@@ -61,6 +76,7 @@ public:
 		{
 			ReloadFont();
 		}
+		auto dockspace_id = ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 
 protected:
