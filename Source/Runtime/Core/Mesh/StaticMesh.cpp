@@ -104,24 +104,26 @@ StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 	return *this;
 }
 
-void StaticMesh::TransformMesh(const Matrix4d& transMat)
+void StaticMesh::TransformMesh(const Matrix4d& TransformMatrix)
 {
-	if (transMat == Matrix4d::Identity())
+	if (TransformMatrix == Matrix4d::Identity())
 		return;
 
-	ParallelFor(verM.rows(),
-		[this, &transMat](int i) {
-			Vector3d origVer;
-			origVer[0] = verM(i, 0);
-			origVer[1] = verM(i, 1);
-			origVer[2] = verM(i, 2);
-			Vector4d NewPos;
-			NewPos << origVer, 1.;
-			NewPos = transMat * NewPos;
-			verM(i, 0) = NewPos[0];
-			verM(i, 1) = NewPos[1];
-			verM(i, 2) = NewPos[2];
-		}, 1e7);
+	ParallelFor(verM.rows(), [this, &TransformMatrix](int i) {
+		Vector4d NewPos = TransformMatrix * (verM.row(i).homogeneous()).transpose();
+		verM.row(i) = NewPos.head(3); }, 1e7);
+
+	OnGeometryUpdate();
+}
+void StaticMesh::TransformMesh(const FTransform& Transform)
+{
+	if (Transform == FTransform::Identity())
+		return;
+
+	ParallelFor(verM.rows(), [&](int i) {
+		Vector3d NewPos = Transform * FVector(verM.row(i));
+		verM.row(i) = NewPos; }, 1e7);
+
 	OnGeometryUpdate();
 }
 void StaticMesh::SaveOBJ(String FileName) const

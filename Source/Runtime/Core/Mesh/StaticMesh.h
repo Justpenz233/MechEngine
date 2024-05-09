@@ -5,6 +5,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Math/Box.h"
+#include "Math/FTransform.h"
 
 // Material property update
 DECLARE_MULTICAST_DELEGATE(FOnMaterialUpdate);
@@ -143,9 +144,11 @@ public:
 
 	/**
 	 * Transform the mesh with a transform matrix
-	 * @param transMat transform matrix
+	 * @param TransformMatrix transform matrix
 	 */
-	void TransformMesh(const Matrix4d& transMat);
+	void TransformMesh(const Matrix4d& TransformMatrix);
+	void TransformMesh(const FTransform& Transform);
+
 	void Translate(const FVector& Translation);
 	void Rotate(const FQuat& Rotation);
 	void RotateEuler(const FVector& RotationEuler);

@@ -57,9 +57,10 @@ public:
      * 
      * @param PortLocation Local space
      * @param TargetLocation World space
+     * @param bIsEffector If is generate linkage to an effector
      * @return ObjectPtr<StaticMesh> Linkage mesh
      */
-    virtual ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation);
+    virtual ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation, bool bIsEffector = false);
 
 	/**
 	 * Create and assemble the joint mesh, will be called when BeginPlay

@@ -135,7 +135,7 @@ ObjectPtr<StaticMesh> SpatialJointComponent::GenerateSocketMeshWithPort(TArray<i
     return SocketMesh;
 }
 
-ObjectPtr<StaticMesh> SpatialJointComponent::GenerateLinkageTo(FVector PortLocation, FVector TargetLocation)
+ObjectPtr<StaticMesh> SpatialJointComponent::GenerateLinkageTo(FVector PortLocation, FVector TargetLocation, bool bIsEffector)
 {
     TargetLocation = GetOwner()->GetFTransform().ToLocalSpace(TargetLocation);
     auto LinkageMesh =  BasicShapesLibrary::GenerateCylinder(PortLocation, TargetLocation, LinkageRadius);
@@ -206,9 +206,10 @@ ObjectPtr<StaticMesh> SpatialJointComponent::CreateJointMesh()
 	         {
 	             int JointPortIndex; int SocketPortIndex;
 	             FindBestPortPair(NextSpacialJoint, JointPortIndex, SocketPortIndex);
+	         	 bool bIsEffector = NextSpacialJoint->GetJoint()->NextJoints.empty();
 
 	             auto LinkageToNext = GenerateLinkageTo(GetJointPortLocation()[JointPortIndex],
-	             NextSpacialJoint->GetSocketPortWorldLocation(SocketPortIndex));
+	             NextSpacialJoint->GetSocketPortWorldLocation(SocketPortIndex), bIsEffector);
 
 	             // ADD Next Socket
 	             auto NextSocketMesh = NextSpacialJoint->GenerateSocketMeshWithPort(SocketPortIndex);

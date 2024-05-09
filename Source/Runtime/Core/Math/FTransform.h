@@ -63,6 +63,7 @@ public:
 	// When composing, Right first then Left.
 	FTransform operator*(const FTransform& Other) const;
 	FVector	   operator*(const FVector& Other) const;
+	FVector4   operator*(const FVector4& Other) const;
 
 	static FTransform Lerp(const FTransform&A, const FTransform& B, double Alpha);
 };

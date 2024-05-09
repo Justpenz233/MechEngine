@@ -113,11 +113,12 @@ FTransform FTransform::operator*(const FTransform& Other) const
 
 FVector FTransform::operator*(const FVector& Other) const
 {
-	const Matrix4d Transform = GetMatrix();
-	Vector4d	   Location;
-	Location << Other, 1;
-	Location = Transform * Location;
-	return Location.head(3);
+	return FVector4(GetMatrix() * Other.homogeneous()).head(3);
+}
+
+FVector4 FTransform::operator*(const FVector4& Other) const
+{
+	return GetMatrix() * Other;
 }
 
 FTransform FTransform::Lerp(const FTransform& A, const FTransform& B, double Alpha)

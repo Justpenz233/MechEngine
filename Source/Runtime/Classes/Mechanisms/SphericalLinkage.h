@@ -10,11 +10,14 @@ class SphericalLinkageComponent : public SpatialJointComponent
 public:
 	static constexpr double Thickness = 0.05;
 	static constexpr double Width = 0.03; // in radian
+	static constexpr double SlotRadius = 0.03;
+	static constexpr double ConnectorRadius = 0.01;
+	static constexpr double EffectorRadius = 0.01;
 	
 	SphericalLinkageComponent(const FTransform& InInitTransform, bool InIsRoot)
 		: SpatialJointComponent(FreeZ, FreeNone, InInitTransform, InIsRoot) {}
 
-	virtual ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation) override;
+	virtual ObjectPtr<StaticMesh> GenerateLinkageTo(FVector PortLocation, FVector TargetLocation, bool bIsEffector) override;
 	virtual ObjectPtr<StaticMesh> GenerateSocketMesh() override;
 	virtual ObjectPtr<StaticMesh> GenerateJointMesh() override;
 

@@ -2,14 +2,20 @@
 // Created by MarvelLi on 2024/5/7.
 //
 #include "SphericalLinkage.h"
+#include "Mesh/MeshBoolean.h"
 
-ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateLinkageTo(FVector PortLocation, FVector TargetLocation)
+ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateLinkageTo(FVector PortLocation, FVector TargetLocation, bool bIsEffector)
 {
 	// First remap the target location to the same radius as this
 	PortLocation = GetOwner()->GetLocation();
 	auto Radius = PortLocation.norm();
 	auto InnerRadius = Radius - Thickness * 0.5;
 	auto OutterRadius = Radius + Thickness * 0.5;
+	if(bIsEffector)
+	{
+		InnerRadius = Radius - EffectorRadius * 0.5;
+		OutterRadius = Radius + EffectorRadius * 0.5;
+	}
 
 	double HalfWidth = Width * 0.5f;
 	double CenterAngle = acos(1. - Pow2((PortLocation.normalized() - TargetLocation.normalized()).norm()) * 0.5);
@@ -57,17 +63,32 @@ ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateLinkageTo(FVector PortL
 			Face.emplace_back(B, C, D);
 		}
 	}
+	ObjectPtr<StaticMesh> Slot;
+	if(bIsEffector)
+	{
+		Slot = BasicShapesLibrary::GenerateSphere(EffectorRadius, 256);
+		Slot->Translate(TargetLocation);
+	}
+	else
+	{
+		Slot = BasicShapesLibrary::GenerateHollowCylinder(SlotRadius, ConnectorRadius, Thickness, 256);
+		FTransform Transform;
+		Transform.SetRotation(FQuat::FromTwoVectors(FVector(0, 0, 1), TargetLocation.normalized()));
+		Transform.SetTranslation(TargetLocation.normalized() * Radius);
+		Slot->TransformMesh(Transform);
+	}
 	auto Mesh = NewObject<StaticMesh>(Vertex, Face);
 	Mesh->FillHoles();
-	Mesh->TransformMesh(GetOwner()->GetFTransform().Inverse().GetMatrix());
+	Mesh = MeshBoolean::MeshUnion(Mesh, Slot);
+	Mesh->TransformMesh(GetOwner()->GetFTransform().Inverse());
 	return Mesh;
 }
 ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateSocketMesh()
 {
-	return BasicShapesLibrary::GenerateCylinder(Thickness * 1.1f, 0.01f, 256);
+	return BasicShapesLibrary::GenerateCylinder(Thickness * 1.1f, ConnectorRadius, 256);
 }
 
 ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateJointMesh()
 {
-	return BasicShapesLibrary::GenerateHollowCylinder(0.03f, 0.01f, Thickness, 256);
+	return BasicShapesLibrary::GenerateHollowCylinder(SlotRadius, ConnectorRadius, Thickness, 256);
 }
