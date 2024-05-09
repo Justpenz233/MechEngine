@@ -51,7 +51,7 @@ public:
 
 	view_data GetCurrentViewData();
 
-	auto GenerateRay(Expr<float2> uv)
+	auto generate_ray(Expr<float2> uv)
 	{
 		auto p = uv;
 		auto cdata = Data->read(0);
@@ -62,7 +62,7 @@ public:
 		return make_ray(make_float3(origin), world_direction);
 	}
 
-	auto GetPosition() { return make_float3(Data->read(0).Transform[3]); }
+	auto get_camera_position() { return make_float3(Data->read(0).Transform[3]); }
 
 	FMatrix4 GetViewMatrix(uint Index = 0) const;
 	FMatrix4 GetProjectionMatrix(uint Index = 0) const;

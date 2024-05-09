@@ -69,6 +69,12 @@ Path Path::FileNameWithoutExtension() const
 {
 	return stem();
 }
+bool Path::CreateDirectory(const Path& InPath)
+{
+	std::error_code ErrorCode;
+	std::filesystem::create_directory(InPath, ErrorCode);
+	return !ErrorCode;
+}
 void Path::Init(const std::string& BinPath, const std::string& ProjectDir)
 {
     _ExePath = BinPath;

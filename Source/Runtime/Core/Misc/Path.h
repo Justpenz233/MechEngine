@@ -43,6 +43,7 @@ public:
 
 	FORCEINLINE static bool IsDirectory(const Path& InPath);
 	FORCEINLINE bool IsDirectory() const;
+	static bool CreateDirectory(const Path& InPath);
 
 	FORCEINLINE static bool Existing(const Path& InPath);
 

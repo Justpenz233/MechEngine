@@ -187,7 +187,7 @@ public:
 	 * Save the mesh to a obj file
 	 * @param FileName file name of the obj file
 	 */
-	void SaveOBJ(String FileName);
+	void SaveOBJ(String FileName) const;
 
 	static ObjectPtr<StaticMesh> LoadFromObj(const Path& FileName);
 

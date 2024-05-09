@@ -124,7 +124,7 @@ void StaticMesh::TransformMesh(const Matrix4d& transMat)
 		}, 1e7);
 	OnGeometryUpdate();
 }
-void StaticMesh::SaveOBJ(String FileName)
+void StaticMesh::SaveOBJ(String FileName) const
 {
 	std::filesystem::path FilePath = FileName;
 	if (FilePath.extension() != ".obj")

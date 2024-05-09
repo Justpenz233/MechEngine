@@ -58,7 +58,6 @@ namespace MechEngine::Rendering
         auto v0_coord = view->ndc_to_screen(v0);
         auto v1_coord = view->ndc_to_screen(v1);
         auto v2_coord = view->ndc_to_screen(v2);
-        // device_log("p{} in {} {} {} {}", p, v0_coord, v1_coord, v2_coord, thickness);
         return on_the_lines(p, v0_coord, v1_coord, thickness) |
                on_the_lines(p, v1_coord, v2_coord, thickness) |
                on_the_lines(p, v2_coord, v0_coord, thickness);

@@ -64,9 +64,10 @@ ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateLinkageTo(FVector PortL
 }
 ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateSocketMesh()
 {
-	return BasicShapesLibrary::GenerateCylinder(Thickness * 1.1f, 0.01f);
+	return BasicShapesLibrary::GenerateCylinder(Thickness * 1.1f, 0.01f, 256);
 }
+
 ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateJointMesh()
 {
-	return BasicShapesLibrary::GenerateHollowCylinder(0.03f, 0.01f, Thickness);
+	return BasicShapesLibrary::GenerateHollowCylinder(0.03f, 0.01f, Thickness, 256);
 }

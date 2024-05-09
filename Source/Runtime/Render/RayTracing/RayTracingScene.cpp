@@ -174,7 +174,7 @@ void RayTracingScene::CompileShader()
 			auto p           = (pixel * 2.0f - resolution) / resolution;
 			p *= make_float2(1.f, -1.f);
 
-			auto ray = CameraProxy->GenerateRay(p);
+			auto ray = CameraProxy->generate_ray(p);
 			auto intersection = intersect(ray, view);
 			intersection.pixel_coord = pixel_coord; // Ugly, to do someting
 

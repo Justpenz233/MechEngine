@@ -13,6 +13,15 @@ class IKController : public FKController
 public:
 	virtual void Init() override;
 
+	struct SimulatedMotion
+	{
+		TArray<FVector> Trajectory;
+		TMap<Joint*, TArray<FTransform>> JointTransforms; // <Joint ptr, {Transforms}>
+		SimulatedMotion(SimulatedMotion&&) = default;
+		SimulatedMotion(const SimulatedMotion&) = default;
+		SimulatedMotion& operator=(const SimulatedMotion&) = default;
+		SimulatedMotion() = default;
+	};
 	/**
 	 * Simulate a loop and return the trajectory of the effector
 	 * @param Effector The effector which to extract the trajectory
@@ -20,7 +29,7 @@ public:
 	 * @param DrivenFunction The function to drive the joints
 	 * @return The trajectory of the effector
 	 */
-	TArray<FVector> GetSimulatedTrajectory(JointComponent* Effector, int Frames, const TFunction<void(Joint*)>& DrivenFunction);
+	SimulatedMotion GetSimulatedTrajectory(JointComponent* Effector, int Frames, const TFunction<void(Joint*)>& DrivenFunction);
 };
 
 template <typename T>
@@ -36,12 +45,13 @@ void IKController<T>::Init()
 }
 
 template <typename T>
-TArray<FVector> IKController<T>::GetSimulatedTrajectory(JointComponent* Effector, int Frames, const TFunction<void(Joint*)>& DrivenFunction)
+typename IKController<T>::SimulatedMotion IKController<T>::GetSimulatedTrajectory(JointComponent* Effector, int Frames, const TFunction<void(Joint*)>& DrivenFunction)
 {
 	if(Effector == nullptr)
 		return {};
 
 	Init();
+	SimulatedMotion Result;
 
 	TArray<JointComponent*> Roots;
 	TArray<FTransform> RootsBeforeTransfom;
@@ -52,13 +62,17 @@ TArray<FVector> IKController<T>::GetSimulatedTrajectory(JointComponent* Effector
 			Roots.push_back(i.get());
 			RootsBeforeTransfom.push_back(i->GetJoint()->GlobalTransform);
 		}
+		Result.JointTransforms[i->GetJoint().get()] = {};
 	}
 	// Calculate the trajectory
 	for (int i = 0; i < Frames; i++) {
 		for (auto Root : Roots) {
 			DrivenFunction(Root->GetJoint().get());
-			Solver->Solve();
-			Trajectory.push_back(Effector->GetJoint()->GlobalTransform.GetLocation());
+		}
+		Solver->Solve();
+		Result.Trajectory.push_back(Effector->GetJoint()->GlobalTransform.GetLocation());
+		for (auto& i : Joints) {
+			Result.JointTransforms[i->GetJoint().get()].push_back(i->GetJoint()->GlobalTransform);
 		}
 	}
 
@@ -67,5 +81,5 @@ TArray<FVector> IKController<T>::GetSimulatedTrajectory(JointComponent* Effector
 		Roots[i]->GetJoint()->GlobalTransform = RootsBeforeTransfom[i];
 	Solver->Solve();
 
-	return Trajectory;
+	return std::move(Result);
 }
