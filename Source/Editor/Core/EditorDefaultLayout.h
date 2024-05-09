@@ -34,7 +34,8 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 		CurrentWorld->SetViewMode(BaseColorBuffer);
 	}});
 
-	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Save Selected Mesh", "");
+	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Export Selected Mesh", "");
+	MainMenuBar->AddItem<SaveSceneMenuBar>("File/Export Scene", "");
 
 	CurrentWorld->AddWidget<WorldOutliner>();
 

@@ -45,6 +45,7 @@ template<class T, class... Args>
 T* UIWidget::AddSubWidget(Args&&... args)
 {
 	static_assert(IsUIWidget<T>, "T must be a UI Widget");
+	static_assert(!std::is_abstract_v<T>, "T is a abstract class, please check the base class of T");
 	static_assert(std::is_constructible_v<T, Args...>, "T must be constructible with Args");
 
 	auto NewWidget = MakeUnique<T>(std::forward<Args>(args)...);

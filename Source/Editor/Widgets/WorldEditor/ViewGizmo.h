@@ -41,30 +41,7 @@ public:
         {
         	auto TargetForward = FVector(Dir[0], Dir[1], Dir[2]);
         	auto TargetLocation = FocusCenter - TargetForward * Length;
-
-        	FVector Forward = (FocusCenter - TargetLocation).normalized();
-        	FVector Right = FVector{0, 1, 0};
-        	FVector Up = FVector{0, 0, 1};
-        	// if forward is parallel to Z axis, then we need to rotate around X axis
-        	if (abs(Forward.dot(Up)) > 0.99)
-        	{
-        		Up = Forward.cross(Right).normalized();
-        		Right = Up.cross(Forward).normalized();
-        	}
-        	else
-        	{
-        		Right = Up.cross(Forward).normalized();
-        		Up = Forward.cross(Right).normalized();
-        	}
-        	FMatrix RotationMatrix = Eigen::Matrix3d::Identity();
-        	RotationMatrix.col(0) = Forward;
-        	RotationMatrix.col(1) = Right;
-        	RotationMatrix.col(2) = Up;
-
-        	FTransform TargetTransform;
-        	TargetTransform.SetRotation(FQuat{RotationMatrix});
-        	TargetTransform.SetTranslation(TargetLocation);
-        	Camera->BlendeTo(TargetTransform, 1.);
+        	Camera->BlendeTo(TargetLocation, 1.);
         }
     }
 };

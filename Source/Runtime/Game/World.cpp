@@ -4,6 +4,7 @@
 
 #include "Core/CoreMinimal.h"
 #include "World.h"
+#include "ImguiPlus.h"
 #include "Components/StaticCurveComponent.h"
 #include "Actors/CameraActor.h"
 #include "Components/CameraComponent.h"
@@ -141,6 +142,31 @@ void World::DebugDrawPoint(const FVector& Point, const FVector& Color)
 void World::DebugDrawLine(const FVector& Start, const FVector& End, const FVector& Color)
 {
 
+}
+
+void World::ExportSceneToObj(const Path& FolderPath)
+{
+	if(FolderPath.Existing() && FolderPath.IsDirectory())
+	{
+		for (auto& Actor : Actors)
+		{
+			if(auto MeshComponent = Actor->GetComponent<StaticMeshComponent>())
+			{
+				if(auto Mesh = MeshComponent->GetMeshData())
+				{
+					auto Transform = Actor->GetTransformMatrix();
+					StaticMesh CopyMesh = *Mesh;
+					CopyMesh.TransformMesh(Transform);
+					CopyMesh.SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
+				}
+			}
+		}
+		ImGui::NotifySuccess(std::format("Export scene successfully, path: {} ", FolderPath.string()), "Export success", 1e4);
+	}
+	else
+	{
+		ImGui::NotifyError(std::format("Export scene to obj failed, folder path {} is invalid", FolderPath.string()), "Export failed", 1e4);
+	}
 }
 
 template <class T>

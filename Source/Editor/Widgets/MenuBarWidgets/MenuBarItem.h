@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <utility>
-
 #include "UIWidget.h"
 
 class MenuBarItem : public UIWidget
@@ -15,6 +13,7 @@ public:
 
 	virtual void OnClick() = 0;
 
+	virtual void Draw() override {}
 };
 
 template <class T>

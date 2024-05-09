@@ -40,6 +40,13 @@ public:
 	 */
 	void BlendeTo(const FTransform& TargetTransform, double Duration = 1.);
 
+	/**
+	 * Blend the camera to the target location
+	 * @param TargetLocation the target location
+	 * @param Duration the duration of the blending
+	 */
+	void BlendeTo(const FVector& TargetLocation, double Duration = 1.);
+
 	virtual void BeginPlay() override;
 
 private:

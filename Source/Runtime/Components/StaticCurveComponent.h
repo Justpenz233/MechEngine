@@ -19,8 +19,6 @@ class StaticCurveComponent : public StaticMeshComponent
 public:
     explicit StaticCurveComponent(ObjectPtr<Curve>);
 
-
-    virtual void UploadRenderingData() override;
 	virtual void Remesh() override;
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 

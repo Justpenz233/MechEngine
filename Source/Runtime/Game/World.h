@@ -102,7 +102,19 @@ public:
 
 	virtual void DebugDrawLine(const FVector& Start, const FVector& End, const FVector& Color);
 
+	/**
+	 * Get the timer manager of the world, used for control the timer in the world
+	 * The timer will be ticked by the world
+	 * Attention: The timer manager will not be more precise than the world tick, so the timer may not be accurate
+	 * @return Timer manager of the world
+	 */
 	FORCEINLINE TimerManager* GetTimerManager();
+
+	/**
+	 * Export the scene to a obj file, the obj file will be saved in the folder
+	 * @param FolderPath
+	 */
+	void ExportSceneToObj(const Path& FolderPath);
 
 
 private:

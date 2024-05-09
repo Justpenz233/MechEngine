@@ -1,8 +1,6 @@
 #include "CameraActor.h"
-
 #include <imgui.h>
 #include <iostream>
-
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
 #include "Game/TimerManager.h"
@@ -57,6 +55,19 @@ void CameraActor::BlendeTo(const FTransform& TargetTransform, double Duration)
 		[TargetTransform, this]() {
 			FTransform CurrentTransform = GetFTransform();
 			SetTransform(CurrentTransform.LerpTo(TargetTransform, 0.5));
+		});
+}
+
+void CameraActor::BlendeTo(const FVector& TargetLocation, double Duration)
+{
+	GetWorld()->GetTimerManager()->AddTimer(Duration,
+	[TargetLocation, this]() {
+		auto CurrentLocation = GetLocation();
+		auto Radius = (CurrentLocation - FocusCenter).norm();
+		auto NextLocation = Lerp(CurrentLocation, TargetLocation, 0.3);
+		NextLocation = (NextLocation - FocusCenter).normalized() * Radius + FocusCenter;
+		SetTranslation(NextLocation);
+		LookAt();
 	});
 }
 

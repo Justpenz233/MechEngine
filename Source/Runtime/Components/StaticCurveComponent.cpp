@@ -14,34 +14,13 @@ StaticCurveComponent::StaticCurveComponent(ObjectPtr<Curve> NewCurve)
 	CurveData = NewCurve;
 }
 
-void StaticCurveComponent::UploadRenderingData()
-{
-	if (!CurveData->IsValid())
-		return;
-
-	if (DrawMode == Discrete)
-	{
-		for (int i = 0; i < CurveData->GetPointsNum(); i++)
-		{
-			// int NextIndex = (i + 1) % CurveData->GetPointsNum();
-			// RenderData.add_points(Eigen::RowVector3d(CurveData->SampleIndex(i)), Eigen::RowVector3d(Color));
-			// RenderData.add_edges(
-			// 	CurveData->SampleIndex(i).transpose(),
-			// 	CurveData->SampleIndex(NextIndex).transpose(),
-			// 	Color.transpose());
-		}
-	}
-	else if (DrawMode == AsMesh)
-	{
-
-	}
-}
 void StaticCurveComponent::Remesh()
 {
 	StaticMeshComponent::Remesh();
 	if (DrawMode == AsMesh)
 	{
 		MeshData = GenerateCurveMesh();
+		MeshData->CalcNormal();
 	}
 }
 void StaticCurveComponent::PostEdit(Reflection::FieldAccessor& Field)

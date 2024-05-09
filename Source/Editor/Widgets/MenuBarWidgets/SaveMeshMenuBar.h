@@ -13,7 +13,6 @@
 class SaveMeshMenuBar : public MenuBarItem
 {
 public:
-
 	SaveMeshMenuBar()
 		: MenuBarItem(NAME(SaveMeshMenuBar)) {}
 
@@ -30,4 +29,17 @@ public:
 	}
 
 	virtual void Draw() override {}
+};
+
+class SaveSceneMenuBar : public MenuBarItem
+{
+public:
+	SaveSceneMenuBar() : MenuBarItem(NAME(SaveSceneMenuBar)) {}
+
+	virtual void OnClick() override
+	{
+		auto SaveFilePath = SelectFolderDialog("Save Mesh", Path::ProjectContentDir());
+		Path SaveFolder = SaveFilePath.result();
+		World->ExportSceneToObj(SaveFolder);
+	}
 };
