@@ -6,6 +6,8 @@
 #include "Widgets/MenuBarWidgets/SaveMeshMenuBar.h"
 #include "Widgets/WorldEditor/WorldOutliner.h"
 #include "UI/ImguiPlus.h"
+#include "Widgets/WorldEditor/ActorOutliner.h"
+#include "Widgets/WorldEditor/ObjectPanel.h"
 #include "Widgets/WorldEditor/ViewGizmo.h"
 
 inline void LoadDefaultEditorLayout(World* CurrentWorld)
@@ -38,6 +40,10 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 	MainMenuBar->AddItem<SaveSceneMenuBar>("File/Export Scene", "");
 
 	CurrentWorld->AddWidget<WorldOutliner>();
+
+	// [BETA] ActorOutliner and ObjectPanel will start to use when property become more complex
+	// CurrentWorld->AddWidget<ActorOutliner>();
+	// CurrentWorld->AddWidget<ObjectPanel>();
 
 	// Handle notifications window
 	CurrentWorld->AddWidget<LambdaUIWidget>([]() {
