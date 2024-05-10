@@ -127,12 +127,20 @@ public:
 
 	static Reflection::ReflectionInstance GetMetaInfo(const Class& ClassName, void* Instance);
 
+
+	FORCEINLINE bool IsSelected() const;
+	FORCEINLINE virtual void SetSelected(bool InSelected);
+	virtual void OnSelected() {}
+	virtual void OnCancleSelected() {}
 protected:
 	MPROPERTY()
 	String ObjectName;
 
 	// Object this object is contained in
 	Object* Outer = nullptr;
+
+	// if this object is selected in editor
+	bool bSelected = false;
 
 	FOnPostEdit PostEditDelegate;
 	FOnPreEdit PreEditDelegate;
@@ -176,4 +184,17 @@ ObjectPtr<T> NewObject(Args &&...args)
 	static_assert(!std::is_abstract_v<T>, "T is a abstract class, please check the base class of T");
 	static_assert(std::constructible_from<T, Args...>, "T must be constructible by Args, please check the constructor of T");
     return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+FORCEINLINE bool Object::IsSelected() const
+{
+	return bSelected;
+}
+
+FORCEINLINE void Object::SetSelected(bool InSelected)
+{
+	bool bPreSelected = bSelected;
+	bSelected = InSelected;
+	if(!bPreSelected && InSelected) OnSelected();
+	if(bPreSelected && !InSelected) OnCancleSelected();
 }

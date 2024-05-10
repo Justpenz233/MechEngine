@@ -15,25 +15,6 @@ MCLASS(Actor)
 class Actor : public Object
 {
 	REFLECTION_BODY(Actor)
-protected:
-	bool bSelected = false;
-	bool HasBeginPlay = false;
-	/**
-	 * This is a pointer to the world that this actor belongs to
-	 * This filed is set by the world when the actor is added or spawned to the world
-	 */
-	class World* World = nullptr;
-
-	TArray<ObjectPtr<ActorComponent>> Components;
-
-	// RootComponent store the transform of the actor
-	TransformComponent* Transform;
-	
-	TArray<WeakObjectPtr<Actor>> Children;
-	WeakObjectPtr<Actor> Parent;
-
-	FOnTransformUpdate TransformUpdateDelegate;
-
 public:
 	Actor(const FVector& InitLocation = FVector::Zero(), const FQuat& InitRotation = FQuat::Identity(), const FVector& InitScale = FVector::Ones());
 	Actor(const FTransform& InitTransfrom);
@@ -53,11 +34,6 @@ public:
 	virtual void EndPlay();
 
 	FORCEINLINE class World* GetWorld() const;
-
-	FORCEINLINE bool IsSelected() const;
-	void SetSelected(bool InSelected);
-	virtual void OnSelected();
-	virtual void OnCancleSelected();
 
 	FORCEINLINE TransformComponent* GetTransformComponent() const;
 
@@ -109,7 +85,26 @@ public:
 
 	FORCEINLINE FOnTransformUpdate& GetTransformUpdateDelegate();
 
-friend class World;
+
+protected:
+	bool HasBeginPlay = false;
+	/**
+	 * This is a pointer to the world that this actor belongs to
+	 * This filed is set by the world when the actor is added or spawned to the world
+	 */
+	class World* World = nullptr;
+
+	TArray<ObjectPtr<ActorComponent>> Components;
+
+	// RootComponent store the transform of the actor
+	TransformComponent* Transform;
+
+	TArray<WeakObjectPtr<Actor>> Children;
+	WeakObjectPtr<Actor> Parent;
+
+	FOnTransformUpdate TransformUpdateDelegate;
+
+	friend class World;
 };
 
 FORCEINLINE World* Actor::GetWorld() const
@@ -120,11 +115,6 @@ FORCEINLINE World* Actor::GetWorld() const
 FORCEINLINE TransformComponent* Actor::GetTransformComponent() const
 {
 	return Transform;
-}
-
-FORCEINLINE bool Actor::IsSelected() const
-{
-	return bSelected;
 }
 
 FORCEINLINE ObjectPtr<Actor> Actor::GetThis()

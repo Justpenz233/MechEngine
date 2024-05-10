@@ -70,26 +70,6 @@ void Actor::EndPlay()
 	}
 }
 
-void Actor::SetSelected(bool InSelected)
-{
-	bool bPreSelected = bSelected;
-	bSelected = InSelected;
-	for (auto C : Components)
-		C->SetSelected(bSelected);
-	if(!bPreSelected && InSelected) OnSelected();
-	if(bPreSelected && !InSelected) OnCancleSelected();
-}
-
-void Actor::OnSelected()
-{
-
-}
-
-void Actor::OnCancleSelected()
-{
-
-}
-
 void Actor::AddChild(ObjectPtr<Actor> InChild)
 {
 	if(InChild)

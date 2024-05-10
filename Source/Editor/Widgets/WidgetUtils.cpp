@@ -46,7 +46,7 @@ void UI::DrawActorPanel(ObjectPtr<class Actor> Actor)
 {
 	std::string HeaderName = UI::GetObjectDisplayName(Actor) + " properties panel";
 
-	ImGui::Begin(ICON_FA_INFO "Actor Panel",nullptr, ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::Begin(ICON_FA_INFO "  Actor Panel",nullptr, ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5);
 
 	if(ImGui::CollapsingHeader((ICON_FA_PEN_TO_SQUARE "  " + UI::GetObjectDisplayName(Actor)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))

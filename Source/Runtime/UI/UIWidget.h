@@ -2,14 +2,13 @@
 #include "Core/CoreMinimal.h"
 #include "Object/Object.h"
 
+/**
+ * Base class for all UI widgets
+ * The UI Widget can only be added to the World and owned by the World
+ */
 class UIWidget : public Object
 {
 public:
-	explicit UIWidget(const String& Name)
-    {
-	    ObjectName = Name;
-    }
-    
     virtual void Enable() {}
 
     virtual void Disable() {}
@@ -27,6 +26,13 @@ public:
 
 protected:
     bool Visible = true;
+
+	explicit UIWidget(const String& Name)
+	{
+		ObjectName = Name;
+	}
+
+	friend class World;
 
     /**
      * Some widgets may have sub widgets, like a menu bar may have menu items

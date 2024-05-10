@@ -11,14 +11,6 @@ MCLASS()
 class ActorComponent : public Object
 {
 	REFLECTION_BODY()
-protected:
-	class Actor* Owner;
-	class World* World;
-	friend class Actor;
-	friend class World;
-
-	bool Selected = false;
-
 public:
 	bool ShouldTick = true;
 
@@ -43,10 +35,11 @@ public:
 	// Called when game end
 	virtual void EndPlay() {};
 
-	void SetSelected(bool InSelected);
-	virtual void OnSelected() {}
-	virtual void OnCancleSelected() {}
-
+protected:
+	class Actor* Owner;
+	class World* World;
+	friend class Actor;
+	friend class World;
 };
 
 FORCEINLINE void ActorComponent::SetOwner(Actor* OwnerActor)

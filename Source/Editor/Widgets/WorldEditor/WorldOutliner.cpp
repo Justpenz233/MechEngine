@@ -3,6 +3,8 @@
 //
 
 #include "WorldOutliner.h"
+
+#include "PrettifyName.h"
 #include "imgui.h"
 #include "Game/Actor.h"
 #include "Game/World.h"
@@ -38,7 +40,7 @@ void WorldOutliner::Draw()
 			World->SelectActor(Actor);
 		}
 		ImGui::TableNextColumn();
-		ImGui::Text("%s", Actor->ClassName().c_str());
+		ImGui::Text("%s", UI::PretifyUIName(Actor->ClassName()).c_str());
 		if(Actor->IsSelected())
 		{
 			SelectedActor = Actor;

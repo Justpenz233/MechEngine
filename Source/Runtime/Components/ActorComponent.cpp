@@ -9,11 +9,3 @@ std::string ActorComponent::GetOwnerName() const
 {
 	return Owner->GetName();
 }
-
-void ActorComponent::SetSelected(bool InSelected)
-{
-	bool bPreSelected = Selected;
-	Selected = InSelected;
-	if(!bPreSelected && InSelected) OnSelected();
-	if(bPreSelected && !InSelected) OnCancleSelected();
-}

@@ -3,6 +3,7 @@
 //
 #include "PropertyEditor.h"
 #include "CoreMinimal.h"
+#include "PrettifyName.h"
 #include "Math/FTransform.h"
 #include "imgui.h"
 #include "Math/LinearAlgebra.h"
@@ -34,6 +35,7 @@ namespace MechEngine
                 static char Buffer[256];
                 strcpy(Buffer, Field.get<std::string>(instance).c_str());
                 std::string Lable = Field.getFieldName();
+            	Lable = UI::PretifyUIName(Lable);
                 ShowLableLeft(Lable);
                 ImGui::PushID(Lable.c_str());
             	ImGui::InputText("", Buffer, 256);
@@ -49,6 +51,7 @@ namespace MechEngine
 				static int Value;
 				Value = Field.get<int>(instance);
 				std::string Lable = Field.getFieldName();
+				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
 				ImGui::InputInt("", &Value);
@@ -63,6 +66,7 @@ namespace MechEngine
 				static bool Value;
 				Value = Field.get<bool>(instance);
 				std::string Lable = Field.getFieldName();
+				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
 				constexpr ImVec4 gray_dim(0.45f, 0.45f, 0.45f, 1.0f);
@@ -82,6 +86,7 @@ namespace MechEngine
 				static float Value;
 				Value = Field.get<float>(instance);
 				std::string	 Lable = Field.getFieldName();
+				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
 				ImGui::InputFloat("", &Value);
@@ -96,6 +101,7 @@ namespace MechEngine
         		static float Value;
         		Value = Field.get<double>(instance);
         		std::string	 Lable = Field.getFieldName();
+        		Lable = UI::PretifyUIName(Lable);
         		ShowLableLeft(Lable);
         		ImGui::PushID(Lable.c_str());
         		ImGui::InputFloat("", &Value);
@@ -117,6 +123,7 @@ namespace MechEngine
 				Value[1] = CurrentVec.y();
 				Value[2] = CurrentVec.z();
 				std::string Lable = Field.getFieldName();
+				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
 				ImGui::InputFloat3("", Value);
@@ -137,6 +144,7 @@ namespace MechEngine
 				Value[1] = CurrentColor.y();
 				Value[2] = CurrentColor.z();
 				std::string Lable = Field.getFieldName();
+				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(ICON_FA_PALETTE " " + Lable);
 				ImGui::PushID((Lable).c_str());
 				if (ImGui::ColorEdit3("", Value))
@@ -161,6 +169,7 @@ namespace MechEngine
         		Float3ToDeg(Rotation);
         		Float3CopyFVector(Scale, Value.GetScale());
         		std::string Lable = Field.getFieldName();
+        		Lable = UI::PretifyUIName(Lable);
         		ImGui::PushID(Lable.c_str());
         		ImGui::InputFloat3("Translation", Translation);
         		if (ImGui::IsItemDeactivatedAfterEdit())
@@ -192,14 +201,17 @@ namespace MechEngine
     			auto Current = Field.GetEnumValue();
     			auto Items = Field.GetEnumStringArray();
 
+    			auto EnumClassName = Field.GetEnumTypeName();
+    			String Label = UI::PretifyUIName(EnumClassName);
     			ImGui::PushID(Field.GetFiledName());
-    			ShowLableLeft(Field.GetEnumTypeName());
+    			ShowLableLeft(Label);
 				if(ImGui::BeginCombo("", Current.c_str()))
 				{
 					for (const auto & Item : Items)
 					{
 						bool is_selected = (Current == Item);
-						if (ImGui::Selectable(Item.c_str(), is_selected))
+						auto ItemName = UI::PretifyUIName(Item);
+						if (ImGui::Selectable(ItemName.c_str(), is_selected))
 						{
 							if(Current != Item)
 							{
