@@ -191,6 +191,8 @@ public:
 	 * @param FileName file name of the obj file
 	 */
 	void SaveOBJ(String FileName) const;
+	void SaveOBJ(const Path& FileName) const;
+
 
 	static ObjectPtr<StaticMesh> LoadFromObj(const Path& FileName);
 

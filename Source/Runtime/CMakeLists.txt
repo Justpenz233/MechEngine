@@ -10,12 +10,6 @@ set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE INTERNAL "" FORCE)
 add_definitions(-w)
 add_compile_definitions(_USE_MATH_DEFINES)
 
-if(MSVC)
-    add_compile_options(/MP)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-endif()
-
 project(MechEngineRuntime)
 file(GLOB_RECURSE ENGINE_SOURCE_FILES
         *.cpp *.ipp
@@ -42,6 +36,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
     target_link_options(MechEngineRuntime PUBLIC
             $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
     )
+endif()
+
+if(MSVC)
+    target_compile_options(MechEngineRuntime PUBLIC /W0)
 endif()
 
 set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)

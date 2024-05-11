@@ -1,5 +1,8 @@
-add_definitions(-w)
 set (ThirdPartyDir ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(MSVC)
+    add_compile_options(/W0)  # Suppress all warnings
+endif()
 
 # Use system packages if available
 find_package(Boost)

@@ -415,6 +415,10 @@ public:
                   std::string const &default_path = "",
                   opt options = opt::none);
 
+	select_folder(std::string const &title,
+		std::filesystem::path const &default_path = "",
+		opt options = opt::none) : select_folder(title, default_path.string(), options) {}
+
     std::string result();
 };
 

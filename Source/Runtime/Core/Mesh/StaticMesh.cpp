@@ -126,6 +126,12 @@ void StaticMesh::TransformMesh(const FTransform& Transform)
 
 	OnGeometryUpdate();
 }
+
+void StaticMesh::SaveOBJ(const Path& FileName) const
+{
+	SaveOBJ(FileName.string());
+}
+
 void StaticMesh::SaveOBJ(String FileName) const
 {
 	std::filesystem::path FilePath = FileName;

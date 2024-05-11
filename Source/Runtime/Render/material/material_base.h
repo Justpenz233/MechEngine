@@ -50,8 +50,8 @@ public:
 	{
 		return material_parameters{
 			.base_color = sample_base_color(context),
-			.specular = context.material_data.specular,
 			.metalness = sample_metalness(context),
+			.specular = context.material_data.specular,
 			.roughness = sample_roughness(context),
 			.specular_tint = sample_specular_tint(context),
 			.normal = sample_normal(context)
