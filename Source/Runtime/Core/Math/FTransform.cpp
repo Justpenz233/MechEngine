@@ -116,11 +116,6 @@ FVector FTransform::operator*(const FVector& Other) const
 	return FVector4(GetMatrix() * Other.homogeneous()).head(3);
 }
 
-FVector4 FTransform::operator*(const FVector4& Other) const
-{
-	return GetMatrix() * Other;
-}
-
 FTransform FTransform::Lerp(const FTransform& A, const FTransform& B, double Alpha)
 {
 	FTransform Result;

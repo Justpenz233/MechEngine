@@ -6,11 +6,13 @@
 #include "World.h"
 #include "ImguiPlus.h"
 #include "Components/StaticCurveComponent.h"
-#include "Actors/CameraActor.h"
+#include "Components/LightComponent.h"
 #include "Components/CameraComponent.h"
+#include "Actors/CameraActor.h"
 #include "Game/Actor.h"
 #include "Render/GPUSceneInterface.h"
 #include "TimerManager.h"
+#include "Components/ConstPointLightComponent.h"
 
 World* GWorld = nullptr;
 
@@ -47,14 +49,29 @@ void World::BeginPlay()
 
 	// Check if contains at least one camera
 	bool HasCamera = false;
+	CameraActor* Camera = nullptr;
 	for (auto& Actor: Actors) {
 		if (Actor->GetComponent<CameraComponent>()) {
 			HasCamera = true;
+			Camera = Cast<CameraActor>(Actor).get();
 			break;
 		}
 	}
 	if (!HasCamera) {
-		SpawnActor<CameraActor>("Camera")->SetTranslation({-5, 0, 0});
+		Camera = SpawnActor<CameraActor>("Camera").get();
+		Camera->SetTranslation({-5, 0, 0});
+	}
+
+	// Add a const light along with camera if no light in the scene
+	bool HasLight = false;
+	for (auto& Actor: Actors) {
+		if (Actor->GetComponent<LightComponent>()) {
+			HasLight = true;
+			break;
+		}
+	}
+	if (!HasLight) {
+		Camera->AddComponent<ConstPointLightComponent>();
 	}
 
 	for(auto actor : Actors)
