@@ -135,7 +135,7 @@ void RayTracingScene::UploadData()
 	UpdateBindlessArrayIfDirty();
 
 	view_data_buffer = CameraProxy->GetCurrentViewData();
-	stream << rtAccel.build() << synchronize();
+	if (rtAccel.dirty()) stream << rtAccel.build() << synchronize();
 }
 
 void RayTracingScene::Render()

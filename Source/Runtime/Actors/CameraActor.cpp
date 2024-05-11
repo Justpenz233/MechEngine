@@ -76,7 +76,6 @@ void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)
 	static FVector2 LastPos = {0.f, 0.f};
 	static FVector2 LastDelta = {0.f, 0.f};
 	static FQuat LastRotation;
-	static double R;
 	if(StartPos == LastPos)
 	{
 		auto Delta = World->GetViewport()->ScreenToNDC(StartPos.cast<double>()) -
@@ -87,12 +86,12 @@ void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)
 		NewRotation.normalize();
 		SetRotation(NewRotation);
 
-		auto Forward = (NewRotation * FVector{1, 0, 0}).normalized() * R;
+		auto Forward = (NewRotation * FVector{1, 0, 0}).normalized() * DistranceToTarget;
 		SetTranslation(FocusCenter - Forward);
 	}
 	else {
 		LastRotation = GetRotation();
-		R = (GetLocation() - FocusCenter).norm();
+		DistranceToTarget = (GetLocation() - FocusCenter).norm();
 	}
 	LastPos = StartPos;
 	LastDelta = Delta;

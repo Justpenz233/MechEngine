@@ -69,6 +69,11 @@ private:
     void MouseWheelZoom(FVector2 Delta);
 
     CameraComponent* Component;
+
+	FVector2 LastPos = {0.f, 0.f};
+	FVector2 LastDelta = {0.f, 0.f};
+	FQuat LastRotation;
+	double DistranceToTarget;
 };
 
 FORCEINLINE CameraComponent* CameraActor::GetCameraComponent() const

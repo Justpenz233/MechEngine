@@ -64,8 +64,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			Triangles[i].i1 = FaceData[1];
 			Triangles[i].i2 = FaceData[2];
 		}
-		auto VBuffer = Scene.create<Buffer<Vertex>>(uint(VertexNum));
-		auto TBuffer = Scene.create<Buffer<Triangle>>(uint(TriangleNum));
+		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
+		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
 		auto AccelMesh = Scene.create<Mesh>(*VBuffer, *TBuffer, AccelOption{});
 
 		stream << VBuffer->copy_from(Vertices.data())

@@ -30,6 +30,20 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_HEADER_FILES} ${E
 add_library(MechEngineRuntime SHARED ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILES})
 target_compile_features(MechEngineRuntime PUBLIC cxx_std_20)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    # Set debug-specific options
+    set(SANITIZE_FLAGS "-fsanitize=undefined,return")
+
+    target_compile_options(MechEngineRuntime PUBLIC
+            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
+    )
+
+    # Apply link options publicly as well
+    target_link_options(MechEngineRuntime PUBLIC
+            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
+    )
+endif()
+
 set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_include_directories(MechEngineRuntime PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(MechEngineRuntime PUBLIC "UI")
