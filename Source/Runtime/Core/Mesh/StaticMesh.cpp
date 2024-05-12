@@ -3,6 +3,7 @@
 //
 
 #include <fstream>
+#include "Log/Log.h"
 #include "StaticMesh.h"
 #include "Math/LinearAlgebra.h"
 #include "igl/per_face_normals.h"
@@ -129,19 +130,19 @@ void StaticMesh::TransformMesh(const FTransform& Transform)
 
 void StaticMesh::SaveOBJ(const Path& FileName) const
 {
-	SaveOBJ(FileName.string());
-}
-
-void StaticMesh::SaveOBJ(String FileName) const
-{
-	std::filesystem::path FilePath = FileName;
-	if (FilePath.extension() != ".obj")
-		FileName += ".obj";
+	// No extension add .obj
+	Path FixedFileName = FileName;
+	if (!FileName.has_extension())
+		FixedFileName += ".obj";
+	if (FixedFileName.Existing())
+		LOG_WARNING("File {} already exists, will overwrite", FixedFileName.string());
+	
 	std::fstream ofile;
 	ofile.open(FileName, std::ios::out);
 	if (!ofile)
 	{
-		LOG_ERROR("Open File {} fail", FileName);
+		LOG_ERROR("Open File {} fail", FileName.string());
+		return;
 	}
 
 	int vrows = verM.rows();

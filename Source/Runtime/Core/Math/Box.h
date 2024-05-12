@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include "ContainerTypes.h"
+#include "igl/ray_box_intersect.h"
 #include "Math/Math.h"
 
 namespace MechEngine::Math
@@ -209,6 +211,24 @@ struct TBox
 	FORCEINLINE bool Intersect(const TBox<T>& Other) const;
 
 	/**
+	 * Calculate line intersection of this bounding box.
+	 * @see https://en.wikipedia.org/wiki/Slab_method
+	 * @param Origin The start of the line.
+	 * @param Dir The direction of the line.
+	 * @return Intersection point t as Origin + t * Dir.
+	 */
+	FORCEINLINE TArray<T> Intersect(const Vector3<T>& Origin, const Vector3<T>& Dir) const;
+
+	/**
+	 * Checks whether the given line intersects (or is contained in) this bounding box.
+	 * @see https://en.wikipedia.org/wiki/Slab_method
+	 * @param Origin The start of the line.
+	 * @param Dir The direction of the line.
+	 * @return true if the line intersects (or is contained in) this bounding box, false otherwise.
+	 */
+	FORCEINLINE bool HitRay(const Vector3<T>& Origin, const Vector3<T>& Dir) const;
+
+	/**
 	 * Checks whether the given point is inside this bounding box.
 	 * @param Point The point to check for inside the bounding volume.
 	 * @return true if the point is inside the bounding volume, false otherwise.
@@ -242,6 +262,21 @@ bool TBox<T>::Intersect(const TBox<T>& Other) const
 	}
 
 	return true;
+}
+
+template <class T>
+TArray<T> TBox<T>::Intersect(const Vector3<T>& Origin, const Vector3<T>& Dir) const
+{
+	T tmin, tmax;
+	igl::ray_box_intersect(Origin, Dir, Eigen::AlignedBox<T, 3>(Min, Max), 0., 1., tmin, tmax);
+	return {tmin, tmax};
+}
+
+template <class T>
+bool TBox<T>::HitRay(const Vector3<T>& Origin, const Vector3<T>& Dir) const
+{
+	T tmin, tmax;
+	return igl::ray_box_intersect(Origin, Dir, Eigen::AlignedBox<T, 3>(Min, Max), 0., 1., tmin, tmax);
 }
 
 template <class T>

@@ -190,7 +190,6 @@ public:
 	 * Save the mesh to a obj file
 	 * @param FileName file name of the obj file
 	 */
-	void SaveOBJ(String FileName) const;
 	void SaveOBJ(const Path& FileName) const;
 
 

@@ -8,7 +8,6 @@ list(PREPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR})
 set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE INTERNAL "" FORCE)
 
 add_definitions(-w)
-add_compile_definitions(_USE_MATH_DEFINES)
 
 project(MechEngineRuntime)
 file(GLOB_RECURSE ENGINE_SOURCE_FILES
@@ -23,10 +22,12 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_HEADER_FILES} ${E
 
 add_library(MechEngineRuntime SHARED ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILES})
 target_compile_features(MechEngineRuntime PUBLIC cxx_std_20)
+target_compile_definitions(MechEngineRuntime PUBLIC _USE_MATH_DEFINES)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
     # Set debug-specific options
     set(SANITIZE_FLAGS "-fsanitize=undefined,return")
+    target_compile_options(MechEngineRuntime PUBLIC -w)
 
     target_compile_options(MechEngineRuntime PUBLIC
             $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
