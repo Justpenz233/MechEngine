@@ -20,9 +20,6 @@ namespace MechEngine::Rendering
         // Vertex buffer id in bindless array
         uint vertex_id = ~0u;
 
-        // Transform id
-        uint transform_id = ~0u;
-
         // thickness of the curve, in pixel
         float thickness = -1.f;
 
@@ -32,8 +29,8 @@ namespace MechEngine::Rendering
 
     struct point_data
     {
-        // Transform id
-        uint transform_id = ~0u;
+    	// position in world
+    	float3 world_position;
 
         // size of the point, in pixel
         float radius = -1.f;
@@ -43,8 +40,8 @@ namespace MechEngine::Rendering
     };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::lines_data, vertex_id, transform_id, thickness, color) {};
-LUISA_STRUCT(MechEngine::Rendering::point_data, transform_id, radius, color) {};
+LUISA_STRUCT(MechEngine::Rendering::lines_data, vertex_id, thickness, color) {};
+LUISA_STRUCT(MechEngine::Rendering::point_data, world_position, radius, color) {};
 
 
 namespace MechEngine::Rendering
@@ -57,7 +54,7 @@ namespace MechEngine::Rendering
     public:
         explicit LineSceneProxy(RayTracingScene& InScene) noexcept;
 
-        virtual void UploadDirtyData(luisa::compute::Stream& stream) override {}
+        virtual void UploadDirtyData(Stream& stream) override;
 
         // void AddLines();
         //
@@ -67,7 +64,8 @@ namespace MechEngine::Rendering
         //
         // void RemoveBox();
         //
-        // void AddPoint();
+
+        uint AddPoint(float3 WorldPosition, float Radius, float3 color);
         //
         // void RemovePoint();
         //
@@ -77,16 +75,22 @@ namespace MechEngine::Rendering
         // void UpdateThickness();
 
     public:
-        void CompileShader();
+        virtual void CompileShader() override;
 
         virtual void PostRenderPass(Stream& stream) override;
 
     protected:
         static constexpr uint32_t MaxCurveCount = 1024;
         static constexpr uint32_t MaxPointCount = 1024;
+    	bool bPointsUpdated = false;
+    	bool bLinesUpdated = false;
         BufferView<lines_data> lines_data_buffer;
         BufferView<point_data> points_data_buffer;
-        unique_ptr<Shader2D<>> DrawLineShader;
+        unique_ptr<Shader1D<view_data>> DrawLineShader;
         unique_ptr<Shader1D<view_data>> DrawPointsShader;
+    	vector<point_data> Points;
+    	map<uint, uint> PointIdToIndex;
+
+
     };
 }

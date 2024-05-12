@@ -13,6 +13,12 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 
+	template<typename T>
+	FORCEINLINE Var<T> square(const Var<T>& x)
+	{
+		return x * x;
+	}
+
     /**
      * Calulate the distance from a point to a segment in 2D space.
      * @param p point in 2D space
@@ -62,4 +68,7 @@ namespace MechEngine::Rendering
                on_the_lines(p, v1_coord, v2_coord, thickness) |
                on_the_lines(p, v2_coord, v0_coord, thickness);
     }
+
+
+
 }

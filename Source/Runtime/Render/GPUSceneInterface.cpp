@@ -49,6 +49,8 @@ namespace MechEngine::Rendering
                 };
             };
         }));
+
+    	LineProxy->CompileShader();
     }
 
     ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
@@ -118,7 +120,7 @@ namespace MechEngine::Rendering
         return rtAccel->instance_transform(instance_id);
     }
 
-    Var<transformData> GPUSceneInterface::get_transform(Expr<uint> transform_id) const noexcept
+    Var<transform_data> GPUSceneInterface::get_transform(Expr<uint> transform_id) const noexcept
     {
         return TransformProxy->get_transform_data(transform_id);
     }

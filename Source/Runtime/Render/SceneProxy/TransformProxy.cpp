@@ -15,7 +15,7 @@ TransformSceneProxy::TransformSceneProxy(RayTracingScene& InScene)
 	: SceneProxy(InScene)
 {
 	TransformDatas.resize(transform_matrix_buffer_size);
-	transform_buffer = Scene.RegisterBuffer<transformData>(transform_matrix_buffer_size);
+	transform_buffer = Scene.RegisterBuffer<transform_data>(transform_matrix_buffer_size);
 }
 
 void TransformSceneProxy::UploadDirtyData(Stream& stream)
@@ -26,7 +26,7 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 	for (TransformComponent* Component : DirtyTransforms)
 	{
 		auto ComponentId = TransformIndexMap[Component];
-		transformData& data = TransformDatas[ComponentId];
+		transform_data& data = TransformDatas[ComponentId];
 		data.transformMatrix = ToLuisaMatrix(Component->GetTransformMatrix());
 		data.scale = ToLuisaVector(Component->GetScale());
 		data.rotationQuaternion = ToLuisaVector(Component->GetRotation().coeffs());

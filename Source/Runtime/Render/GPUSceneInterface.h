@@ -20,7 +20,7 @@ class LightComponent;
 
 namespace MechEngine::Rendering
 {
-	struct transformData;
+	struct transform_data;
 	class MaterialSceneProxy;
 	class LightSceneProxy;
 	class CameraSceneProxy;
@@ -282,7 +282,7 @@ namespace MechEngine::Rendering
 		* @param transform_id Transform ID
 		* @return Transform data
 		*/
-		Var<transformData> get_transform(Expr<uint> transform_id) const noexcept;
+		Var<transform_data> get_transform(Expr<uint> transform_id) const noexcept;
 
 		Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const;
 
@@ -302,7 +302,7 @@ namespace MechEngine::Rendering
 		FORCEINLINE CameraSceneProxy* GetCameraProxy() { return CameraProxy.get(); }
 		FORCEINLINE LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
 		FORCEINLINE MaterialSceneProxy* GetMaterialProxy() { return MaterialProxy.get(); }
-
+		FORCEINLINE LineSceneProxy* GetLineProxy() { return LineProxy.get(); }
 
 	protected:
 		// Mesh collection

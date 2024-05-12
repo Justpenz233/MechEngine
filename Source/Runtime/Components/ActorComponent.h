@@ -27,7 +27,9 @@ public:
 	FORCEINLINE void SetOwner(Actor*);
 	String GetOwnerName() const;
 
-    // Called after this object is created
+	FORCEINLINE World* GetWorld() const;
+
+	// Called after this object is created
     virtual void Init() {};
 	// Called when game start
 	virtual void BeginPlay() {};
@@ -52,5 +54,9 @@ FORCEINLINE class Actor* ActorComponent::GetOwner() const
 	return Owner;
 }
 
+FORCEINLINE World* ActorComponent::GetWorld() const
+{
+	return World;
+}
 template <class T>
 concept IsActorComponent = std::is_base_of_v<ActorComponent, T>;

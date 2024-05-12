@@ -3,13 +3,12 @@
 //
 
 #include "RayTracingScene.h"
-#include "Render/Core/TypeConvertion.h"
 #include <luisa/runtime/rtx/accel.h>
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
 #include "Render/Core/bxdf_context.h"
-#include "Render/Core/draw_lines.h"
+#include "Render/Core/math_function.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -134,6 +133,9 @@ void RayTracingScene::UploadData()
 	TransformProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
+	LineProxy->UploadDirtyData(stream);
+	UpdateBindlessArrayIfDirty();
+
 	view_data_buffer = CameraProxy->GetCurrentViewData();
 	if (rtAccel.dirty()) stream << rtAccel.build() << synchronize();
 }
@@ -145,6 +147,8 @@ void RayTracingScene::Render()
 
 	if(ViewMode != ViewMode::FrameBuffer)
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+
+	LineProxy->PostRenderPass(stream);
 
 	stream << synchronize();
 }

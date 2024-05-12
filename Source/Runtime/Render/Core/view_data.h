@@ -53,7 +53,7 @@ LUISA_STRUCT(MechEngine::Rendering::view_data,
     {
         auto normal_ndc = ndc_position / ndc_position.w;
         auto pixel_coord = make_float2(normal_ndc.x * 0.5f + 0.5f, -normal_ndc.y * 0.5f + 0.5f) * make_float2(viewport_size);
-        return make_uint2(pixel_coord);
+        return pixel_coord;
     }
 
     [[nodiscard]] auto world_to_screen(const luisa::compute::Float3& world_position) const noexcept
