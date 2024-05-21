@@ -14,6 +14,14 @@ namespace MechEngine::Rendering
     using namespace luisa::compute;
 
 	template<typename T>
+	FORCEINLINE void swap(T& a, T& b) noexcept
+	{
+		auto temp = a;
+		a = b;
+		b = temp;
+	}
+
+	template<typename T>
 	FORCEINLINE Var<T> square(const Var<T>& x)
 	{
 		return x * x;
@@ -59,7 +67,7 @@ namespace MechEngine::Rendering
     * @param v2 vertex 2 of the triangle in NDC space
     * @param thickness thickness of the line in pixel
     */
-    FORCEINLINE Bool IsWireFrame(Var<view_data> view, const Float2& p, const Float4& v0, const Float4& v1, const Float4& v2, const Float& thickness)
+    FORCEINLINE Bool IsWireFrame(Var<view_data> view, const Float2& p, const Float3& v0, const Float3& v1, const Float3& v2, const Float& thickness)
     {
         auto v0_coord = view->ndc_to_screen(v0);
         auto v1_coord = view->ndc_to_screen(v1);

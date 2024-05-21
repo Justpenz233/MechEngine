@@ -17,4 +17,17 @@ public:
 	 * @param LifeTime lifetime of the point
 	 */
 	void AddPoint(const FVector& WorldPosition, double Radius, const FColor& Color, double LifeTime = -1.);
+
+
+
+	/**
+	 * Draw a line with the given thickness and color in world. Will last for the given lifetime.
+	 * The line will be persistent if lifetime is negative.
+	 * @param WorldStart world position of the start point of the line
+	 * @param WorldEnd world position of the end point of the line
+	 * @param Color color of the line
+	 * @param Thickness thickness of the line, in pixel
+	 * @param LifeTime lifetime of the line
+	 */
+	void AddLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 };

@@ -248,6 +248,8 @@ namespace MechEngine::Rendering
 		*	            				Provide basic query throughout each proxys				       *
 		***********************************************************************************************/
 
+		gbuffer& get_gbuffer() { return g_buffer; }
+
 		/**
 		 * Calculate closest hit information of a ray in the scene.
 		 * @param ray Ray to trace

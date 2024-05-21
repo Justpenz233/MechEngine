@@ -21,3 +21,9 @@ void LinesComponent::AddPoint(const FVector& WorldPosition, double Radius, const
 		// GetWorld()->GetTimerManager()->AddTimer(LifeTime)
 	}
 }
+void LinesComponent::AddLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness, double LifeTime)
+{
+	Thickness = Thickness < 0 ? 2 : Thickness;
+	auto ID = GetWorld()->GetScene()->GetLineProxy()->AddLine(
+		Rendering::ToLuisaVector(WorldStart), Rendering::ToLuisaVector(WorldEnd), Thickness, Rendering::ToLuisaVector(Color));
+}

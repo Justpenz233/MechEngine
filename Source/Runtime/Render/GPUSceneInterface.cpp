@@ -107,7 +107,7 @@ namespace MechEngine::Rendering
             it.triangle_normal_world = normal_world;
             it.vertex_normal_local = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
             it.vertex_normal_world = normalize(m * it.vertex_normal_local);
-            it.depth = view->world_to_normal_ndc(p).z;
+            it.depth = view->world_to_ndc(p).z;
             it.back_face = dot(normal_world, ray->direction()) > 0.f;
             it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;
             // .......

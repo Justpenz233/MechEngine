@@ -18,7 +18,9 @@ namespace MechEngine::Rendering
     struct lines_data
     {
         // Vertex buffer id in bindless array
-        uint vertex_id = ~0u;
+    	float3 world_start;
+
+    	float3 world_end;
 
         // thickness of the curve, in pixel
         float thickness = -1.f;
@@ -40,7 +42,7 @@ namespace MechEngine::Rendering
     };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::lines_data, vertex_id, thickness, color) {};
+LUISA_STRUCT(MechEngine::Rendering::lines_data, world_start, world_end, thickness, color) {};
 LUISA_STRUCT(MechEngine::Rendering::point_data, world_position, radius, color) {};
 
 
@@ -56,7 +58,7 @@ namespace MechEngine::Rendering
 
         virtual void UploadDirtyData(Stream& stream) override;
 
-        // void AddLines();
+		uint AddLine(float3 WorldStart, float3 WorldEnd, float Thickness, float3 Color);
         //
         // void RemoveLines();
         //
@@ -80,8 +82,8 @@ namespace MechEngine::Rendering
         virtual void PostRenderPass(Stream& stream) override;
 
     protected:
-        static constexpr uint32_t MaxCurveCount = 1024;
-        static constexpr uint32_t MaxPointCount = 1024;
+        static constexpr uint32_t MaxLinesCount = 8192; // 8192 * 10 * 4 = 327680 bytes = 320 KB
+        static constexpr uint32_t MaxPointCount = 8192; // 8192 * 7 * 4 = 229376 bytes = 224 KB
     	bool bPointsUpdated = false;
     	bool bLinesUpdated = false;
         BufferView<lines_data> lines_data_buffer;
@@ -89,6 +91,7 @@ namespace MechEngine::Rendering
         unique_ptr<Shader1D<view_data>> DrawLineShader;
         unique_ptr<Shader1D<view_data>> DrawPointsShader;
     	vector<point_data> Points;
+    	vector<lines_data> Lines;
     	map<uint, uint> PointIdToIndex;
 
 

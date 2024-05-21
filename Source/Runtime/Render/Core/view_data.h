@@ -36,23 +36,28 @@ LUISA_STRUCT(MechEngine::Rendering::view_data,
 
     }
 
-    [[nodiscard]] auto world_to_ndc(const luisa::compute::Float3& world_position) const noexcept
+    [[nodiscard]] auto world_to_clip(const luisa::compute::Float3& world_position) const noexcept
     {
         auto clip_position = view_projection_matrix * make_float4(world_position, 1.0f);
         return clip_position;
     }
 
-    [[nodiscard]] auto world_to_normal_ndc(const luisa::compute::Float3& world_position) const noexcept
+	[[nodiscard]] auto clip_to_ndc(const luisa::compute::Float4& clip_position) const noexcept
+    {
+	    auto ndc_position = clip_position / clip_position.w;
+    	return ndc_position.xyz();
+    }
+
+    [[nodiscard]] auto world_to_ndc(const luisa::compute::Float3& world_position) const noexcept
     {
         auto clip_position = view_projection_matrix * make_float4(world_position, 1.0f);
         clip_position /= clip_position.w;
         return clip_position.xyz();
     }
 
-    [[nodiscard]] auto ndc_to_screen(const luisa::compute::Float4& ndc_position) const noexcept
+    [[nodiscard]] auto ndc_to_screen(const luisa::compute::Float3& ndc_position) const noexcept
     {
-        auto normal_ndc = ndc_position / ndc_position.w;
-        auto pixel_coord = make_float2(normal_ndc.x * 0.5f + 0.5f, -normal_ndc.y * 0.5f + 0.5f) * make_float2(viewport_size);
+        auto pixel_coord = make_float2(ndc_position.x * 0.5f + 0.5f, -ndc_position.y * 0.5f + 0.5f) * make_float2(viewport_size);
         return pixel_coord;
     }
 
