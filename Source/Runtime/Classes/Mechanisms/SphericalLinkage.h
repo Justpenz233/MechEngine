@@ -8,11 +8,13 @@
 class SphericalLinkageComponent : public SpatialJointComponent
 {
 public:
-	static constexpr double Thickness = 0.05;
-	static constexpr double Width = 0.03; // in radian
-	static constexpr double SlotRadius = 0.03;
+	static constexpr double Thickness = 0.03;
+	static constexpr double Width = 0.08; // in radian
+	static constexpr double SlotRadius = 0.04;
 	static constexpr double ConnectorRadius = 0.01;
 	static constexpr double EffectorRadius = 0.01;
+	static constexpr double EffectorWidth = 0.02;
+
 	
 	SphericalLinkageComponent(const FTransform& InInitTransform, bool InIsRoot)
 		: SpatialJointComponent(FreeZ, FreeNone, InInitTransform, InIsRoot) {}

@@ -17,7 +17,7 @@ ObjectPtr<StaticMesh> SphericalLinkageComponent::GenerateLinkageTo(FVector PortL
 		OutterRadius = Radius + EffectorRadius * 0.5;
 	}
 
-	double HalfWidth = Width * 0.5f;
+	double HalfWidth = bIsEffector? EffectorWidth * 0.5f : Width * 0.5f;
 	double CenterAngle = acos(1. - Pow2((PortLocation.normalized() - TargetLocation.normalized()).norm()) * 0.5);
 	auto   RotationAxis = PortLocation.normalized().cross(TargetLocation.normalized()).normalized();
 
