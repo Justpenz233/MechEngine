@@ -96,6 +96,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	{
 		ASSERTMSG(MeshIndexMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
 		accel.set_visibility_on_update(MeshIndexMap[MeshComponent], MeshComponent->IsVisible());
+		auto MaterialID = Scene.GetMaterialProxy()->TryAddMaterial(MeshComponent->GetMeshData()->GetMaterial());
+		StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();
 }

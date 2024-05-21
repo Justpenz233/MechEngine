@@ -31,6 +31,14 @@ inline StaticMeshDirtyTag& operator &= (StaticMeshDirtyTag& ATag, StaticMeshDirt
 	return ATag;
 }
 
+inline StaticMeshDirtyTag& operator ^= (StaticMeshDirtyTag& ATag, StaticMeshDirtyTag& BTag)
+{
+	unsigned int Result = ATag ^ BTag;
+	ATag = static_cast<StaticMeshDirtyTag>(Result);
+	return ATag;
+}
+
+
 MCLASS(StaticMeshComponent)
 class StaticMeshComponent : public RenderingComponent
 {
@@ -80,7 +88,12 @@ public:
 	 * Set the color of the mesh, this is a quick interface to set the base color of the current mesh material
 	 * @param InColor color to set
 	 */
-	void SetColor(const FColor& InColor);
+	void SetColor(const FColor& InColor) const;
+	/**
+	 * Set the material of the mesh, this is a quick interface to set the material of the current mesh
+	 * @param InMaterial material to set
+	 */
+	void SetMaterial(ObjectPtr<Material> InMaterial);
 
 protected:
 	StaticMeshDirtyTag Dirty = DIRTY_ALL;

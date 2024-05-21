@@ -121,10 +121,19 @@ bool StaticMeshComponent::FillHoles()
 		MarkAsDirty(DIRTY_RENDERDATA);
 	return Flag;
 }
-void StaticMeshComponent::SetColor(const FColor& InColor)
+void StaticMeshComponent::SetColor(const FColor& InColor) const
 {
 	if (MeshData && MeshData->GetMaterial() != nullptr)
 		MeshData->GetMaterial()->SetBaseColor(InColor);
+}
+
+void StaticMeshComponent::SetMaterial(ObjectPtr<Material> InMaterial)
+{
+	if (MeshData && InMaterial != nullptr)
+	{
+		MeshData->SetMaterial(InMaterial);
+		MarkAsDirty(DIRTY_RENDERDATA);
+	}
 };
 
 bool StaticMeshComponent::IsDirty()

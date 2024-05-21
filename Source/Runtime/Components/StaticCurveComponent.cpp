@@ -11,7 +11,17 @@
 
 StaticCurveComponent::StaticCurveComponent(ObjectPtr<Curve> NewCurve)
 {
-	CurveData = NewCurve;
+	CurveData = std::move(NewCurve);
+}
+void StaticCurveComponent::Init()
+{
+	StaticMeshComponent::Init();
+	if (DrawMode == AsMesh)
+	{
+		MeshData = GenerateCurveMesh();
+		MeshData->CalcNormal();
+		Dirty = static_cast<StaticMeshDirtyTag>(Dirty ^ DIRTY_REMESH);
+	}
 }
 
 void StaticCurveComponent::Remesh()
@@ -19,8 +29,11 @@ void StaticCurveComponent::Remesh()
 	StaticMeshComponent::Remesh();
 	if (DrawMode == AsMesh)
 	{
+		auto PreMesh = MeshData;
 		MeshData = GenerateCurveMesh();
 		MeshData->CalcNormal();
+		if(PreMesh)
+			MeshData->SetMaterial(PreMesh->GetMaterialAsset());
 	}
 }
 void StaticCurveComponent::PostEdit(Reflection::FieldAccessor& Field)

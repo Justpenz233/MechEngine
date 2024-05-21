@@ -44,6 +44,7 @@ public:
 	StaticMesh& operator = (StaticMesh&& Other) noexcept;
 
 	FORCEINLINE Material* GetMaterial() const;
+	FORCEINLINE ObjectPtr<Material> GetMaterialAsset() const;
 	FORCEINLINE void SetMaterial(ObjectPtr<Material> InMaterial);
 	FORCEINLINE FVector GetVertex(int Index) const;
 	FORCEINLINE FVector GetVertexNormal(int Index) const;
@@ -207,6 +208,11 @@ protected:
 FORCEINLINE Material* StaticMesh::GetMaterial() const
 {
 	return MaterialData.get();
+}
+
+FORCEINLINE ObjectPtr<Material> StaticMesh::GetMaterialAsset() const
+{
+	return MaterialData;
 }
 
 FORCEINLINE void StaticMesh::SetMaterial(ObjectPtr<Material> InMaterial)

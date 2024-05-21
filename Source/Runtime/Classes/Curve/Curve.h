@@ -29,6 +29,7 @@ public:
 	FORCEINLINE bool IsClosed() const { return bClosed; }
 
 	void SetCurveData(const TArray<FVector>& InLines);
+	TArray<FVector> GetCurveData() const { return Lines; }
 
     bool ReadFromPath(const Path& InFilePath);
 

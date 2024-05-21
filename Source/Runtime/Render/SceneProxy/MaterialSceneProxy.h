@@ -42,7 +42,7 @@ public:
 	}
 
 protected:
-	static constexpr uint MaxMaterials = 1024;
+	static constexpr uint MaxMaterials = 8192;
 	vector<materialData> MaterialDataVector;
 	BufferView<materialData> material_data_buffer;
 
