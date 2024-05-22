@@ -5,7 +5,7 @@
 #include "Config.h"
 #include "Path.h"
 
-MechEngine::Config GConfig;
+ENGINE_API MechEngine::Config GConfig;
 
 namespace MechEngine
 {

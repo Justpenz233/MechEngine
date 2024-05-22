@@ -12,7 +12,7 @@ class TransformComponent;
 class World;
 
 MCLASS(Actor)
-class Actor : public Object
+class ENGINE_API Actor : public Object
 {
 	REFLECTION_BODY(Actor)
 public:

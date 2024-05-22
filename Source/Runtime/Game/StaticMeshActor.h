@@ -9,7 +9,7 @@
 #include "Components/StaticMeshComponent.h"
 
 MCLASS(StaticMeshActor)
-class StaticMeshActor : public Actor
+class ENGINE_API StaticMeshActor : public Actor
 {
 public:
 	REFLECTION_BODY(StaticMeshActor)

@@ -14,7 +14,7 @@
 #include "TimerManager.h"
 #include "Components/ConstPointLightComponent.h"
 
-World* GWorld = nullptr;
+ENGINE_API World* GWorld = nullptr;
 
 World::World()
 {

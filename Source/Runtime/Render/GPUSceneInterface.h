@@ -38,7 +38,7 @@ namespace MechEngine::Rendering
 	 * Also should provide interface to manage GPU resources for render pipeline.
 	 * Each scene contains a set of stream and device to manage the resources, the renderer should access through the interface.
 	 */
-	class GPUSceneInterface
+	class ENGINE_API GPUSceneInterface
 	{
 	public:
 		GPUSceneInterface(Stream& stream, Device& device) noexcept;

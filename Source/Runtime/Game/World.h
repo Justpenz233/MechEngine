@@ -22,7 +22,7 @@ DECLARE_MULTICAST_DELEGATE_PARMS(OnActorSelectedDelegate, class Actor*)
 
 
 /// This class will manage Animation and Tick and Signal
-class World : public Object
+class ENGINE_API World : public Object
 {
 public:
 
@@ -196,4 +196,4 @@ FORCEINLINE TimerManager* World::GetTimerManager()
 	return TimerManager.get();
 }
 
-extern World* GWorld;
+extern ENGINE_API World* GWorld;

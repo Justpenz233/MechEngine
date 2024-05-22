@@ -35,7 +35,7 @@ struct TimerData
 	TFunction<void(void)> Callback;
 };
 
-class TimerManager
+class ENGINE_API TimerManager
 {
 public:
 	void Tick(double DeltaTime);

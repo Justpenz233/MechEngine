@@ -9,7 +9,7 @@
 
 namespace MechEngine
 {
-    class Logger
+    class ENGINE_API Logger
     {
     public:
         Logger(const Logger&) = delete;

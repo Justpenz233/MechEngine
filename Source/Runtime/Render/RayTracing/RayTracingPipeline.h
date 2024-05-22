@@ -7,7 +7,7 @@
 #include "RayTracingScene.h"
 #include "luisa/luisa-compute.h"
 
-class RayTracingPipeline : public RenderPipeline
+class ENGINE_API RayTracingPipeline : public RenderPipeline
 {
 public:
 	RayTracingPipeline(uint width, uint height, const String& title);

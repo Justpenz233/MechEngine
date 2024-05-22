@@ -59,4 +59,4 @@ TArray<T> Config::GetArray(const String& Section, const String& Key)
 }
 
 // Global config file, by dafault at least contains config files from Path::EngineConfigDir() and Path::ProjectConfigDir()
-extern MechEngine::Config GConfig;
+extern ENGINE_API MechEngine::Config GConfig;

@@ -27,7 +27,7 @@ class LuisaViewport;
  * GPU data and methods are names by lower_snake_case
  * The bridge between CPU and GPU data structure is named by lower_snake_case
  ************************************************************************************/
-class RayTracingScene : public GPUSceneInterface
+class ENGINE_API RayTracingScene : public GPUSceneInterface
 {
 public:
 	RayTracingScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
