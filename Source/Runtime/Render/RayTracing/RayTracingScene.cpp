@@ -29,12 +29,12 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
 	LineProxy = luisa::make_unique<LineSceneProxy>(*this);
+	auto size = Window->framebuffer().size();
 	g_buffer.base_color = device.create_image<float>(PixelStorage::R11G11B10,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.normal = device.create_image<float>(PixelStorage::R11G11B10,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.depth = device.create_image<float>(PixelStorage::FLOAT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
 	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,

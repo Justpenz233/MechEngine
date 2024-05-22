@@ -74,7 +74,13 @@ namespace MechEngine::Rendering
     				auto distance = square(x - screen_position.x) + square(y - screen_position.y);
     				$if(distance < radius_square)
     				{
-    					Scene.frame_buffer()->write(pixel, make_float4(color, 1.f));
+    					auto depth_index = Scene.get_gbuffer().flattend_index(pixel);
+    					auto& depth_buffer = Scene.get_gbuffer().depth;
+    					depth_buffer->atomic(depth_index).fetch_min(screen_position.z);
+    					$if(depth_buffer->read(depth_index) == screen_position.z)
+						{
+							Scene.frame_buffer()->write(pixel, make_float4(color, 1.f));
+						};
     				};
     			};
     		};

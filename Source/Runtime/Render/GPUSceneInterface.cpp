@@ -37,7 +37,7 @@ namespace MechEngine::Rendering
             {
                 $case(static_cast<uint>(ViewMode::DepthBuffer))
                 {
-                    frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(pixel_coord).x));
+                    frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(g_buffer.flattend_index(pixel_coord))));
                 };
                 $case(static_cast<uint>(ViewMode::NormalWorldBuffer))
                 {
