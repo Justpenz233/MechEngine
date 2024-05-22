@@ -8,7 +8,7 @@ enum BooleanType
     UNION, INTERSECTION, A_NOT_B
 };
 
-class MeshBoolean {
+class ENGINE_API MeshBoolean {
 
 public:
 

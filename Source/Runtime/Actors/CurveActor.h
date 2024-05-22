@@ -5,7 +5,7 @@
 #include "Game/Actor.h"
 
 MCLASS(CurveActor)
-class CurveActor : public Actor
+class ENGINE_API CurveActor : public Actor
 {
     REFLECTION_BODY(CurveActor)
 protected:

@@ -8,7 +8,7 @@
 #include "Curve/Curve.h"
 #include "StaticMesh.h"
 
-class BasicShapesLibrary {
+class ENGINE_API BasicShapesLibrary {
 
 public:
     // Create a Curve Mesh

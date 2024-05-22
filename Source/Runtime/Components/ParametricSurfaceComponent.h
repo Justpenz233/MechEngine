@@ -5,7 +5,7 @@
 #include "Surface/ParametricSurface.h"
 
 MCLASS(ParametricSurfaceComponent)
-class ParametricSurfaceComponent : public ParametricMeshComponent
+class ENGINE_API ParametricSurfaceComponent : public ParametricMeshComponent
 {
 	REFLECTION_BODY(ParametricSurfaceComponent)
 protected:

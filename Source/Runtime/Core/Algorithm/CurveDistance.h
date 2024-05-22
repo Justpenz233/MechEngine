@@ -13,9 +13,9 @@ namespace MechEngine::Algorithm
 
 	// Discrete Frechet Distance
 	// Math : https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance
-	double DiscreteFrechetDistance(const TArray<FVector> &CurveA, const TArray<FVector> &CurveB);
+	ENGINE_API double DiscreteFrechetDistance(const TArray<FVector> &CurveA, const TArray<FVector> &CurveB);
 
 	// @see https://en.wikipedia.org/wiki/Dynamic_time_warping
-	double DTWDistance(const TArray<FVector>& CurveA, const TArray<FVector>& CurveB);
+	ENGINE_API double DTWDistance(const TArray<FVector>& CurveA, const TArray<FVector>& CurveB);
 
 }

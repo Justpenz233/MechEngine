@@ -18,7 +18,7 @@ namespace MechEngine::Rendering
 * Each RenderingComponent should have a corsponding TransformComponent to store the transform data.
 */
 MCLASS(RenderingComponent)
-class RenderingComponent : public ActorComponent
+class ENGINE_API RenderingComponent : public ActorComponent
 {
 	REFLECTION_BODY(RenderingComponent)
 

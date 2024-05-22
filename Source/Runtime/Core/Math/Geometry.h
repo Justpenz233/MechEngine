@@ -5,7 +5,7 @@
 #pragma once
 
 #include "MathType.h"
-
+#include "Misc/Platform.h"
 
 namespace MechEngine::Math
 {
@@ -17,7 +17,7 @@ namespace MechEngine::Math
  * @param A1 Start point of the segment
  * @return The distance between the point and the segment, and the closest point on the segment
  */
-std::tuple<double, FVector> PointSegmentDistance(
+ENGINE_API std::tuple<double, FVector> PointSegmentDistance(
 		const FVector& P,
 		const FVector& A0, const FVector& A1);
 
@@ -29,7 +29,7 @@ std::tuple<double, FVector> PointSegmentDistance(
  * @param B1 End point of segment B
  * @return The distance between two segments, the closest point on each segment, and whether the two segments are parallel
  */
-std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
+ENGINE_API std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 		const FVector& A0, const FVector& A1,
 		const FVector& B0, const FVector& B1);
 }

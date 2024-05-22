@@ -3,7 +3,7 @@
 #include "Reflection/reflection/reflection.h"
 
 MSTRUCT(FTransform)
-struct FTransform
+struct ENGINE_API FTransform
 {
 	REFLECTION_STRUCT_BODY(FTransform)
 protected:

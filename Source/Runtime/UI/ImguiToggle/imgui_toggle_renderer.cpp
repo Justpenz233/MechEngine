@@ -10,7 +10,7 @@ namespace
     // a small helper to quickly check the mixed value flag.
     inline bool IsItemMixedValue()
     {
-        return (GImGui->LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+        return (ImGui::GetCurrentContext()->LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
     }
 } // namespace
 
@@ -49,7 +49,7 @@ bool ImGuiToggleRenderer::Render()
     }
 
     // update igui context
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ImGui::GetCurrentContext();
     _id = window->GetID(_label);
     _drawList = ImGui::GetWindowDrawList();
     _style = &ImGui::GetStyle();
@@ -127,7 +127,7 @@ bool ImGuiToggleRenderer::ToggleBehavior(const ImRect& interaction_bounding_box)
     ImGui::ItemSize(interaction_bounding_box, _style->FramePadding.y);
     if (!ImGui::ItemAdd(interaction_bounding_box, _id))
     {
-        ImGuiContext& g = *GImGui;
+        ImGuiContext& g = *ImGui::GetCurrentContext();
         IMGUI_TEST_ENGINE_ITEM_INFO(_id, _label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*_value ? ImGuiItemStatusFlags_Checked : 0));
         return false;
     }
@@ -150,7 +150,7 @@ void ImGuiToggleRenderer::DrawToggle()
     const float height = GetHeight();
     const float width = GetWidth();
 
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ImGui::GetCurrentContext();
     // update imgui state
     _isHovered = g.HoveredId == _id;
     _isLastActive = g.LastActiveId == _id;
@@ -360,7 +360,7 @@ void ImGuiToggleRenderer::DrawLabel(float x_offset)
     const float label_y = _boundingBox.Min.y + half_height - (label_size.y * 0.5f);
     const ImVec2 label_pos = ImVec2(label_x, label_y);
 
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ImGui::GetCurrentContext();
     if (g.LogEnabled)
     {
         ImGui::LogRenderedText(&label_pos, _isMixedValue ? "[~]" : *_value ? "[x]" : "[ ]");

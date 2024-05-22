@@ -2,8 +2,8 @@
 // Created by MarvelLi on 2024/1/27.
 //
 
+#include "imgui.h"
 #include "ImguiPlus.h"
-#include "imgui_internal.h"
 #include "Log/Log.h"
 
 // Clang warnings with -Weverything
@@ -14,8 +14,8 @@
 
 void ImGui::CenteredText(const char* label, const float& TextHeight)
 {
-	ImGuiContext&	  g = *GImGui;
-	const ImGuiStyle& style = g.Style;
+	ImGuiContext*	  g = ImGui::GetCurrentContext();
+	const ImGuiStyle& style = g->Style;
 	ImGuiWindow*	  window = GetCurrentWindow();
 
 	float margin = (style.WindowPadding.x) * 2.0f;

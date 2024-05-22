@@ -9,7 +9,7 @@
 
 
 MCLASS(TransformComponent)
-class TransformComponent : public ActorComponent
+class ENGINE_API TransformComponent : public ActorComponent
 {
 	REFLECTION_BODY(TransformComponent)
 	

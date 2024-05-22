@@ -13,7 +13,7 @@ enum CurveDrawMode
 };
 
 MCLASS(StaticCurveComponent)
-class StaticCurveComponent : public StaticMeshComponent
+class ENGINE_API StaticCurveComponent : public StaticMeshComponent
 {
     REFLECTION_BODY(StaticCurveComponent)
 public:

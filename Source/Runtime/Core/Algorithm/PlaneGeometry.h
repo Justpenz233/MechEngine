@@ -8,6 +8,6 @@
 
 namespace MechEngine::Algorithm::PlaneGeometry
 {
-	bool IsConvexPolygon(const TArray<FVector2>& Polygon);
+	ENGINE_API bool IsConvexPolygon(const TArray<FVector2>& Polygon);
 
 };

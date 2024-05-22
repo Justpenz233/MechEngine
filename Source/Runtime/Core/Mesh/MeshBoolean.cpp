@@ -1,23 +1,13 @@
-//////////////////////////////////////////////////
-//MeshBoolean.h
-//
-// MeshBoolean Class, AUB A∆B A\B
-//
-// Created by Yingjie Cheng on 2020/11/20.
-//
-// Modified by CHENG 2022/Aug/08
-//
-///////////////////////////////////////////////////
-
 #include "MeshBoolean.h"
-// #include <mcut/mcut.h>
 #include "StaticMesh.h"
 #include "Object/Object.h"
-#include <cassert>
-#include <cstring>
 
 #include "igl/MeshBooleanType.h"
 #include "igl/copyleft/cgal/mesh_boolean.h"
+
+#if defined(_MSC_VER)
+	#pragma warning(disable : 4267)
+#endif
 
 ///==============================================================================//
 ///                              Boolean

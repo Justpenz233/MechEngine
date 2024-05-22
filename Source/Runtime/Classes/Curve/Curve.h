@@ -8,7 +8,7 @@
 #include <fstream>
 #include "Misc/Path.h"
 
-class Curve: public Object
+class ENGINE_API Curve: public Object
 {
 protected:
 	bool bClosed{};

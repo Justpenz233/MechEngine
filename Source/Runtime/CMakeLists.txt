@@ -15,7 +15,7 @@ file(GLOB_RECURSE ENGINE_SOURCE_FILES
 )
 
 file(GLOB_RECURSE ENGINE_HEADER_FILES
-        *.h
+        *.h *.hpp
 )
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_HEADER_FILES} ${ENGINE_SOURCE_FILES})
@@ -41,9 +41,12 @@ endif()
 
 if(MSVC)
     target_compile_options(MechEngineRuntime PUBLIC /W0)
+    set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS FALSE)
+    target_compile_definitions(MechEngineRuntime PUBLIC
+            "IMGUI_API=__declspec(dllexport)"
+            "IMGUI_IMPL_API=__declspec(dllexport)")
 endif()
 
-set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_include_directories(MechEngineRuntime PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(MechEngineRuntime PUBLIC "UI")
 target_include_directories(MechEngineRuntime PUBLIC "UI/Imgui")

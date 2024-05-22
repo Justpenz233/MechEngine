@@ -5,7 +5,7 @@
 #pragma once
 #include "SpatialJoints.h"
 
-class SphericalLinkageComponent : public SpatialJointComponent
+class ENGINE_API SphericalLinkageComponent : public SpatialJointComponent
 {
 public:
 	static constexpr double Thickness = 0.03;
@@ -25,7 +25,7 @@ public:
 
 };
 
-class SphericalLinkageActor : public Actor
+class ENGINE_API SphericalLinkageActor : public Actor
 {
 public:
 	SphericalLinkageActor(const FTransform& InInitTransform, bool InIsRoot = false) : Actor(InInitTransform)

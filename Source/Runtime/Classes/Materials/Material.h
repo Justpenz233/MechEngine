@@ -29,7 +29,7 @@ enum NormalMode
  * Only contains the data for the material model.
  */
 MCLASS(Material)
-class Material final : public Object
+class ENGINE_API Material final : public Object
 {
 	REFLECTION_BODY(Material)
 

@@ -7,29 +7,29 @@
 namespace MMath
 {
 	//Get Euler angle of rotation order XYZ
-	FVector EulerFromQuaternionXYZ(const Eigen::Quaterniond& Rotation);
+	ENGINE_API FVector EulerFromQuaternionXYZ(const Eigen::Quaterniond& Rotation);
 
 	//follow right hand rule, in radian
-	double GetRotationAngle(const Quaterniond& Rotation);
+	ENGINE_API double GetRotationAngle(const Quaterniond& Rotation);
 	//follow right hand rule
-	FVector GetRotationAxis(const Quaterniond& Rotation);
+	ENGINE_API FVector GetRotationAxis(const Quaterniond& Rotation);
 
-	Matrix3d RotationMatrixFromEulerXYZ(const FVector& Rotation); 
-	Matrix4d RotationMatrix4FromEulerXYZ(const FVector& Rotation); 
+	ENGINE_API Matrix3d RotationMatrixFromEulerXYZ(const FVector& Rotation);
+	ENGINE_API Matrix4d RotationMatrix4FromEulerXYZ(const FVector& Rotation);
 
-	FVector VectorMultiply(const FVector& A, const FVector& B);
+	ENGINE_API FVector VectorMultiply(const FVector& A, const FVector& B);
 	//Euler angle in {x, y, z}
-	FQuat QuaternionFromEulerXYZ(const FVector& Rotation);
+	ENGINE_API FQuat QuaternionFromEulerXYZ(const FVector& Rotation);
 
-	Matrix4d MakeTranslationMatrix(const FVector& Translation);
+	ENGINE_API Matrix4d MakeTranslationMatrix(const FVector& Translation);
 
-	Matrix4d MakeScaleMatrix(const FVector& Scale);
+	ENGINE_API Matrix4d MakeScaleMatrix(const FVector& Scale);
 
-	Matrix4d MakeTransformMatrix(const FVector& Translation = FVector::Zero(), const Quaterniond& Rotation = Quaterniond::Identity(), const FVector& Scale = FVector::Ones());
+	ENGINE_API Matrix4d MakeTransformMatrix(const FVector& Translation = FVector::Zero(), const Quaterniond& Rotation = Quaterniond::Identity(), const FVector& Scale = FVector::Ones());
 }
 
 namespace LinearAlgbera
 {
 	// Solve Ax = B, or min (Ax - B)^2
-	MatrixXd LinearEquationSolver(const MatrixXd& A, const MatrixXd& B);
+	ENGINE_API MatrixXd LinearEquationSolver(const MatrixXd& A, const MatrixXd& B);
 }

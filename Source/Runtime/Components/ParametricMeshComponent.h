@@ -13,7 +13,7 @@
 */
 
 MCLASS(ParametricMeshComponent)
-class ParametricMeshComponent : public StaticMeshComponent
+class ENGINE_API ParametricMeshComponent : public StaticMeshComponent
 {
 	REFLECTION_BODY(ParametricMeshComponent)
 protected:

@@ -6,7 +6,7 @@
 #include <filesystem>
 #include "Platform.h"
 
-class Path : public std::filesystem::path
+class ENGINE_API Path : public std::filesystem::path
 {
 public:
 	// Use constructor from Path

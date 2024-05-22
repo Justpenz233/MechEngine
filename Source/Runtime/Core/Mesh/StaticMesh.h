@@ -17,7 +17,7 @@ class Material;
  * StaticMesh is a data container of geometry, which stored in model space.
  */
 MCLASS(StaticMesh)
-class StaticMesh : public Object
+class ENGINE_API StaticMesh : public Object
 {
 	REFLECTION_BODY(StaticMesh)
 public:

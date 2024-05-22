@@ -9,7 +9,7 @@
 class PointLightComponent;
 
 MCLASS(PointLightActor)
-class PointLightActor : public Actor
+class ENGINE_API PointLightActor : public Actor
 {
 	REFLECTION_BODY(PointLightActor)
 public:

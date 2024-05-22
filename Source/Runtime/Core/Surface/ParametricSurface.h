@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 
-class ParametricSurface : public Object
+class ENGINE_API ParametricSurface : public Object
 {
 public:
 	const bool bIsClosed;

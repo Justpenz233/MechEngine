@@ -10,7 +10,7 @@
 namespace MechEngine
 {
 
-class Config
+class ENGINE_API Config
 {
 private:
 	TMap<String, inih::INIReader> ConfigFiles;

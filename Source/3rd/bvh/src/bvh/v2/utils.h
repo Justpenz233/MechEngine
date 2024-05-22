@@ -63,11 +63,11 @@ BVH_ALWAYS_INLINE T safe_inverse(T x) {
 }
 
 /// Fast multiply-add operation. Should translate into an FMA for architectures that support it.
-#if defined(_MSC_VER) && !defined(__clang__)
-#pragma float_control(push)
-#pragma float_control(precise, off)
-#pragma fp_contract(on)
-#endif
+//#if defined(_MSC_VER) && !defined(__clang__)
+//#pragma float_control(push)
+//#pragma float_control(precise, off)
+//#pragma fp_contract(on)
+//#endif
 template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 BVH_ALWAYS_INLINE T fast_mul_add(T a, T b, T c) {
 #ifdef FP_FAST_FMAF

@@ -23,7 +23,7 @@ struct UVMappingMeshResult
  * Support sample a UV cordiante and return the 3D position (UV coordinate maybe invalid)
  */
 MCLASS(SCAFParametricMeshComponent)
-class SCAFParametricMeshComponent : public ParametricMeshComponent
+class ENGINE_API SCAFParametricMeshComponent : public ParametricMeshComponent
 {
 	using BVHNode = bvh::v2::Node<double, 3>;
 	REFLECTION_BODY(SCAFParametricMeshComponent)

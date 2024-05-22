@@ -5,7 +5,7 @@
 #pragma once
 #include "RenderingComponent.h"
 
-class LinesComponent : public RenderingComponent
+class ENGINE_API LinesComponent : public RenderingComponent
 {
 public:
 	/**

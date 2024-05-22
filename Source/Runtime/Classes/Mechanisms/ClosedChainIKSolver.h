@@ -5,7 +5,7 @@
 #pragma once
 #include "Animation/IKSolver.h"
 
-struct ClosedChainMechFunctor : IKBaseFunctor<double>
+struct ENGINE_API ClosedChainMechFunctor : IKBaseFunctor<double>
 {
 	ClosedChainMechFunctor(int ParameterDimension)
 		: IKBaseFunctor<double>(ParameterDimension, 12), ParameterDimension(ParameterDimension) {}
@@ -20,7 +20,7 @@ struct ClosedChainMechFunctor : IKBaseFunctor<double>
 	int df(const VectorXd& x, MatrixXd& fjac) const;
 };
 
-class ClosedChainIKSolver : public IKSolver
+class ENGINE_API ClosedChainIKSolver : public IKSolver
 {
 private:
 	// Calc the min value of singularity matrix, should call solve first

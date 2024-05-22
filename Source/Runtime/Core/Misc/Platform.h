@@ -6,7 +6,7 @@
 
 
 #ifdef ME_BUILD_DEBUG
-#define FORCEINLINE inline 												/* Don't force code to be inline */
+#define FORCEINLINE inline 	/* Don't force code to be inline */
 #endif
 
 #ifndef FORCEINLINE
@@ -25,4 +25,11 @@ typedef unsigned int uint;
 
 #ifndef uint8
 typedef unsigned char uint8;
+#endif
+
+// Export dll symbol
+#ifdef _MSC_VER
+	#define ENGINE_API __declspec(dllexport)
+#else
+	#define ENGINE_API
 #endif

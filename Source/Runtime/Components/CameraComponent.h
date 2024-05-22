@@ -14,7 +14,7 @@
 // Same as UE
 // @wiki: https://smiling-calcium-8e1.notion.site/Space-8bea9b9e55d4435da0ecaaca6389d6bc?pvs=4
 MCLASS(CameraComponent)
-class CameraComponent : public RenderingComponent
+class ENGINE_API CameraComponent : public RenderingComponent
 {
 	REFLECTION_BODY(CameraComponent)
 

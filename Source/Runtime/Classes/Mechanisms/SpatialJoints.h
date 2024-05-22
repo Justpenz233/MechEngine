@@ -8,7 +8,7 @@
 #include "Mesh/StaticMesh.h"
 #include "Animation/JointComponent.h"
 
-class SpatialJoint : public IKJoint
+class ENGINE_API SpatialJoint : public IKJoint
 {
 public:
     char Type;
@@ -17,7 +17,7 @@ public:
 /**
  * @brief This an abstract class, shoule be derived and complete generate mesh.
  */
-class SpatialJointComponent : public IKJointComponent
+class ENGINE_API SpatialJointComponent : public IKJointComponent
 {
 private:
 	TArray<WeakObjectPtr<SpatialJointComponent>> NextJointComponents;
@@ -74,7 +74,7 @@ public:
 
 // All the joint initially extend to +x, and head to +z
 // Please initialize the actor as initialization of the corresponding joint
-class SpatialJointR : public SpatialJointComponent
+class ENGINE_API SpatialJointR : public SpatialJointComponent
 {
 public:
     double OuterRadius = 0.025;
@@ -100,7 +100,7 @@ public:
 
 };
 
-class SpatialJointP : public SpatialJointComponent
+class ENGINE_API SpatialJointP : public SpatialJointComponent
 {
 public:
     // in Z
@@ -129,7 +129,7 @@ public:
     virtual TArray<FVector> GetSocketPortInMeshLocation() override;
 };
 
-class SpatialJointC : public SpatialJointComponent
+class ENGINE_API SpatialJointC : public SpatialJointComponent
 {
 public:
     double OuterRadius = 0.04;
@@ -156,7 +156,7 @@ public:
     virtual TArray<FVector> GetSocketPortInMeshLocation() override;
 };
 
-class SpatialJointU : public SpatialJointComponent
+class ENGINE_API SpatialJointU : public SpatialJointComponent
 {
 public:
     double Diameter = 0.125;
@@ -182,7 +182,7 @@ public:
     virtual TArray<FVector> GetSocketPortInMeshLocation() override;
 };
 
-class SpatialJointS : public SpatialJointComponent
+class ENGINE_API SpatialJointS : public SpatialJointComponent
 {
 public:
     double OuterRadius = 0.05;
@@ -205,7 +205,7 @@ public:
     virtual TArray<FVector> GetSocketPortInMeshLocation() override;
 };
 
-class EffectorJoint : public SpatialJointComponent
+class ENGINE_API EffectorJoint : public SpatialJointComponent
 {
 public:
     double Radius = 0.02;
@@ -224,7 +224,7 @@ public:
 
 };
 
-class SpatialJointActor : public Actor
+class ENGINE_API SpatialJointActor : public Actor
 {
 protected:
     ObjectPtr<SpatialJointComponent> JointComponent;

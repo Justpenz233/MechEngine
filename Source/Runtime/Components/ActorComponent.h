@@ -8,7 +8,7 @@
 #include "Object/Object.h"
 
 MCLASS()
-class ActorComponent : public Object
+class ENGINE_API ActorComponent : public Object
 {
 	REFLECTION_BODY()
 public:

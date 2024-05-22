@@ -40,7 +40,7 @@ inline StaticMeshDirtyTag& operator ^= (StaticMeshDirtyTag& ATag, StaticMeshDirt
 
 
 MCLASS(StaticMeshComponent)
-class StaticMeshComponent : public RenderingComponent
+class ENGINE_API StaticMeshComponent : public RenderingComponent
 {
 	REFLECTION_BODY(StaticMeshComponent)
 public:

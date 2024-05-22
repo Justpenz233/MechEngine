@@ -4,7 +4,7 @@
 #include "Game/Actor.h"
 
 MCLASS(CameraActor)
-class CameraActor : public Actor
+class ENGINE_API CameraActor : public Actor
 {
     REFLECTION_BODY(CameraActor)
 public:

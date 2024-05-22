@@ -8,6 +8,7 @@
 #include "Delegate.h"
 #include "ObjectInitiliazer.h"
 #include "Reflection/reflection/reflection.h"
+#include "Misc/Platform.h"
 
 DECLARE_MULTICAST_DELEGATE_PARMS(FOnPostEdit, Reflection::FieldAccessor&)
 DECLARE_MULTICAST_DELEGATE_PARMS(FOnPreEdit, Reflection::FieldAccessor&)
@@ -26,7 +27,7 @@ enum EAccessorFlag
  *  Object is capable of serialization, reflection, and garbage collection. All the class acts in world should be inherited from Object.
  */
 MCLASS(Object)
-class Object : public std::enable_shared_from_this<Object>
+class ENGINE_API Object : public std::enable_shared_from_this<Object>
 {
 	REFLECTION_BODY_OBJECT(Object)
 public:
