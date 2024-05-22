@@ -13,12 +13,16 @@
 #include "Render/GPUSceneInterface.h"
 #include "TimerManager.h"
 #include "Components/ConstPointLightComponent.h"
+#include "Components/LinesComponent.h"
+
 
 ENGINE_API World* GWorld = nullptr;
 
 World::World()
 {
 	TimerManager = MakeUnique<class TimerManager>();
+	DebugDrawComponent = MakeUnique<LinesComponent>();
+	DebugDrawComponent->World = this;
 }
 World::~World()
 {
@@ -151,14 +155,18 @@ void World::SetViewMode(const ViewMode& Mode) const
 	GetScene()->ViewModeSet(Mode);
 }
 
-void World::DebugDrawPoint(const FVector& Point, const FVector& Color)
+void World::DebugDrawPoint(const FVector& WorldPosition, double Radius, const FColor& Color, double LifeTime)
 {
-
+	DebugDrawComponent->AddPoint(WorldPosition, Radius, Color, LifeTime);
 }
 
-void World::DebugDrawLine(const FVector& Start, const FVector& End, const FVector& Color)
+void World::DebugDrawLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness, double LifeTime)
 {
-
+	DebugDrawComponent->AddLine(WorldStart, WorldEnd, Color, Thickness, LifeTime);
+}
+void World::DebugDrawCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness, double LifeTime)
+{
+	DebugDrawComponent->AddCube(Center, Size, Color, Thickness, LifeTime);
 }
 
 void World::ExportSceneToObj(const Path& FolderPath)

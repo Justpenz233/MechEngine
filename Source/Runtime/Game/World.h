@@ -98,10 +98,11 @@ public:
 	 ************************************************************************/
 	void SetViewMode(const ViewMode& Mode) const;
 
-	virtual void DebugDrawPoint(const FVector& Point, const FVector& Color);
+	void DebugDrawPoint(const FVector& WorldPosition, double Radius, const FColor& Color, double LifeTime = -1.);
 
-	virtual void DebugDrawLine(const FVector& Start, const FVector& End, const FVector& Color);
+	void DebugDrawLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 
+	void DebugDrawCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 	/**
 	 * Get the timer manager of the world, used for control the timer in the world
 	 * The timer will be ticked by the world
@@ -134,6 +135,8 @@ private:
 	TArray<ObjectPtr<class StaticCurveComponent>> DebugCurves;
 
 	UniquePtr<TimerManager> TimerManager;
+
+	UniquePtr<class LinesComponent> DebugDrawComponent;
 
 	friend class Editor;
 };

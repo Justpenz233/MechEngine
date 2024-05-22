@@ -30,4 +30,17 @@ public:
 	 * @param LifeTime lifetime of the line
 	 */
 	void AddLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
+
+
+
+	/**
+	 * Draw a cube with the given size and color in world. Will last for the given lifetime.
+	 * The cube will be persistent if lifetime is negative.
+	 * @param Center center of the cube
+	 * @param Size size of the cube
+	 * @param Thickness thickness of the cube, in pixel
+	 * @param Color color of the cube
+	 * @param LifeTime lifetime of the cube
+	 */
+	void AddCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 };
