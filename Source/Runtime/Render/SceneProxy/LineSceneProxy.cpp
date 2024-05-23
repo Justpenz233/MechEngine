@@ -124,6 +124,13 @@ namespace MechEngine::Rendering
 				auto screen_end = view->ndc_to_screen(ndc_end);
 				auto thickness = line.thickness;
 
+				// TODO should recalculate the line start and end clamped to the screen
+
+				$if(ndc_start.z < 0.f & ndc_end.z < 0.f)
+				{
+					return;
+				};
+
 				Bool Steep = false;
 				$if(abs(screen_start.x - screen_end.x) < abs(screen_start.y - screen_end.y))
 				{

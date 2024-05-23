@@ -52,8 +52,10 @@ public:
 
 	ObjectPtr<StaticMesh> CollisionMesh;
 
-	FORCEINLINE virtual void MarkAsDirty(StaticMeshDirtyTag InTag);
-	virtual bool IsDirty();
+	FORCEINLINE void               MarkAsDirty(StaticMeshDirtyTag InTag);
+	FORCEINLINE StaticMeshDirtyTag GetDirtyTag() const;
+	FORCEINLINE void               ClearDirty();
+	virtual bool                   IsDirty();
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(double DeltaTime) override;
@@ -109,3 +111,12 @@ FORCEINLINE void StaticMeshComponent::MarkAsDirty(StaticMeshDirtyTag InTag)
 	Dirty |= InTag;
 }
 
+FORCEINLINE StaticMeshDirtyTag StaticMeshComponent::GetDirtyTag() const
+{
+	return Dirty;
+}
+
+FORCEINLINE void StaticMeshComponent::ClearDirty()
+{
+	Dirty = DIRTY_NONE;
+}
