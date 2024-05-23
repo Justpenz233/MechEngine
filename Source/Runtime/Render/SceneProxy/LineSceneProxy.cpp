@@ -15,8 +15,8 @@ namespace MechEngine::Rendering
     LineSceneProxy::LineSceneProxy(RayTracingScene& InScene) noexcept
 	: SceneProxy(InScene)
 	{
-		lines_data_buffer = Scene.RegisterBuffer<lines_data>(MaxLinesCount);
-		points_data_buffer = Scene.RegisterBuffer<point_data>(MaxPointCount);
+		std::tie(lines_data_buffer, lines_data_bindless_id) = Scene.RegisterBindlessBuffer<lines_data>(MaxLinesCount);
+		std::tie(points_data_buffer, points_data_bindless_id) = Scene.RegisterBindlessBuffer<point_data>(MaxPointCount);
     	Points.reserve(MaxPointCount);
     	Lines.reserve(MaxLinesCount);
 	}
@@ -33,12 +33,30 @@ namespace MechEngine::Rendering
 	{
 		if (bPointsUpdated)
 		{
-			stream << points_data_buffer.copy_from(Points.data());
+			if (Points.size() > points_data_buffer.size())
+			{
+				points_data_buffer = Scene.RegisterBuffer<point_data>(Points.capacity());
+				Scene.GetBindlessArray().emplace_on_update(points_data_bindless_id, points_data_buffer);
+				ASSERT(points_data_buffer.size() == Points.capacity());
+				LOG_WARNING("Point render buffer is full, resize to {0}", Points.capacity());
+				LOG_WARNING("Current point  data buffer size: {0} MB", points_data_buffer.size_bytes() / 1024. / 1024.);
+			}
+
+			stream << points_data_buffer.subview(0, Points.size()).copy_from(Points.data());
 			bPointsUpdated = false;
 		}
     	if (bLinesUpdated)
 		{
-			stream << lines_data_buffer.copy_from(Lines.data());
+    		if (Lines.size() > lines_data_buffer.size())
+    		{
+    			lines_data_buffer = Scene.RegisterBuffer<lines_data>(Lines.capacity());
+    			Scene.GetBindlessArray().emplace_on_update(lines_data_bindless_id, lines_data_buffer);
+    			ASSERT(lines_data_buffer.size() == Lines.capacity());
+    			LOG_WARNING("Line render buffer is full, resize to {0}", Lines.capacity());
+    			LOG_WARNING("Current line data buffer size: {0} MB", lines_data_buffer.size_bytes() / 1024. / 1024.);
+    		}
+
+			stream << lines_data_buffer.subview(0, Lines.size()).copy_from(Lines.data()) << synchronize();
 			bLinesUpdated = false;
 		}
 	}
@@ -88,7 +106,7 @@ namespace MechEngine::Rendering
 		DrawPointsShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
 			[&](Var<view_data> view) {
 				auto point_id = dispatch_id().x;
-				auto point = points_data_buffer->read(point_id);
+				auto point = bindelss_buffer<point_data>(points_data_bindless_id)->read(point_id);
 				auto world_position = point.world_position;
 				auto ndc_position = view->world_to_ndc(world_position);
 				auto screen_position = view->ndc_to_screen(ndc_position);
@@ -99,7 +117,7 @@ namespace MechEngine::Rendering
     	DrawLineShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
 			[&](Var<view_data> view) {
 				auto line_id = dispatch_id().x;
-				auto line = lines_data_buffer->read(line_id);
+				auto line = bindelss_buffer<lines_data>(lines_data_bindless_id)->read(line_id);
 				auto ndc_start = view->world_to_ndc(line.world_start);
 				auto ndc_end = view->world_to_ndc(line.world_end);
 				auto screen_start = view->ndc_to_screen(ndc_start);

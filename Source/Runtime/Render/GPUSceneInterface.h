@@ -235,9 +235,10 @@ namespace MechEngine::Rendering
 		template<typename I>
 		[[nodiscard]] auto bindless_texture_3d(I &&i) const noexcept { return bindlessArray->tex3d(std::forward<I>(i)); }
 
+		FORCEINLINE Device& GetDevice() noexcept { return device; }
+		FORCEINLINE BindlessArray& GetBindlessArray() noexcept { return bindlessArray; }
 		FORCEINLINE Accel& GetAccel() { return rtAccel; }
 		FORCEINLINE Stream& GetStream() noexcept { return stream; }
-		FORCEINLINE BindlessArray& getBindlessArray() { return bindlessArray; }
 
 
 

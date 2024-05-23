@@ -86,6 +86,8 @@ namespace MechEngine::Rendering
         static constexpr uint32_t MaxPointCount = 8192; // 8192 * 7 * 4 = 229376 bytes = 224 KB
     	bool bPointsUpdated = false;
     	bool bLinesUpdated = false;
+    	uint lines_data_bindless_id;
+    	uint points_data_bindless_id;
         BufferView<lines_data> lines_data_buffer;
         BufferView<point_data> points_data_buffer;
         unique_ptr<Shader1D<view_data>> DrawLineShader;
