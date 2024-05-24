@@ -82,6 +82,15 @@ StaticMesh::StaticMesh(const StaticMesh& Other)
 	MaterialData = NewObject<Material>(*Other.MaterialData);
 	OnGeometryUpdate();
 }
+void StaticMesh::PostEdit(Reflection::FieldAccessor& Field)
+{
+	Object::PostEdit(Field);
+	if (Field.getFieldName() == NAME(CornelThresholdDegree))
+	{
+		OnGeometryUpdate();
+		GetPostEditDelegate().Broadcast(Field);
+	}
+}
 
 ObjectPtr<StaticMesh> StaticMesh::operator=(std::shared_ptr<StaticMesh> Other)
 {
@@ -321,6 +330,7 @@ void StaticMesh::SetColor(const FColor& Color)
 void StaticMesh::CalcNormal()
 {
 	igl::per_vertex_normals(verM, triM, VertexNormal);
+	igl::per_corner_normals(verM, triM, CornelThresholdDegree, CornerNormal);
 }
 
 bool StaticMesh::CheckNormalValid() const

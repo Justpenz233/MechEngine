@@ -105,8 +105,11 @@ namespace MechEngine::Rendering
             it.primitive_id = TriangleId;
             it.position_world = p;
             it.triangle_normal_world = normal_world;
-            it.vertex_normal_local = normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal()));
-            it.vertex_normal_world = normalize(m * it.vertex_normal_local);
+            it.vertex_normal_world = normalize(m * normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal())));
+        	Float3 cornel_normal[3] = {StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 0),
+									   StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 1),
+									   StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 2)};
+        	it.cornerl_normal_world = normalize(m * normalize(triangle_interpolate(bary, cornel_normal[0], cornel_normal[1], cornel_normal[2])));
             it.depth = view->world_to_ndc(p).z;
             it.back_face = dot(normal_world, ray->direction()) > 0.f;
             it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;

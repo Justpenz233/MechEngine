@@ -15,7 +15,7 @@ StaticMeshSceneProxy::StaticMeshSceneProxy(RayTracingScene& InScene)
 : SceneProxy(InScene)
 {
 	StaticMeshDatas.resize(instance_max_number);
-	data_buffer = Scene.RegisterBuffer<staticMeshData>(instance_max_number);
+	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(instance_max_number);
 }
 
 void StaticMeshSceneProxy::AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID)
@@ -46,6 +46,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		int TriangleNum = MeshData->GetFaceNum();
 		vector<Vertex> Vertices(VertexNum);
 		vector<Triangle> Triangles(TriangleNum);
+		vector<float3> CornerNormals(TriangleNum * 3);
 		for (int i = 0; i < VertexNum; i++)
 		{
 			auto VertexData = MeshData->verM.row(i);
@@ -64,16 +65,27 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			Triangles[i].i1 = FaceData[1];
 			Triangles[i].i2 = FaceData[2];
 		}
+		ASSERTMSG(MeshData->CornerNormal.rows() == TriangleNum * 3, "Corner normal size not match!");
+		for (int i = 0; i < TriangleNum * 3; i ++)
+		{
+			CornerNormals[i].x = MeshData->CornerNormal.row(i).x();
+			CornerNormals[i].y = MeshData->CornerNormal.row(i).y();
+			CornerNormals[i].z = MeshData->CornerNormal.row(i).z();
+		}
 		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
 		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
+		auto CornerlNormalBuffer = Scene.create<Buffer<float3>>(CornerNormals.size());
 		auto AccelMesh = Scene.create<Mesh>(*VBuffer, *TBuffer, AccelOption{});
 
 		stream << VBuffer->copy_from(Vertices.data())
-		<< TBuffer->copy_from(Triangles.data()) << commit()
+		<< TBuffer->copy_from(Triangles.data())
+		<< CornerlNormalBuffer->copy_from(CornerNormals.data())
+		<< commit()
 		<< AccelMesh->build();
 
 		auto VBindlessid = Scene.RegisterBindless(VBuffer->view());
 		auto TBindlessid = Scene.RegisterBindless(TBuffer->view());
+		auto CNBindlessid = Scene.RegisterBindless(CornerlNormalBuffer->view());
 		auto MaterialID = Scene.GetMaterialProxy()->TryAddMaterial(MeshData->GetMaterial());
 
 		accel.emplace_back(*AccelMesh);
@@ -82,6 +94,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		StaticMeshDatas[Id].vertex_id = VBindlessid;
 		StaticMeshDatas[Id].triangle_id = TBindlessid;
 		StaticMeshDatas[Id].material_id = MaterialID;
+		StaticMeshDatas[Id].corner_normal_id = CNBindlessid;
 	}
 	if(!NewMeshes.empty())
 	{

@@ -9,7 +9,7 @@
 class StaticMeshComponent;
 namespace MechEngine::Rendering
 {
-struct staticMeshData
+struct static_mesh_data
 {
 	// Vertex buffer id in bindless array
 	uint vertex_id = ~0u;
@@ -17,12 +17,15 @@ struct staticMeshData
 	// Triangle id in bindless array
 	uint triangle_id = ~0u;
 
+	// Corner normal id in bindless array
+	uint corner_normal_id = ~0u;
+
 	// Material id
 	uint material_id = ~0u;
 };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::staticMeshData, vertex_id, triangle_id, material_id) {};
+LUISA_STRUCT(MechEngine::Rendering::static_mesh_data, vertex_id, triangle_id, corner_normal_id, material_id) {};
 
 namespace MechEngine::Rendering
 {
@@ -39,21 +42,28 @@ public:
 	void UpdateStaticMesh(StaticMeshComponent* InMesh);
 
 //----------------- GPU CODE -----------------
-	Var<staticMeshData> get_static_mesh_data(const UInt& mesh_index) const
+
+	[[nodiscard]] Var<static_mesh_data> get_static_mesh_data(const UInt& mesh_index) const
 	{
-		return data_buffer->read(mesh_index);
+		return bindelss_buffer<static_mesh_data>(data_buffer_id)->read(mesh_index);
 	}
 
-	Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const
+	[[nodiscard]] Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const
 	{
-		auto mesh_data = data_buffer->read(instance_id);
+		auto mesh_data = get_static_mesh_data(instance_id);
 		return bindlessArray->buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
 	}
 
-	Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const
+	[[nodiscard]] Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const
 	{
-		auto mesh_data = data_buffer->read(instance_id);
+		auto mesh_data = get_static_mesh_data(instance_id);
 		return bindlessArray->buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);
+	}
+
+	[[nodiscard]] Float3 get_corner_normal(const UInt& instance_id, const UInt& triangle_index, const UInt& corner_id) const
+	{
+		auto mesh_data = get_static_mesh_data(instance_id);
+		return bindlessArray->buffer<float3>(mesh_data.corner_normal_id)->read(triangle_index * 3 + corner_id);
 	}
 
 public://----------------- CPU CODE -----------------
@@ -67,8 +77,9 @@ protected:
 
 	//! We are using accel index as id for mesh, not the data array index
 	static constexpr auto instance_max_number = 65536u;
-	vector<staticMeshData> StaticMeshDatas;
-	BufferView<staticMeshData> data_buffer;
+	vector<static_mesh_data> StaticMeshDatas;
+	BufferView<static_mesh_data> data_buffer;
+	uint data_buffer_id; // bindless array id of data buffer, this id will never change
 
 	map<uint, StaticMeshComponent*> TransformMeshMap; // used for mapping transform id to mesh id
 

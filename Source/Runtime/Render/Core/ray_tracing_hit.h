@@ -31,8 +31,8 @@ namespace MechEngine::Rendering
 		Float3 vertex_ndc[3];
 
 		Float3 triangle_normal_world;
-		Float3 vertex_normal_local;
 		Float3 vertex_normal_world;
+		Float3 cornerl_normal_world;
 		Float depth;
 
 		Float3 position_world;

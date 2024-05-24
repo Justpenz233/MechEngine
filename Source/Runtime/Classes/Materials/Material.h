@@ -20,8 +20,10 @@ enum MaterialMode
 };
 enum NormalMode
 {
-	FaceNormal,
-	VertexNormal
+	FaceNormal = 0,
+	VertexNormal = 1,
+	CornerNormal = 2,
+	NomarlMap = 3
 };
 
 /**
@@ -79,7 +81,7 @@ protected:
 	 * Will support normal map in the future.
 	 */
 	MPROPERTY()
-	NormalMode NormalType = VertexNormal;
+	NormalMode NormalType = CornerNormal;
 
 	/**
 	 * Base color is used as diffuse color for non-metallic materials

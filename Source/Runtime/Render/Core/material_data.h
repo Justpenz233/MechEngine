@@ -14,6 +14,7 @@ namespace MechEngine::Rendering
     struct materialData
     {
         uint material_type = ~0u;
+    	uint normal_type; // 0: triangle normal, 1: vertex normal, 2: corner normal
         uint show_wireframe = false;
         float3 base_color;
         float metalness;
@@ -21,9 +22,6 @@ namespace MechEngine::Rendering
         float roughness;
         float3 specular_tint;
 
-
-        bool bUseTriangleNormal = false;
-        bool bUseVertexNormal = true;
 
         materialData() = default;
         materialData(uint Tag, ::Material* InMaterial) :
@@ -34,11 +32,10 @@ namespace MechEngine::Rendering
         metalness(InMaterial->Metalness),
         specular(InMaterial->Specular),
         roughness(InMaterial->Roughness),
-        bUseTriangleNormal(InMaterial->NormalType == FaceNormal),
-        bUseVertexNormal(InMaterial->NormalType == VertexNormal)
+    	normal_type(static_cast<uint>(InMaterial->NormalType))
         {}
     };
 }
 LUISA_STRUCT(MechEngine::Rendering::materialData,
-    material_type, show_wireframe,
-    base_color, metalness, specular, roughness, specular_tint, bUseTriangleNormal, bUseVertexNormal){};
+    material_type, normal_type, show_wireframe,
+    base_color, metalness, specular, roughness, specular_tint){};

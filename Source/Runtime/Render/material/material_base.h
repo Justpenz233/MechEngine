@@ -89,17 +89,25 @@ protected:
 	[[nodiscard]] virtual Float3 sample_normal(const bxdf_context& context) const
 	{
 		Float3 Normal;
-		$if (context.material_data.bUseTriangleNormal)
+		$switch(context.material_data.normal_type)
 		{
-			Normal = context.intersection.triangle_normal_world;
-		}
-		$elif(context.material_data.bUseVertexNormal)
-		{
+			$case(0) // triangle normal
+			{
+				Normal = context.intersection.triangle_normal_world;
+			};
+			$case(1) // vertex normal
+			{
 			Normal = context.intersection.vertex_normal_world;
-		}
-		$else
-		{
-			Normal = make_float3(0.,0.,1.);
+
+			};
+			$case(2) // corner normal
+			{
+				Normal = context.intersection.cornerl_normal_world;
+			};
+			$default
+			{
+				Normal = make_float3(0.,0.,1.);
+			};
 		};
 		return Normal;
 	}

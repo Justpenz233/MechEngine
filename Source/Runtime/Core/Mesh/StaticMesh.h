@@ -12,6 +12,8 @@ DECLARE_MULTICAST_DELEGATE(FOnMaterialUpdate);
 // Change to a new material
 DECLARE_MULTICAST_DELEGATE(FOnMaterialChange);
 
+DECLARE_MULTICAST_DELEGATE(FOnGeometryUpdate);
+
 class Material;
 /**
  * StaticMesh is a data container of geometry, which stored in model space.
@@ -30,6 +32,8 @@ public:
 	StaticMesh(StaticMesh&& Other) noexcept;
 	StaticMesh(const StaticMesh& Other);
 
+	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
+
 	// This is model space data
 	MatrixX3d  verM; // Store vertices in a matrix (n,3)
 	MatrixX3i  triM; // Store triangles in a matrix (m,3)
@@ -38,7 +42,8 @@ public:
 	//! DEPRECATED, only used in Libigl
 	MatrixX3d  colM; // Store per triangle color or vertex color in a matrix (m,3) or (n,3).
 
-	MatrixX3d  VertexNormal; // Store per vertex normal in a matrix (n,3), this is mandatory for rendering
+	MatrixX3d VertexNormal; // Store per vertex normal in a matrix (V, 3)
+	MatrixX3d CornerNormal; // Store per corner normal in a matrix (F * 3, 3), per face have 3 corner normal.
 
 	ObjectPtr<StaticMesh> operator = (ObjectPtr<StaticMesh> Other);
 	StaticMesh& operator = (StaticMesh&& Other) noexcept;
@@ -196,13 +201,25 @@ public:
 
 	static ObjectPtr<StaticMesh> LoadFromObj(const Path& FileName);
 
+	/**
+	 * Called after geometry data updated.
+	 * Will recalculate the bounding box and normal of the mesh, and broadcast the OnGeometryUpdateDelegate
+	 */
+	FORCEINLINE void OnGeometryUpdate();
+
+	FORCEINLINE FOnGeometryUpdate GetOnGeometryUpdateDelegate();
+
 protected:
 	MPROPERTY()
 	ObjectPtr<Material> MaterialData; // Material of the mesh
 
+	MPROPERTY()
+	double CornelThresholdDegree = 20; // Threshold degree to detect the corner normal
+
+	FOnGeometryUpdate OnGeometryUpdateDelegate;
+
 	FBox BoundingBox; // Bounding box of the mesh
 	FORCEINLINE void UpdateBoundingBox();
-	FORCEINLINE void OnGeometryUpdate();
 };
 
 FORCEINLINE Material* StaticMesh::GetMaterial() const
@@ -254,9 +271,15 @@ FORCEINLINE void StaticMesh::OnGeometryUpdate()
 	ASSERTMSG(triM.maxCoeff() < verM.rows(), "Invalid triangle index");
 	UpdateBoundingBox();
 	CalcNormal();
+	OnGeometryUpdateDelegate.Broadcast();
 }
 
 FORCEINLINE void StaticMesh::UpdateBoundingBox()
 {
 	BoundingBox = Math::FBox(verM);
+}
+
+FORCEINLINE FOnGeometryUpdate StaticMesh::GetOnGeometryUpdateDelegate()
+{
+	return OnGeometryUpdateDelegate;
 }
