@@ -4,6 +4,7 @@
 
 #include "Material.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/MaterialSceneProxy.h"
 
 Material::Material()
 {
@@ -11,9 +12,9 @@ Material::Material()
 }
 
 void Material::RegisterMaterial() {
-	GWorld->GetScene()->AddMaterial(this);
+	GWorld->GetScene()->GetMaterialProxy()->AddMaterial(this);
 }
 
 void Material::UpdateMaterial() {
-	GWorld->GetScene()->UpdateMaterial(this);
+	GWorld->GetScene()->GetMaterialProxy()->UpdateMaterial(this);
 }

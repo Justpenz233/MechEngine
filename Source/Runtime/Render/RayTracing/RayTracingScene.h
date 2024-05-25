@@ -43,10 +43,6 @@ public:
 
 	virtual void EraseMesh(StaticMeshComponent* InMesh) override;
 
-	virtual void AddMaterial(Material* InMaterial) override;
-
-	virtual void UpdateMaterial(Material* InMaterial) override;
-
 	virtual void AddCamera(CameraComponent* InCamera, TransformComponent* InTransform) override;
 
 	virtual void UpdateCamera(CameraComponent* InCamera) override;

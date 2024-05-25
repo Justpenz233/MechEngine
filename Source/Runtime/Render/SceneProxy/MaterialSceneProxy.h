@@ -19,12 +19,16 @@ public:
 	MaterialSceneProxy(RayTracingScene& InScene);
 
 	/**
-	* Try add a material to the scene, return the material id
+	* Add a material to the scene, return the material id
 	* if exist, return the material id
 	* @return the material id
 	*/
-	uint TryAddMaterial(Material* InMaterial);
+	uint AddMaterial(Material* InMaterial);
 
+	/**
+	* Update the material data in the scene
+	* @param InMaterial Material to update
+	*/
 	void UpdateMaterial(Material* InMaterial);
 
 	FORCEINLINE bool IsMaterialUploaded(Material* InMaterial) const;

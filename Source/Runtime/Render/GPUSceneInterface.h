@@ -59,18 +59,6 @@ namespace MechEngine::Rendering
 		virtual void UpdateStaticMesh(StaticMeshComponent* InMesh) = 0;
 
 		/**
-		 * Add a new material to the scene
-		 * @param InMaterial Material to add
-		 */
-		virtual void AddMaterial(Material* InMaterial) = 0;
-
-		/**
-		 * Update the material data in the scene
-		 * @param InMaterial Material to update
-		 */
-		virtual void UpdateMaterial(Material* InMaterial) = 0;
-
-		/**
 		 * Erase the mesh from the scene
 		 * @param InMesh Meshcomponent to erase
 		 */
@@ -107,15 +95,6 @@ namespace MechEngine::Rendering
 		 * @param InLight LightComponent to update
 		 */
 		virtual void UpdateLight(LightComponent* InLight) = 0;
-
-		// virtual void EraseCamera(CameraComponent* InCamera) = 0;
-
-		// /**
-		//  * Bind primitive with new corresponding transform
-		//  * @param InPrimitive Primitive to bind
-		//  * @param InTransform Corresponding transform
-		//  */
-		// virtual void UpdatePrimitiveTransform(RenderingComponent* InPrimitive, TransformComponent* InTransform) = 0;
 
 		/**
 		 * Get the view matrix of the main camera, because we have only one camera in the scene, so can be called main camera

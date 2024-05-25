@@ -17,7 +17,7 @@ Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
 	MaterialModeTagMap[Disney] = material_virtual_call.create<disney_material>();
 }
 
-uint Rendering::MaterialSceneProxy::TryAddMaterial(Material* InMaterial)
+uint Rendering::MaterialSceneProxy::AddMaterial(Material* InMaterial)
 {
 	ASSERTMSG(InMaterial != nullptr, "Material is nullptr!");
 	if (MaterialIDMap.contains(InMaterial))

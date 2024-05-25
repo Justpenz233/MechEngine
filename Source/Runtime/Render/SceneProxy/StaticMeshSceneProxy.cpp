@@ -86,7 +86,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		auto VBindlessid = Scene.RegisterBindless(VBuffer->view());
 		auto TBindlessid = Scene.RegisterBindless(TBuffer->view());
 		auto CNBindlessid = Scene.RegisterBindless(CornerlNormalBuffer->view());
-		auto MaterialID = Scene.GetMaterialProxy()->TryAddMaterial(MeshData->GetMaterial());
+		auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshData->GetMaterial());
 
 		accel.emplace_back(*AccelMesh);
 		auto Id = accel.size() - 1;
@@ -109,7 +109,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	{
 		ASSERTMSG(MeshIndexMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
 		accel.set_visibility_on_update(MeshIndexMap[MeshComponent], MeshComponent->IsVisible());
-		auto MaterialID = Scene.GetMaterialProxy()->TryAddMaterial(MeshComponent->GetMeshData()->GetMaterial());
+		auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshComponent->GetMeshData()->GetMaterial());
 		StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();

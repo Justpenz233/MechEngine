@@ -38,7 +38,17 @@ public:
 
 	virtual void UploadDirtyData(Stream& stream) override;
 
+	/**
+	* Add a new mesh to the scene and bind the corresponding transform
+	* @param InMesh Meshcomponent to add
+	* @param InTransformID Corresponding transform
+	*/
 	void AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID);
+
+	/**
+	 * Update the mesh data in the scene
+	 * @param InMesh Meshcomponent to update
+	 */
 	void UpdateStaticMesh(StaticMeshComponent* InMesh);
 
 //----------------- GPU CODE -----------------

@@ -61,16 +61,6 @@ void RayTracingScene::EraseMesh(StaticMeshComponent* InMesh)
 
 }
 
-void RayTracingScene::AddMaterial(Material* InMaterial)
-{
-	MaterialProxy->TryAddMaterial(InMaterial);
-}
-
-void RayTracingScene::UpdateMaterial(Material* InMaterial)
-{
-	MaterialProxy->UpdateMaterial(InMaterial);
-}
-
 void RayTracingScene::AddCamera(CameraComponent* InCamera, TransformComponent* InTransform)
 {
 	CameraProxy->AddCamera(InCamera, TransformProxy->AddTransform(InTransform));
