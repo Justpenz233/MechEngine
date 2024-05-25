@@ -41,7 +41,7 @@ uint Rendering::MaterialSceneProxy::AddMaterial(Material* InMaterial)
 void Rendering::MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
 {
 	ASSERTMSG(InMaterial != nullptr, "Material is nullptr!");
-	ASSERTMSG(MaterialIDMap.contains(InMaterial), "Material is not in the map, add to scene first!");
+	if(!MaterialIDMap.contains(InMaterial)) return;
 	bNeedUpdate = true;
 	uint ID = MaterialIDMap[InMaterial];
 	uint Tag = MaterialModeTagMap[InMaterial->Mode];

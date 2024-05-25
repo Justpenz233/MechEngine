@@ -66,10 +66,7 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPt
     fB = fB * numVertA;
     FC.block(numFaceA, 0, numFaceB, 3) = B->triM + fB;
 
-    auto Mc = NewObject<StaticMesh>(VC, FC);
-    Mc->norM = NC;
-    Mc->colM = CC;
-    return Mc;
+    return NewObject<StaticMesh>(std::move(VC), std::move(FC));
 }
 // std::ObjectPtr<StaticMesh> BooleanMcut(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
 // {
@@ -190,40 +187,24 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPt
 
 ObjectPtr<StaticMesh> BooleanCGAL(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
 {
-	auto Result = NewObject<StaticMesh>();
+	MatrixXd V;
+	MatrixXi F;
 	if (type == BooleanType::UNION)
 	{
-		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_UNION, Result->verM, Result->triM);
+		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_UNION, V, F);
 	}
 	else if (type == BooleanType::INTERSECTION)
 	{
-		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_INTERSECT, Result->verM, Result->triM);
+		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_INTERSECT, V, F);
 	}
 	else if (type == BooleanType::A_NOT_B)
 	{
-		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_MINUS, Result->verM, Result->triM);
+		igl::copyleft::cgal::mesh_boolean(A->verM, A->triM, B->verM, B->triM, igl::MESH_BOOLEAN_TYPE_MINUS, V, F);
 	}
-	return Result;
+	return NewObject<StaticMesh>(std::move(V), std::move(F));
 }
 
 ObjectPtr<StaticMesh> MeshBoolean::Boolean(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
 {
-    std::string boolOpStr;
-	if (type == BooleanType::UNION)
-	{
-		boolOpStr = "UNION";
-	}
-	else if (type == BooleanType::INTERSECTION)
-	{
-		boolOpStr = "INTERSECTION";
-	}
-	else if (type == BooleanType::A_NOT_B)
-	{
-		boolOpStr = "A_NOT_B";
-	}
-	else {
-		ASSERTMSG(false, "Boolean type invalid");
-	}
-    // LOG_INFO("Running mesh boolean {}", boolOpStr);
     return BooleanCGAL(A, B, type);
 }

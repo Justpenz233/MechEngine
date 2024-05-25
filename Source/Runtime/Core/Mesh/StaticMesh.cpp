@@ -335,7 +335,7 @@ void StaticMesh::CalcNormal()
 
 bool StaticMesh::CheckNormalValid() const
 {
-	return VertexNormal.rows() == verM.rows();
+	return VertexNormal.rows() == verM.rows() && CornerNormal.rows() == triM.rows() * 3;
 }
 
 void StaticMesh::ReverseNormal()

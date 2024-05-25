@@ -65,7 +65,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			Triangles[i].i1 = FaceData[1];
 			Triangles[i].i2 = FaceData[2];
 		}
-		ASSERTMSG(MeshData->CornerNormal.rows() == TriangleNum * 3, "Corner normal size not match!");
+		ASSERTMSG(MeshData->CornerNormal.rows() == TriangleNum * 3, "Corner normal size not match! {} != {}",
+			MeshData->CornerNormal.rows(), TriangleNum * 3);
 		for (int i = 0; i < TriangleNum * 3; i ++)
 		{
 			CornerNormals[i].x = MeshData->CornerNormal.row(i).x();

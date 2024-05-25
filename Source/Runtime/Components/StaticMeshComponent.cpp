@@ -75,8 +75,11 @@ void StaticMeshComponent::UploadRenderingData()
 	{
 		ASSERTMSG(MeshData->GetMaterial() != nullptr, "Material should not be null!");
 	
-		if (!MeshData->CheckNormalValid())
+		if (!MeshData->CheckNormalValid()) // Geometry is modified, but not called GeometryChanged. Should remake next.
+		{
 			MeshData->CalcNormal();
+			MeshData->UpdateBoundingBox();
+		}
 
 		World->GetScene()->UpdateStaticMesh(this);
 	}

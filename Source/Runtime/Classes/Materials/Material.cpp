@@ -8,7 +8,6 @@
 
 Material::Material()
 {
-	RegisterMaterial();
 }
 
 void Material::RegisterMaterial() {

@@ -207,6 +207,12 @@ public:
 	 */
 	FORCEINLINE void OnGeometryUpdate();
 
+	/**
+	 * Update the bounding box of the mesh.
+	 * Will be automatically called after geometry data updated.
+	 */
+	FORCEINLINE void UpdateBoundingBox();
+
 	FORCEINLINE FOnGeometryUpdate GetOnGeometryUpdateDelegate();
 
 protected:
@@ -219,7 +225,6 @@ protected:
 	FOnGeometryUpdate OnGeometryUpdateDelegate;
 
 	FBox BoundingBox; // Bounding box of the mesh
-	FORCEINLINE void UpdateBoundingBox();
 };
 
 FORCEINLINE Material* StaticMesh::GetMaterial() const
