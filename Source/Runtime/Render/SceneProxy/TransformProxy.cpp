@@ -15,7 +15,7 @@ TransformSceneProxy::TransformSceneProxy(RayTracingScene& InScene)
 	: SceneProxy(InScene)
 {
 	TransformDatas.resize(transform_matrix_buffer_size);
-	transform_buffer = Scene.RegisterBuffer<transform_data>(transform_matrix_buffer_size);
+	std::tie(transform_buffer, bindless_id) = Scene.RegisterBindlessBuffer<transform_data>(transform_matrix_buffer_size);
 }
 
 void TransformSceneProxy::UploadDirtyData(Stream& stream)
@@ -41,12 +41,22 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 
 uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
 {
+	if(!InTransform)
+	{
+		LOG_WARNING("Trying to add a null transform to the scene.");
+		return 0;
+	}
 	if(TransformIndexMap.count(InTransform))
 		return TransformIndexMap[InTransform];
 	uint NewId = Id++;
 	TransformIndexMap[InTransform] = NewId;
 	DirtyTransforms.insert(InTransform);
 	return NewId;
+}
+
+bool TransformSceneProxy::IsExist(TransformComponent* InTransform) const
+{
+	return TransformIndexMap.count(InTransform);
 }
 
 void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)

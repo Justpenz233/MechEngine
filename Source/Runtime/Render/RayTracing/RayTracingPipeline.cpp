@@ -64,7 +64,7 @@ void RayTracingPipeline::PreRender()
 
 
 	// Upload data to GPU
-	Scene->UploadData();
+	Scene->UploadRenderData();
 }
 
 void RayTracingPipeline::Render()

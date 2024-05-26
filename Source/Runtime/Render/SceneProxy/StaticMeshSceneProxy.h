@@ -61,19 +61,19 @@ public:
 	[[nodiscard]] Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const
 	{
 		auto mesh_data = get_static_mesh_data(instance_id);
-		return bindlessArray->buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
+		return bindelss_buffer<Triangle>(mesh_data.triangle_id)->read(triangle_index);
 	}
 
 	[[nodiscard]] Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const
 	{
 		auto mesh_data = get_static_mesh_data(instance_id);
-		return bindlessArray->buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);
+		return bindelss_buffer<Vertex>(mesh_data.vertex_id)->read(vertex_index);
 	}
 
 	[[nodiscard]] Float3 get_corner_normal(const UInt& instance_id, const UInt& triangle_index, const UInt& corner_id) const
 	{
 		auto mesh_data = get_static_mesh_data(instance_id);
-		return bindlessArray->buffer<float3>(mesh_data.corner_normal_id)->read(triangle_index * 3 + corner_id);
+		return bindelss_buffer<float3>(mesh_data.corner_normal_id)->read(triangle_index * 3 + corner_id);
 	}
 
 public://----------------- CPU CODE -----------------

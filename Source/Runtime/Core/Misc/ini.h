@@ -572,10 +572,12 @@ inline const bool INIReader::BoolConverter(std::string s) const
 	static const std::unordered_map<std::string, bool> s2b{
 		{ "1", true },
 		{ "true", true },
+		{ "True", true },
 		{ "yes", true },
 		{ "on", true },
 		{ "0", false },
 		{ "false", false },
+		{ "False", false },
 		{ "no", false },
 		{ "off", false },
 	};

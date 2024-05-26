@@ -1,6 +1,8 @@
 #include "CameraComponent.h"
 #include "Game/World.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/CameraSceneProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
 
 
 void CameraComponent::PostEdit(Reflection::FieldAccessor& Field)
@@ -12,7 +14,8 @@ void CameraComponent::PostEdit(Reflection::FieldAccessor& Field)
 void CameraComponent::BeginPlay()
 {
 	ActorComponent::BeginPlay();
-	World->GetScene()->AddCamera(this, GetOwner()->GetTransformComponent());
+	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
+	GetScene()->GetCameraProxy()->AddCamera(this, TransformId);
 	GetOwner()->GetTransformUpdateDelegate().AddLambda([this]() {
 		MarkDirty();
 	});
@@ -29,5 +32,5 @@ void CameraComponent::TickComponent(double DeltaTime)
 
 void CameraComponent::UploadRenderingData()
 {
-	World->GetScene()->UpdateCamera(this);
+	GetScene()->GetCameraProxy()->UpdateCamera(this);
 }

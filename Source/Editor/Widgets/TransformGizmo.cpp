@@ -5,7 +5,7 @@
 #include "imgui.h"
 #include "Game/World.h"
 #include "Render/GPUSceneInterface.h"
-#include <iostream>
+#include "Render/SceneProxy/CameraSceneProxy.h"
 
 void TransformGizmo::Draw()
 {
@@ -42,8 +42,8 @@ void TransformGizmo::Draw()
 	ImGuizmo::SetID(ThisId);
 
 	// Eigen::Matrix4f view = (viewer->core().view / viewer->core().camera_zoom);
-	Eigen::Matrix4f view = World->GetScene()->GetViewMatrix().cast<float>();
-	Eigen::Matrix4f proj = World->GetScene()->GetProjectionMatrix().cast<float>();
+	Eigen::Matrix4f view = World->GetScene()->GetCameraProxy()->GetViewMatrix().cast<float>();
+	Eigen::Matrix4f proj = World->GetScene()->GetCameraProxy()->GetProjectionMatrix().cast<float>();
 	const Eigen::Matrix4f T0 = SelectedActor->GetTransformMatrix().cast<float>();
 	Eigen::Matrix4f T = T0.eval();
 	auto WindowSize = ImGui::GetMainViewport()->WorkSize;

@@ -5,6 +5,7 @@
 #include "TransformComponent.h"
 #include "Game/World.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/TransformProxy.h"
 
 
 void TransformComponent::PostEdit(Reflection::FieldAccessor& Field)
@@ -41,7 +42,6 @@ void TransformComponent::SetRotation(const FVector& InRotation)
 	Transform.SetRotation(Rotation);
 }
 
-
 void TransformComponent::AddRotationLocal(const FVector& DeltaRotation)
 {
 	MarkDirty();
@@ -62,5 +62,5 @@ void TransformComponent::AddRotationGlobal(const FVector& DeltaRotation)
 
 void TransformComponent::UploadRenderingData()
 {
-	World->GetScene()->UpdateTransform(this);
+	World->GetScene()->GetTransformProxy()->UpdateTransform(this);
 }

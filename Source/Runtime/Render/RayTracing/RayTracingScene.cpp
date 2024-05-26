@@ -46,57 +46,7 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	RayTracingScene::CompileShader();
 }
 
-void RayTracingScene::AddStaticMesh(StaticMeshComponent* InMesh, TransformComponent* InTransform)
-{
-	StaticMeshProxy->AddStaticMesh(InMesh, TransformProxy->AddTransform(InTransform));
-}
-
-void RayTracingScene::UpdateStaticMesh(StaticMeshComponent* InMesh)
-{
-	StaticMeshProxy->UpdateStaticMesh(InMesh);
-}
-
-void RayTracingScene::EraseMesh(StaticMeshComponent* InMesh)
-{
-
-}
-
-void RayTracingScene::AddCamera(CameraComponent* InCamera, TransformComponent* InTransform)
-{
-	CameraProxy->AddCamera(InCamera, TransformProxy->AddTransform(InTransform));
-}
-
-void RayTracingScene::UpdateCamera(CameraComponent* InCamera)
-{
-	CameraProxy->UpdateCamera(InCamera);
-}
-
-void RayTracingScene::UpdateTransform(TransformComponent* InTransform)
-{
-	TransformProxy->UpdateTransform(InTransform);
-}
-
-void RayTracingScene::AddLight(LightComponent* InLight, TransformComponent* InTransform)
-{
-	LightProxy->AddLight(InLight, TransformProxy->AddTransform(InTransform));
-}
-
-void RayTracingScene::UpdateLight(LightComponent* InLight)
-{
-	LightProxy->UpdateLight(InLight);
-}
-
-Matrix4d RayTracingScene::GetViewMatrix()
-{
-	return CameraProxy->GetViewMatrix();
-}
-
-Matrix4d RayTracingScene::GetProjectionMatrix()
-{
-	return CameraProxy->GetProjectionMatrix();
-}
-
-void RayTracingScene::UploadData()
+void RayTracingScene::UploadRenderData()
 {
 	auto UpdateBindlessArrayIfDirty = [&]() {
 		if(bindlessArray.dirty())

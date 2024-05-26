@@ -17,13 +17,13 @@ LightSceneProxy::LightSceneProxy(RayTracingScene& InScene) noexcept
 	: SceneProxy(InScene)
 {
 	LightDatas.resize(light_max_number);
-	light_buffer = Scene.RegisterBuffer<light_data>(light_max_number);
+	std::tie(light_buffer, bindless_id) = Scene.RegisterBindlessBuffer<light_data>(light_max_number);
 
 	point_light_tag = light_virtual_call.create<point_light>();
 	const_light_tag = light_virtual_call.create<const_point_light>();
 }
 
-uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight)
+uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
 {
 	if (InLight->IsA<PointLightComponent>())
 		return point_light_tag;

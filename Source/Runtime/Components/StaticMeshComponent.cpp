@@ -7,6 +7,8 @@
 #include "Game/World.h"
 #include "Materials/Material.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/StaticMeshSceneProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
 
 StaticMeshComponent::StaticMeshComponent()
 {
@@ -33,7 +35,8 @@ void StaticMeshComponent::BeginPlay()
 {
 	ActorComponent::BeginPlay();
 	// Add the mesh to the scene
-	World->GetScene()->AddStaticMesh(this, GetOwner()->GetTransformComponent());
+	auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
+	GetScene()->GetStaticMeshProxy()->AddStaticMesh(this, TransformId);
 	if (IsDirty())
 	{
 		if(Dirty & DIRTY_REMESH)
@@ -81,7 +84,7 @@ void StaticMeshComponent::UploadRenderingData()
 			MeshData->UpdateBoundingBox();
 		}
 
-		World->GetScene()->UpdateStaticMesh(this);
+		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
 	}
 }
 void StaticMeshComponent::Remesh()

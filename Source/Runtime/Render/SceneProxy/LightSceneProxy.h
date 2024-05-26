@@ -18,10 +18,19 @@ using namespace luisa::compute;
 class LightSceneProxy: public SceneProxy
 {
 public:
-	LightSceneProxy(RayTracingScene& InScene) noexcept;
+	explicit LightSceneProxy(RayTracingScene& InScene) noexcept;
 
+	/**
+	 * Add a new light to the scene and bind the corresponding transform
+	 * @param InLight LightComponent to add
+	 * @param InTransformID Corresponding transform id
+	 */
 	void AddLight(LightComponent* InLight, uint InTransformID);
 
+	/**
+	 * Update the light data in the scene
+	 * @param InLight LightComponent to update
+	 */
 	void UpdateLight(LightComponent* InLight);
 
 	/**
@@ -30,7 +39,7 @@ public:
 	 * @param InLight
 	 * @return light type tag
 	 */
-	uint GetLightTypeTag(LightComponent* InLight);
+	uint GetLightTypeTag(LightComponent* InLight) const;
 
 	virtual void UploadDirtyData(Stream& stream) override;
 
@@ -41,7 +50,7 @@ public:
 
 	[[nodiscard]] FORCEINLINE Var<light_data> get_light_data(const UInt& light_id) const
 	{
-		return light_buffer->read(light_id);
+		return bindelss_buffer<light_data>(bindless_id)->read(light_id);
 	}
 
 	Polymorphic<light_base> light_virtual_call;
@@ -50,6 +59,7 @@ protected:
 	uint id = 0;
 	static constexpr auto light_max_number = 256u;
 	vector<light_data> LightDatas;
+	uint bindless_id;
 	BufferView<light_data> light_buffer;
 
 	uint const_light_tag;

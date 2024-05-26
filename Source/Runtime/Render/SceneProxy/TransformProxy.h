@@ -21,16 +21,31 @@ namespace MechEngine::Rendering
 
 		virtual void UploadDirtyData(luisa::compute::Stream& stream) override;
 
+		/**
+		 * Try to add a new transform to the scene, if the transform already exists, return the existing id
+		 * @param InTransform Transformcomponent to add
+		 * @return The transform id
+		 */
 		uint AddTransform(TransformComponent* InTransform);
 
+		/**
+		 * Check if a transform exists in the scene
+		 * @param InTransform Transformcomponent to check
+		 * @return True if the transform exists
+		 */
+		bool IsExist(TransformComponent* InTransform) const;
+
+		/**
+		* Try to update a transform render data, the transform may not exist in the scene
+		* @param InTransform Transformcomponent to update
+		*/
 		void UpdateTransform(TransformComponent* InTransform);
 
 		[[nodiscard]] FORCEINLINE uint GetTransformCount() const noexcept;
 
-
-		Var<transform_data> get_transform_data(Expr<uint> transform_id) const
+		[[nodiscard]] Var<transform_data> get_transform_data(Expr<uint> transform_id) const
 		{
-			return transform_buffer->read(transform_id);
+			return bindelss_buffer<transform_data>(bindless_id)->read(transform_id);
 		}
 
 	protected:
@@ -40,6 +55,7 @@ namespace MechEngine::Rendering
 		map<TransformComponent*, uint> TransformIndexMap;
 		set<TransformComponent*> DirtyTransforms;
 		map<TransformSceneProxy*, uint> TransformInstanceMap;
+		uint bindless_id;
 		BufferView<transform_data> transform_buffer;
 	};
 

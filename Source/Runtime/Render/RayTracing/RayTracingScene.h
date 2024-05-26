@@ -37,27 +37,7 @@ protected:
 	ViewportInterface* Viewport;
 
 public:
-	virtual void AddStaticMesh(StaticMeshComponent* InMesh, TransformComponent* InTransform) override;
-
-	virtual void UpdateStaticMesh(StaticMeshComponent* InMesh) override;
-
-	virtual void EraseMesh(StaticMeshComponent* InMesh) override;
-
-	virtual void AddCamera(CameraComponent* InCamera, TransformComponent* InTransform) override;
-
-	virtual void UpdateCamera(CameraComponent* InCamera) override;
-
-	virtual void UpdateTransform(TransformComponent* InTransform) override;
-
-	virtual void AddLight(LightComponent* InLight, TransformComponent* InTransform) override;
-
-	virtual void UpdateLight(LightComponent* InLight) override;
-
-	virtual Matrix4d GetViewMatrix() override;
-
-	virtual Matrix4d GetProjectionMatrix() override;
-
-	void UploadData();
+	void UploadRenderData();
 
 	virtual void Render() override;
 	// ---------------------------------------------------------

@@ -5,13 +5,16 @@
 #pragma once
 #include "LightComponent.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/LightSceneProxy.h"
+#include "Render/SceneProxy/TransformProxy.h"
 
 void LightComponent::BeginPlay()
 {
-	GetScene()->AddLight(this, GetOwner()->GetTransformComponent());
+	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
+	GetScene()->GetLightProxy()->AddLight(this, TransformId);
 }
 
 void LightComponent::UploadRenderingData()
 {
-	GetScene()->UpdateLight(this);
+	GetScene()->GetLightProxy()->UpdateLight(this);
 }
