@@ -59,18 +59,7 @@ public:
 	 */
 	void UpdateCamera(CameraComponent* InCameraComponent);
 
-	view_data GetCurrentViewData();
-
-	[[nodiscard]] auto generate_ray(Expr<float2> uv) const
-	{
-		auto p = uv;
-		auto cdata = Data->read(0);
-		// auto direction      = normalize(make_float3(Near, Near * p.x * TanHalfFovH, Near * p.y * TanHalfFovV));
-		auto direction      = normalize(make_float3(1.f, p.x * cdata.TanHalfFovH, p.y * cdata.TanHalfFovV));
-		auto origin         = make_float3(cdata.Transform[3]);
-		auto world_direction = normalize(make_float3x3(cdata.Transform) * direction);
-		return make_ray(make_float3(origin), world_direction);
-	}
+	view_data GetCurrentViewData() const;
 
 	[[nodiscard]] auto get_camera_position() const { return make_float3(Data->read(0).Transform[3]); }
 

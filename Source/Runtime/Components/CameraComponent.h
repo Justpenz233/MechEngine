@@ -39,8 +39,10 @@ public:
 	inline void MarkDirty() { IsDirty = true; }
 	inline void ClearDirty() { IsDirty = false; }
 
-	FORCEINLINE float GetFovH() const { return FovH; }
-	FORCEINLINE float GetFovV() const { return 2.f * atanf(tanf(DegToRad(FovH) / 2.) / GetAspectRatio()); }
+	FORCEINLINE float GetFovH() const { return DegToRad(FovH); }
+	FORCEINLINE float GetTanHalfFovH() const { return tanf(DegToRad(FovH) / 2.f); }
+	FORCEINLINE float GetFovV() const { return 2.f * atanf(tanf(DegToRad(FovH) / 2.f) / GetAspectRatio()); }
+	FORCEINLINE float GetTanHalfFovV() const { return GetTanHalfFovH() / GetAspectRatio(); }
 	FORCEINLINE float GetZoom() const { return Zoom; }
 	FORCEINLINE float GetAspectRatio() const { return World->GetViewport()->GetAspectRatio(); }
 

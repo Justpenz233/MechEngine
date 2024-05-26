@@ -15,8 +15,11 @@ namespace MechEngine::Rendering
         uint projection_type = 0; // 0 for perspective, 1 for orthographic
 
         float aspect_ratio{};
-        float fov_h{};
+    	float tan_half_fovh{};
+    	float tan_half_fovv{};
+
         uint2 viewport_size;
+    	float4x4 transform_matrix;
         float4x4 view_matrix;
         float4x4 inverse_view_matrix;
 
@@ -29,11 +32,18 @@ namespace MechEngine::Rendering
 };
 
 LUISA_STRUCT(MechEngine::Rendering::view_data,
-    projection_type, aspect_ratio, fov_h, viewport_size, view_matrix, inverse_view_matrix, projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix)
+    projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix, projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix)
 {
     [[nodiscard]] auto generate_ray(const luisa::compute::UInt2& pixel_coord)
     {
-
+    	auto pixel       = make_float2(pixel_coord) + .5f;
+    	auto resolution  = make_float2(viewport_size);
+    	auto p           = (pixel * 2.0f - resolution) / resolution;
+    	p = make_float2(p.x * 1.f, p.y * -1.0f);
+    	auto direction      = normalize(make_float3(1.f, p.x * tan_half_fovh, p.y * tan_half_fovv));
+		auto origin         = make_float3(transform_matrix[3]);
+		auto world_direction = normalize(make_float3x3(transform_matrix) * direction);
+		return make_ray(make_float3(origin), world_direction);
     }
 
     [[nodiscard]] auto world_to_clip(const luisa::compute::Float3& world_position) const noexcept

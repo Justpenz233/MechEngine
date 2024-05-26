@@ -11,6 +11,11 @@ constexpr FORCEINLINE double DegToRad(T Deg)
 	return Deg * M_PI / 180.;
 }
 
+constexpr FORCEINLINE float DegToRad(float Deg)
+{
+	return Deg * static_cast<float>(M_PI) / 180.f;
+}
+
 template <class T>
 constexpr FORCEINLINE double RadToDeg(T Rad)
 {

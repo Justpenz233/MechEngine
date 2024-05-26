@@ -114,11 +114,7 @@ void RayTracingScene::CompileShader()
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
 			auto pixel       = make_float2(pixel_coord) + .5f;
-			auto resolution  = make_float2(view.viewport_size);
-			auto p           = (pixel * 2.0f - resolution) / resolution;
-			p *= make_float2(1.f, -1.f);
-
-			auto ray = CameraProxy->generate_ray(p);
+			auto ray = view->generate_ray(pixel_coord);
 			auto intersection = intersect(ray, view);
 			intersection.pixel_coord = pixel_coord; // Ugly, to do someting
 

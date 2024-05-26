@@ -28,7 +28,7 @@ void CameraSceneProxy::UpdateCamera(::CameraComponent* InCameraComponent)
 	bDirty = true;
 }
 
-view_data CameraSceneProxy::GetCurrentViewData()
+view_data CameraSceneProxy::GetCurrentViewData() const
 {
 	auto view_matrix = CameraComponent->GetViewMatrix();
 	auto projection_matrix = CameraComponent->GetProjectionMatrix();
@@ -36,8 +36,12 @@ view_data CameraSceneProxy::GetCurrentViewData()
 	return view_data{
 		.projection_type = 0,
 		.aspect_ratio = CameraComponent->GetAspectRatio(),
-		.fov_h =  CameraComponent->GetFovH(),
+		.tan_half_fovh = CameraComponent->GetTanHalfFovH(),
+		.tan_half_fovv = CameraComponent->GetTanHalfFovV(),
+
 		.viewport_size = Scene.GetWindosSize(),
+		.transform_matrix = ToLuisaMatrix(CameraComponent->GetOwner()->GetTransformMatrix()),
+
 		.view_matrix = ToLuisaMatrix(view_matrix),
 		.inverse_view_matrix = ToLuisaMatrix(view_matrix.inverse().eval()),
 
