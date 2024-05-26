@@ -96,6 +96,10 @@ ObjectPtr<StaticMesh> StaticMeshComponent::GetMeshData()
 {
 	return MeshData;
 }
+ObjectPtr<StaticMesh> StaticMeshComponent::GetStaticMesh()
+{
+	return MeshData;
+}
 
 ObjectPtr<StaticMesh> StaticMeshComponent::GetCollisionMesh()
 {

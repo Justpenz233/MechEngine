@@ -77,6 +77,7 @@ public:
 	virtual void Remesh();
 
 	ObjectPtr<StaticMesh> GetMeshData();
+	ObjectPtr<StaticMesh> GetStaticMesh();
 	ObjectPtr<StaticMesh> GetCollisionMesh();
 
 	void SetMeshData(ObjectPtr<StaticMesh> InMeshData);

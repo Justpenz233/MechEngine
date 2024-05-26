@@ -32,4 +32,13 @@ namespace LinearAlgbera
 {
 	// Solve Ax = B, or min (Ax - B)^2
 	ENGINE_API MatrixXd LinearEquationSolver(const MatrixXd& A, const MatrixXd& B);
+
+	/**
+	 * Calculate the LookAt matrix
+	 * @param Eye the eye position
+	 * @param Target the target position
+	 * @param Up the up vector
+	 * @return 3X3 rotation matrix
+	 */
+	ENGINE_API FMatrix LookAtMatrix(const FVector& Eye, const FVector& Target, FVector Up = FVector{0, 0, 1});
 }

@@ -4,6 +4,7 @@
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
 #include "Game/TimerManager.h"
+#include "Math/LinearAlgebra.h"
 
 CameraActor::CameraActor()
 {
@@ -21,32 +22,12 @@ void CameraActor::BeginPlay()
 void CameraActor::LookAt(const FVector& Target)
 {
 	FocusCenter = Target;
-	// First head to Z axis then head to the target
-	FVector Forward = (FocusCenter - GetLocation()).normalized();
-	FVector Right = FVector{0, 1, 0};
-	FVector Up = FVector{0, 0, 1};
-	// if forward is parallel to Z axis, then we need to rotate around X axis
-	if (abs(Forward.dot(Up)) > 0.99)
-	{
-		Up = Forward.cross(Right).normalized();
-		Right = Up.cross(Forward).normalized();
-	}
-	else
-	{
-		Right = Up.cross(Forward).normalized();
-		Up = Forward.cross(Right).normalized();
-	}
-	FMatrix RotationMatrix = Eigen::Matrix3d::Identity();
-	RotationMatrix.col(0) = Forward;
-	RotationMatrix.col(1) = Right;
-	RotationMatrix.col(2) = Up;
-	SetRotation(FQuat{RotationMatrix});
+	SetRotation(FQuat{LinearAlgbera::LookAtMatrix(GetLocation(), FocusCenter)});
 }
 
 void CameraActor::LookAt()
 {
-	auto Forward = (FocusCenter - GetLocation()).normalized();
-	SetRotation(FQuat::FromTwoVectors(FVector{ 1, 0, 0 }, Forward));
+	LookAt(FocusCenter);
 }
 
 void CameraActor::BlendeTo(const FTransform& TargetTransform, double Duration)
@@ -64,7 +45,7 @@ void CameraActor::BlendeTo(const FVector& TargetLocation, double Duration)
 	[TargetLocation, this]() {
 		auto CurrentLocation = GetLocation();
 		auto Radius = (CurrentLocation - FocusCenter).norm();
-		auto NextLocation = Lerp(CurrentLocation, TargetLocation, 0.3);
+		auto NextLocation = Lerp(CurrentLocation, TargetLocation, 0.1);
 		NextLocation = (NextLocation - FocusCenter).normalized() * Radius + FocusCenter;
 		SetTranslation(NextLocation);
 		LookAt();

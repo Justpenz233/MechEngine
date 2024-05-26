@@ -96,5 +96,25 @@ MatrixXd LinearAlgbera::LinearEquationSolver(const MatrixXd& A, const MatrixXd& 
 		// A is not a square matrix
 		return (A.transpose() * A).lu().solve(A.transpose() * B);
 	}
-
+}
+FMatrix LinearAlgbera::LookAtMatrix(const FVector& Eye, const FVector& Target, FVector Up)
+{
+	FVector Forward = (Target - Eye).normalized();
+	FVector Right = FVector{0, 1, 0};
+	// if forward is parallel to Z axis, then we need to rotate around X axis
+	if (abs(Forward.dot(Up)) > 0.99)
+	{
+		Up = Forward.cross(Right).normalized();
+		Right = Up.cross(Forward).normalized();
+	}
+	else
+	{
+		Right = Up.cross(Forward).normalized();
+		Up = Forward.cross(Right).normalized();
+	}
+	FMatrix RotationMatrix = FMatrix::Identity();
+	RotationMatrix.col(0) = Forward;
+	RotationMatrix.col(1) = Right;
+	RotationMatrix.col(2) = Up;
+	return RotationMatrix;
 }
