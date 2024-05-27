@@ -30,43 +30,51 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshIntersect(ObjectPtr<StaticMesh> A, Object
 
 ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B)
 {
-    MatrixXd VC;
+    MatrixXd Vertex;
     MatrixXi FC, fB;
-    MatrixXd NC, CC;
+    MatrixXd VertNorm, Col, CornerNorm;
 
-    long numVertA, numVertB, numFaceA, numFaceB, numNormA, numNormB, numColA, numColB;
-    numVertA = A->verM.rows();
+	auto numVertA = A->verM.rows();
     if(numVertA == 0) return B;
-    numVertB = B->verM.rows();
+    auto numVertB = B->verM.rows();
     if(numVertB == 0) return A;
-    numFaceA = A->triM.rows();
-    numFaceB = B->triM.rows();
-    numNormA = A->norM.rows();
-    numNormB = B->norM.rows();
-    numColA  = A->colM.rows();
-    numColB  = B->colM.rows();
+    auto numFaceA = A->triM.rows();
+    auto numFaceB = B->triM.rows();
+    auto numVertNormA = A->VertexNormal.rows();
+    auto numVertNormB = B->VertexNormal.rows();
+	auto numCornerNormA = A->CornerNormal.rows();
+	auto numCornerNormB = B->CornerNormal.rows();
+    auto numColA = A->colM.rows();
+    auto numColB = B->colM.rows();
 
-    VC.resize(numVertA + numVertB, 3);
+    Vertex.resize(numVertA + numVertB, 3);
     FC.resize(numFaceA + numFaceB, 3);
-    NC.resize(numNormA + numNormB, 3);
-    CC.resize(numColA + numColB, 3);
+    VertNorm.resize(numVertNormA + numVertNormB, 3);
+	CornerNorm.resize(numCornerNormA + numCornerNormB, 3);
+    Col.resize(numColA + numColB, 3);
 
 
-    VC.block(0, 0, numVertA, 3) = A->verM;
+    Vertex.block(0, 0, numVertA, 3) = A->verM;
     FC.block(0, 0, numFaceA, 3) = A->triM;
-    CC.block(0, 0, numColA, 3)  = A->colM;
-    NC.block(0, 0, numNormA, 3) = A->norM;
+    Col.block(0, 0, numColA, 3)  = A->colM;
+    VertNorm.block(0, 0, numVertNormA, 3) = A->VertexNormal;
+	CornerNorm.block(0, 0, numCornerNormA, 3) = A->CornerNormal;
 
-    VC.block(numVertA, 0, numVertB, 3) = B->verM;
-    CC.block(numColA, 0, numColB, 3)   = B->colM;
-    NC.block(numNormA, 0, numNormB, 3) = B->norM;
+    Vertex.block(numVertA, 0, numVertB, 3) = B->verM;
+    Col.block(numColA, 0, numColB, 3)   = B->colM;
+    VertNorm.block(numVertNormA, 0, numVertNormB, 3) = B->VertexNormal;
+	CornerNorm.block(numCornerNormA, 0, numCornerNormB, 3) = B->CornerNormal;
 
     fB.resize(numFaceB, 3);
     fB.setOnes();
     fB = fB * numVertA;
     FC.block(numFaceA, 0, numFaceB, 3) = B->triM + fB;
 
-    return NewObject<StaticMesh>(std::move(VC), std::move(FC));
+    auto NewMesh = NewObject<StaticMesh>(std::move(Vertex), std::move(FC));
+	NewMesh->VertexNormal = VertNorm;
+	NewMesh->CornerNormal = CornerNorm;
+	NewMesh->colM = Col;
+	return NewMesh;
 }
 // std::ObjectPtr<StaticMesh> BooleanMcut(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
 // {

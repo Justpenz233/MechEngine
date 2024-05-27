@@ -186,9 +186,9 @@ FVector SCAFParametricMeshComponent::SampleNormal(double u, double v) const
 	auto T1 = MeshData->triM(Hit.TriangleIndex, 0);
 	auto T2 = MeshData->triM(Hit.TriangleIndex, 1);
 	auto T3 = MeshData->triM(Hit.TriangleIndex, 2);
-	auto N1 = MeshData->norM.row(T1);
-	auto N2 = MeshData->norM.row(T2);
-	auto N3 = MeshData->norM.row(T3);
+	auto N1 = MeshData->VertexNormal.row(T1);
+	auto N2 = MeshData->VertexNormal.row(T2);
+	auto N3 = MeshData->VertexNormal.row(T3);
 	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
 }
 

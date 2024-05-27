@@ -67,20 +67,23 @@ StaticMesh::StaticMesh(StaticMesh&& Other) noexcept
 	triM = std::move(Other.triM);
 	if (Other.colM.rows() != 0)
 		colM = std::move(Other.colM);
-	if (Other.norM.rows() != 0)
-		norM = std::move(Other.norM);
+	VertexNormal = std::move(Other.VertexNormal);
+	CornerNormal = std::move(Other.CornerNormal);
+	BoundingBox = Other.BoundingBox;
 	MaterialData = std::move(Other.MaterialData);
-	OnGeometryUpdate();
+	OnGeometryUpdateDelegate.Broadcast();
 }
 
 StaticMesh::StaticMesh(const StaticMesh& Other)
-{
+ : Object(Other) {
 	verM = Other.verM;
 	triM = Other.triM;
 	colM = Other.colM;
-	norM = Other.norM;
+	VertexNormal = Other.VertexNormal;
+	CornerNormal = Other.CornerNormal;
+	BoundingBox = Other.BoundingBox;
 	MaterialData = NewObject<Material>(*Other.MaterialData);
-	OnGeometryUpdate();
+	OnGeometryUpdateDelegate.Broadcast();
 }
 void StaticMesh::PostEdit(Reflection::FieldAccessor& Field)
 {
@@ -92,25 +95,30 @@ void StaticMesh::PostEdit(Reflection::FieldAccessor& Field)
 	}
 }
 
-ObjectPtr<StaticMesh> StaticMesh::operator=(std::shared_ptr<StaticMesh> Other)
+StaticMesh& StaticMesh::operator=(const StaticMesh& Other) noexcept
 {
-	verM      = Other->verM;
-	triM      = Other->triM;
-	if (Other->colM.rows() != 0) colM = Other->colM.eval();
-	if (Other->norM.rows() != 0) norM = Other->norM.eval();
-	MaterialData = NewObject<Material>(*Other->MaterialData);
-	OnGeometryUpdate();
-	return Cast<StaticMesh>(GetThis());
+	verM = Other.verM;
+	triM = Other.triM;
+	colM = Other.colM;
+	VertexNormal = Other.VertexNormal;
+	CornerNormal = Other.CornerNormal;
+	BoundingBox = Other.BoundingBox;
+	MaterialData = NewObject<Material>(*Other.MaterialData);
+	OnGeometryUpdateDelegate.Broadcast();
+	return *this;
 }
 
 StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 {
 	verM = std::move(Other.verM);
 	triM = std::move(Other.triM);
-	if (Other.colM.rows() != 0) colM = std::move(Other.colM);
-	if (Other.norM.rows() != 0) norM = std::move(Other.norM);
+	if (Other.colM.rows() != 0)
+		colM = std::move(Other.colM);
+	VertexNormal = std::move(Other.VertexNormal);
+	CornerNormal = std::move(Other.CornerNormal);
+	BoundingBox = Other.BoundingBox;
 	MaterialData = std::move(Other.MaterialData);
-	OnGeometryUpdate();
+	OnGeometryUpdateDelegate.Broadcast();
 	return *this;
 }
 
@@ -348,6 +356,7 @@ void StaticMesh::ReverseNormal()
 		triM(i, 1) = tmp_z;
 		triM(i, 2) = tmp_y;
 	}
+	OnGeometryUpdate();
 }
 
 void StaticMesh::RemoveVertex(int VertexIndex)
@@ -432,9 +441,11 @@ void StaticMesh::Clear()
 {
 	verM.resize(0, 3);
 	triM.resize(0, 3);
-	norM.resize(0, 3);
 	colM.resize(0, 3);
-	OnGeometryUpdate();
+	VertexNormal.resize(0, 3);
+	CornerNormal.resize(0, 3);
+	BoundingBox = Math::FBox();
+	OnGeometryUpdateDelegate.Broadcast();
 }
 
 bool StaticMesh::IsEmpty() const

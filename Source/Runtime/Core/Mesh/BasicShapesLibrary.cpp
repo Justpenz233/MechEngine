@@ -400,8 +400,8 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCylinder(double length, double
 			int start = h * Samples + 2;
 			int cur = i + start;
 			int next = (i + 1) % Samples + start;
-			triList.emplace_back(cur, next, next + Samples);
-			triList.emplace_back(cur, next + Samples, cur + Samples);
+			triList.emplace_back(cur, next, cur + Samples);
+			triList.emplace_back(next, next + Samples, cur + Samples);
 		}
 	}
 

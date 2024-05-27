@@ -38,14 +38,12 @@ public:
 	MatrixX3d  verM; // Store vertices in a matrix (n,3)
 	MatrixX3i  triM; // Store triangles in a matrix (m,3)
 	//! DEPRECATED, only used in Libigl
-	MatrixX3d  norM; // Store per triangle normal or vertex normal in a matrix (m,3) or (n,3).
-	//! DEPRECATED, only used in Libigl
 	MatrixX3d  colM; // Store per triangle color or vertex color in a matrix (m,3) or (n,3).
 
 	MatrixX3d VertexNormal; // Store per vertex normal in a matrix (V, 3)
 	MatrixX3d CornerNormal; // Store per corner normal in a matrix (F * 3, 3), per face have 3 corner normal.
 
-	ObjectPtr<StaticMesh> operator = (ObjectPtr<StaticMesh> Other);
+	StaticMesh& operator = (const StaticMesh& Other) noexcept;
 	StaticMesh& operator = (StaticMesh&& Other) noexcept;
 
 	FORCEINLINE Material* GetMaterial() const;
