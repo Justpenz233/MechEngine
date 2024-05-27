@@ -55,6 +55,8 @@ public:
 
 	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const override;
 
+	virtual FVector2 Projection(const FVector& Point) const override;
+
 private:
 	// BVH tree which store the UV mesh, used to fast sample UV
 	bvh::v2::Bvh<BVHNode> BVHUVMesh;

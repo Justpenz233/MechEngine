@@ -11,6 +11,7 @@
 #include <bvh/v2/node.h>
 #include <igl/doublearea.h>
 
+#include "Algorithm/GeometryProcess.h"
 #include "igl/exact_geodesic.h"
 #include "igl/boundary_loop.h"
 #include "igl/flipped_triangles.h"
@@ -215,4 +216,11 @@ TArray<FVector> SCAFParametricMeshComponent::GeodicShortestPath(const FVector& S
 	int EndTriIndex = FindNearestTriangle(End);
 	return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
 			StartTriIndex, EndTriIndex);;
+}
+
+FVector2 SCAFParametricMeshComponent::Projection(const FVector& Point) const
+{
+	return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
+		return Sample(UV.x(), UV.y());
+	});
 }

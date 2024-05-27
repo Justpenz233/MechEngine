@@ -13,15 +13,15 @@ namespace MechEngine::Algorithm::GraphTheory
 	template <typename T>
 	struct DirectionalEdge
 	{
-		uint StartNodeID;
-		uint EndNodeID;
+		int StartNodeID;
+		int EndNodeID;
 		T EdgeContent;
 	};
 
 	template <typename T0, typename T1>
 	struct Node
 	{
-		uint ID;
+		int ID;
 		T0 NodeContent;
 
 		TSet<DirectionalEdge<T1>*> InEdge; // Save the edge that points to this node
@@ -44,7 +44,7 @@ namespace MechEngine::Algorithm::GraphTheory
 
 		~Graph();
 
-		FORCEINLINE bool IsNodeValid(uint NodeID) const;
+		FORCEINLINE bool IsNodeValid(int NodeID) const;
 
 		FORCEINLINE int NodeNum() const;
 		/**
@@ -52,7 +52,7 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * @param NodeID Unique ID of the node
 		 * @return Reference to the node
 		 */
-		FORCEINLINE NodeType& GetNode(uint NodeID);
+		FORCEINLINE NodeType& GetNode(int NodeID);
 
 		/**
 		 * Add a node to the graph
@@ -60,23 +60,23 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * @param Content Optional content of the node
 		 * @return true if the node is added successfully, false if the node already exists
 		 */
-		FORCEINLINE bool AddNode(uint NodeID, NodeContentType Content = NodeContentType());
+		FORCEINLINE bool AddNode(int NodeID, NodeContentType Content = NodeContentType());
 
 		/**
 		 * Remove a node from the graph
 		 * @param NodeID
 		 * @return true if the node is removed successfully, false if the node does not exist
 		 */
-		bool RemoveNode(uint NodeID);
+		bool RemoveNode(int NodeID);
 
 		/**
 		 * Add a directional edge to the graph, will create the nodes if they do not exist
 		 * @param StartNodeID Start node ID
 		 * @param EndNodeID End node ID
-		 * @param Weight Optional weight of the edge
+		 * @param Content Optional content of the edge
 		 */
-		void AddDirectionalEdge(uint StartNodeID, uint EndNodeID, EdgeContentType Content = EdgeContentType());
-		void AddBidirectionalEdge(uint StartNodeID, uint EndNodeID, EdgeContentType Content = EdgeContentType());
+		void AddDirectionalEdge(int StartNodeID, int EndNodeID, EdgeContentType Content = EdgeContentType());
+		void AddBidirectionalEdge(int StartNodeID, int EndNodeID, EdgeContentType Content = EdgeContentType());
 
 		/**
 		 * Remove an edge from the graph
@@ -87,16 +87,16 @@ namespace MechEngine::Algorithm::GraphTheory
 		/**
 		 * BFS traversal of the graph
 		 * @param StartNodeID Start node ID
-		 * @param Visit Function to call when a node is visited
+		 * @param Visit Function to call when a node is visited, if the function return false, the traversal will not continue from this node
 		 */
-		void BFS(uint StartNodeID, const TFunction<void(uint)>& Visit);
+		void BFS(int StartNodeID, const TFunction<bool(int)>& Visit) const;
 
 		/**
 		 * DFS traversal of the graph
 		 * @param StartNodeID Start node ID
 		 * @param Visit Function to call when a node is visited
 		 */
-		void DFS(uint StartNodeID, const TFunction<void(uint)>& Visit);
+		void DFS(int StartNodeID, const TFunction<bool(int)>& Visit) const;
 
 		/**
 		 * Calculate the connected components of the graph, each component is a list of node IDs
@@ -104,7 +104,7 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * O(V + E)
 		 * @return List of connected components
 		 */
-		TArray<TArray<uint>> ConnectedComponents();
+		TArray<TArray<int>> ConnectedComponents();
 
 
 		/**
@@ -114,7 +114,7 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * @return List of strongly connected components
 		 * O(V + E)
 		 */
-		TArray<TArray<uint>> StronglyConnectedComponents();
+		TArray<TArray<int>> StronglyConnectedComponents();
 
 		/**
 		 * @see https://codeforces.com/blog/entry/71146
@@ -123,20 +123,20 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * @return List of Cut vertex
 		 * O(V + E)
 		 */
-		TArray<uint> CutVertex();
+		TArray<int> CutVertex();
 
 	protected:
 		// Id to Node
-		THashMap<uint, NodeType> Nodes;
+		THashMap<int, NodeType> Nodes;
 
-		void DFSInternal(uint NodeID, const TFunction<void(uint)>& Visit, THashSet<uint>& VisitFlag);
+		void DFSInternal(int NodeID, const TFunction<bool(int)>& Visit, THashSet<int>& VisitFlag);
 
-		void StronglyConnectedComponentsInternal(uint NodeID,
-		 THashMap<uint, int>& DFN, THashMap<uint, int>& Low, THashSet<uint>& InStack,
-		 std::stack<uint>& Stack, int& Time, TArray<TArray<uint>>& Result);
+		void StronglyConnectedComponentsInternal(int NodeID,
+		 THashMap<int, int>& DFN, THashMap<int, int>& Low, THashSet<int>& InStack,
+		 std::stack<int>& Stack, int& Time, TArray<TArray<int>>& Result);
 
-		void CutVertexInternal(uint NodeID, uint              RootID,
-			THashMap<uint, int>&    DFN, THashMap<uint, int>& Low, int& Time, TSet<uint>& Result);
+		void CutVertexInternal(int NodeID, int              RootID,
+			THashMap<int, int>&    DFN, THashMap<int, int>& Low, int& Time, TSet<int>& Result);
 	};
 
 	template <class NodeContentType, class EdgeContentType>
@@ -167,7 +167,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	FORCEINLINE bool Graph<NodeContentType, EdgeContentType>::IsNodeValid(uint NodeID) const
+	FORCEINLINE bool Graph<NodeContentType, EdgeContentType>::IsNodeValid(int NodeID) const
 	{
 		return Nodes.contains(NodeID);
 	}
@@ -179,13 +179,13 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	FORCEINLINE typename Graph<NodeContentType, EdgeContentType>::NodeType& Graph<NodeContentType, EdgeContentType>::GetNode(uint NodeID)
+	FORCEINLINE typename Graph<NodeContentType, EdgeContentType>::NodeType& Graph<NodeContentType, EdgeContentType>::GetNode(int NodeID)
 	{
 		return Nodes[NodeID];
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	bool Graph<NodeContentType, EdgeContentType>::AddNode(uint NodeID, NodeContentType Content)
+	bool Graph<NodeContentType, EdgeContentType>::AddNode(int NodeID, NodeContentType Content)
 	{
 		if (IsNodeValid(NodeID)) return false;
 		Nodes[NodeID] = NodeType{ NodeID, Content };
@@ -193,7 +193,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	bool Graph<NodeContentType, EdgeContentType>::RemoveNode(uint NodeID)
+	bool Graph<NodeContentType, EdgeContentType>::RemoveNode(int NodeID)
 	{
 		if( Nodes.contains(NodeID) )
 		{
@@ -214,7 +214,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::AddDirectionalEdge(uint StartNodeID, uint EndNodeID, EdgeContentType Content)
+	void Graph<NodeContentType, EdgeContentType>::AddDirectionalEdge(int StartNodeID, int EndNodeID, EdgeContentType Content)
 	{
 		if(!IsNodeValid(StartNodeID))
 		{
@@ -231,7 +231,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::AddBidirectionalEdge(uint StartNodeID, uint EndNodeID, EdgeContentType Content)
+	void Graph<NodeContentType, EdgeContentType>::AddBidirectionalEdge(int StartNodeID, int EndNodeID, EdgeContentType Content)
 	{
 		AddDirectionalEdge(StartNodeID, EndNodeID, Content);
 		AddDirectionalEdge(EndNodeID, StartNodeID, Content);
@@ -252,47 +252,46 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::BFS(uint StartNodeID, const TFunction<void(uint)>& Visit)
+	void Graph<NodeContentType, EdgeContentType>::BFS(int StartNodeID, const TFunction<bool(int)>& Visit) const
 	{
-		THashSet<uint>       VisitedNode;
-		std::queue<uint> Queue;
+		THashSet<int>   VisitedNode;
+		std::queue<int> Queue;
 		Queue.push(StartNodeID);
 		VisitedNode.insert(StartNodeID);
 		while (!Queue.empty())
 		{
-			uint CurrentNodeID = Queue.front();
-			Visit(CurrentNodeID);
-			for (auto& Edge : Nodes[CurrentNodeID].OutEdge)
+			int CurrentNodeID = Queue.front(); Queue.pop();
+			if(!Visit(CurrentNodeID)) continue;
+			for (auto& Edge : Nodes.at(CurrentNodeID).OutEdge)
 			{
 				auto NextID = Edge->EndNodeID;
 				if (VisitedNode.contains(NextID)) continue;
 				Queue.push(NextID);
 				VisitedNode.insert(NextID);
 			}
-			Queue.pop();
 		}
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::DFS(uint StartNodeID, const TFunction<void(uint)>& Visit)
+	void Graph<NodeContentType, EdgeContentType>::DFS(int StartNodeID, const TFunction<bool(int)>& Visit) const
 	{
-		THashSet<uint> Visited;
+		THashSet<int> Visited;
 		DFSInternal(StartNodeID, Visit, Visited);
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	TArray<TArray<uint>> Graph<NodeContentType, EdgeContentType>::ConnectedComponents()
+	TArray<TArray<int>> Graph<NodeContentType, EdgeContentType>::ConnectedComponents()
 	{
-		uint ComponentID = 0;
-		THashSet<uint> Visited;
-		TArray<TArray<uint>> Result;
+		int ComponentID = 0;
+		THashSet<int> Visited;
+		TArray<TArray<int>> Result;
 
 		for (auto& AllNode : Nodes)
 		{
 			auto TNodeID = AllNode.first;
 			if (Visited.contains(TNodeID)) continue;
 			Result.emplace_back();
-			BFS(TNodeID, [&](uint NodeID)
+			BFS(TNodeID, [&](int NodeID)
 			{
 				Result[ComponentID].push_back(NodeID);
 				Visited.insert(NodeID);
@@ -303,13 +302,13 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	TArray<TArray<uint>> Graph<NodeContentType, EdgeContentType>::StronglyConnectedComponents()
+	TArray<TArray<int>> Graph<NodeContentType, EdgeContentType>::StronglyConnectedComponents()
 	{
-		THashMap<uint, int> DFN, Low;
-		THashSet<uint>      InStack;
-		std::stack<uint>    Stack;
+		THashMap<int, int> DFN, Low;
+		THashSet<int>      InStack;
+		std::stack<int>    Stack;
 		int                 Time = 0;
-		TArray<TArray<uint>> Result;
+		TArray<TArray<int>> Result;
 		for (auto& Node : Nodes)
 		{
 			auto NodeID = Node.first;
@@ -320,14 +319,14 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	TArray<uint> Graph<NodeContentType, EdgeContentType>::CutVertex()
+	TArray<int> Graph<NodeContentType, EdgeContentType>::CutVertex()
 	{
-		THashMap<uint, int> DFN, Low;
-		THashSet<uint>      InStack;
-		std::stack<uint>    Stack;
+		THashMap<int, int> DFN, Low;
+		THashSet<int>      InStack;
+		std::stack<int>    Stack;
 		int                 Time = 0;
-		TSet<uint>			ResultSet;
-		TArray<uint>		Result;
+		TSet<int>			ResultSet;
+		TArray<int>		Result;
 		for (auto& Node : Nodes)
 		{
 			auto NodeID = Node.first;
@@ -339,10 +338,10 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::DFSInternal(uint NodeID, const TFunction<void(uint)>& Visit, THashSet<uint>& VisitFlag)
+	void Graph<NodeContentType, EdgeContentType>::DFSInternal(int NodeID, const TFunction<bool(int)>& Visit, THashSet<int>& VisitFlag)
 	{
-		Visit(NodeID);
 		VisitFlag.insert(NodeID);
+		if(!Visit(NodeID)) return;
 		for (auto& Edge : Nodes[NodeID].OutEdge)
 		{
 			auto NextID = Edge->EndNodeID;
@@ -352,7 +351,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::StronglyConnectedComponentsInternal(uint NodeID, THashMap<uint, int>& DFN, THashMap<uint, int>& Low, THashSet<uint>& InStack, std::stack<uint>& Stack, int& Time, TArray<TArray<uint>>& Result)
+	void Graph<NodeContentType, EdgeContentType>::StronglyConnectedComponentsInternal(int NodeID, THashMap<int, int>& DFN, THashMap<int, int>& Low, THashSet<int>& InStack, std::stack<int>& Stack, int& Time, TArray<TArray<int>>& Result)
 	{
 		DFN[NodeID] = Low[NodeID] = ++Time;
 		Stack.push(NodeID);
@@ -373,7 +372,7 @@ namespace MechEngine::Algorithm::GraphTheory
 		if (DFN[NodeID] == Low[NodeID])
 		{
 			Result.emplace_back();
-			uint CurrentID;
+			int CurrentID;
 			do
 			{
 				CurrentID = Stack.top();
@@ -385,7 +384,7 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	void Graph<NodeContentType, EdgeContentType>::CutVertexInternal(uint NodeID, uint RootID, THashMap<uint, int>& DFN, THashMap<uint, int>& Low, int& Time, TSet<uint>& Result)
+	void Graph<NodeContentType, EdgeContentType>::CutVertexInternal(int NodeID, int RootID, THashMap<int, int>& DFN, THashMap<int, int>& Low, int& Time, TSet<int>& Result)
 	{
 		DFN[NodeID] = Low[NodeID] = ++Time;
 		int SonCount = 0;

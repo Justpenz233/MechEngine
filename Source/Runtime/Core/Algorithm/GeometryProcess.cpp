@@ -14,6 +14,9 @@
 #include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
 #include <CGAL/Polygon_mesh_processing/border.h>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <unsupported/Eigen/NumericalDiff>
+
 namespace MechEngine::Algorithm::GeometryProcess
 {
 	bool FillSmallestHole(Eigen::MatrixX3d& verM, Eigen::MatrixX3i& triM)
@@ -150,4 +153,83 @@ namespace MechEngine::Algorithm::GeometryProcess
 		return VertexComponent.maxCoeff() + 1;
 	}
 
-	} // namespace MechEngine::Algorithm::GeometryProcess
+
+	struct SurfaceProjectFunctor
+	{
+		using Scalar = double;
+		enum {
+			InputsAtCompileTime = 2, // UV
+			ValuesAtCompileTime = 3  // distance to [x, y, z]
+		};
+		typedef Eigen::Matrix<double,Eigen::Dynamic,1> InputType;
+		typedef Eigen::Matrix<double,Eigen::Dynamic,1> ValueType;
+		typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> JacobianType;
+		typedef std::function<FVector(double u, double v)> SurfaceSampleFunc;
+
+		SurfaceSampleFunc SampleFunc;
+		FVector Target;
+		const int m_inputs, m_values;
+
+		SurfaceProjectFunctor(SurfaceSampleFunc&& InSurface, const FVector& InTarget) : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime),
+			 Target(InTarget), SampleFunc(InSurface) {}
+
+		int inputs() const { return m_inputs; }
+		int values() const { return m_values; }
+
+		int operator()(const Eigen::VectorXd &UV, Eigen::VectorXd &DisXYZ) const
+		{
+			double U = UV(0);
+			double V = UV(1);
+
+			double Penalty = 0.;
+			if(V < 0. || V > 1.) Penalty += 1000.;
+			if(U < 0. || U > 1.) Penalty += 1000.;
+
+			V = std::clamp(V, 0., 1.);
+			U = std::clamp(U, 0., 1.);
+			Vector3d Pos = SampleFunc(U, V);
+
+			DisXYZ.resize(3);
+			DisXYZ(0) = std::pow(Pos.x() - Target.x(), 2) + Penalty;
+			DisXYZ(1) = std::pow(Pos.y() - Target.y(), 2) + Penalty;
+			DisXYZ(2) = std::pow(Pos.z() - Target.z(), 2) + Penalty;
+			return 0;
+		}
+	};
+
+	FVector2 Projection(const FVector& Pos, TFunction<FVector(const FVector2&)> SampleFunction)
+	{
+		SurfaceProjectFunctor fucnctor([&](double u, double v) {
+			return SampleFunction(FVector2(u, v));
+		}, Pos);
+		double BestEnergy = 1e6;
+		Vector2d Best;
+		for(double u = 0.; u <= 1.; u += 0.1)
+		{
+			for (double v = 0.; v <= 1.; v += 0.1)
+			{
+				VectorXd UV(2);
+				UV << u, v;
+				Eigen::NumericalDiff<SurfaceProjectFunctor> numDiff(fucnctor);
+				Eigen::LevenbergMarquardt<Eigen::NumericalDiff<SurfaceProjectFunctor>, double> lm(numDiff);
+				int t = lm.minimize(UV);
+
+				double Energy = (SampleFunction(FVector2(u, v)) - Pos).norm();
+				if(Energy < BestEnergy)
+				{
+					BestEnergy = Energy;
+					Best = {u, v};
+				}
+				Energy = (SampleFunction(UV) - Pos).norm();
+				if(Energy < BestEnergy)
+				{
+					BestEnergy = Energy;
+					Best = {UV(0), UV(1)};
+				}
+			}
+		}
+		return Best;
+
+	}
+
+} // namespace MechEngine::Algorithm::GeometryProcess

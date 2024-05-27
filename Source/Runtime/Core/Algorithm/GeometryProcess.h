@@ -33,4 +33,13 @@ namespace MechEngine::Algorithm::GeometryProcess
 	 * \return Number of components
 	 */
 	ENGINE_API int MeshComponentsCount(const ObjectPtr<StaticMesh>& Mesh);
+
+	/**
+	 * Given a 3D position and a SampleUV function, project the 3D position to 2D UV space
+	 * This algorithm will enumerate a grid(10*10) from [0., 1.]*[0., 1.] space as inital guess, and from the inital guess runing a LevenbergMarquardt to optimize the UV position
+	 * @param Pos 3D position
+	 * @param SampleFunction SampleUV function
+	 * @return 2D UV position
+	 */
+	ENGINE_API FVector2 Projection(const FVector& Pos, TFunction<FVector(const FVector2&)> SampleFunction);
 };
