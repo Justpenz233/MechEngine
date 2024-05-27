@@ -89,7 +89,15 @@ namespace MechEngine::Rendering
 		static constexpr auto constant_buffer_size = 256u * 1024u;
 
 	public:
-		template<typename T, typename... Args>
+		/**
+		 * Create a resource and register it to the scene
+		 * the scene holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
+		 * @tparam T Resource type
+		 * @tparam Args Resource constructor arguments
+		 * @param args Resource constructor arguments
+		 * @return Raw pointer to the created resource
+		 */
+		template <typename T, typename... Args>
 		requires std::is_base_of_v<luisa::compute::Resource, T>
 		[[nodiscard]] auto create(Args &&...args) noexcept -> T * {
 			auto resource = luisa::make_unique<T>(device.create<T>(std::forward<Args>(args)...));
@@ -97,6 +105,16 @@ namespace MechEngine::Rendering
 			Resources.emplace_back(std::move(resource));
 			return p;
 		}
+
+		/**
+		 * Destroy a resource, free the resource GPU memory
+		 * @param resource Resource pointer to destroy
+		 * @return Whether the resource is destroyed
+		 */
+		template<typename T>
+		requires std::is_base_of_v<luisa::compute::Resource, T>
+		bool destroy(T* resource);
+
 
 		/***********************************************************************************************
 		* 								  Bindless resource create								       *
@@ -242,4 +260,21 @@ namespace MechEngine::Rendering
 		unique_ptr<LineSceneProxy> LineProxy;
 
 	};
+
+template<typename T>
+requires std::is_base_of_v<luisa::compute::Resource, T>
+bool GPUSceneInterface::destroy(T* resource)
+{
+	for (auto iter = Resources.begin(); iter != Resources.end(); ++iter)
+	{
+		if (iter->get() == resource)
+		{
+			Resources.erase(iter);
+			return true;
+		}
+	}
+	return false;
+}
+
+
 }

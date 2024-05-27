@@ -12,10 +12,15 @@ namespace MechEngine::Rendering
 {
 
 StaticMeshSceneProxy::StaticMeshSceneProxy(RayTracingScene& InScene)
-: SceneProxy(InScene)
+	: SceneProxy(InScene)
 {
 	StaticMeshDatas.resize(instance_max_number);
+	StaticMeshResource.resize(instance_max_number);
 	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(instance_max_number);
+}
+bool StaticMeshSceneProxy::IsDirty()
+{
+	return !NewMeshes.empty() || !DirtyMeshes.empty() || !DirtyGeometryMeshes.empty();
 }
 
 void StaticMeshSceneProxy::AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID)
@@ -32,16 +37,19 @@ void StaticMeshSceneProxy::UpdateStaticMesh(StaticMeshComponent* InMesh)
 	DirtyMeshes.insert(InMesh);
 }
 
+void StaticMeshSceneProxy::UpdateStaticMeshGeometry(StaticMeshComponent* InMesh)
+{
+	ASSERTMSG(MeshIndexMap.count(InMesh), "StaticMeshComponent not exist in scene!");
+	if(NewMeshes.count(InMesh)) return;
+	DirtyGeometryMeshes.insert(InMesh);
+}
+
 void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 {
-	if (NewMeshes.empty() && DirtyMeshes.empty()) return;
+	if (!IsDirty()) return;
 
-	// Upload new mesh data
-	for (auto MeshComponent: NewMeshes)
+	auto GetFlattenMeshData = [&](StaticMesh* MeshData)
 	{
-		auto MeshData = MeshComponent->MeshData;
-		if(!MeshData || MeshData->IsEmpty())
-			continue;
 		int VertexNum = MeshData->GetVertexNum();
 		int TriangleNum = MeshData->GetFaceNum();
 		vector<Vertex> Vertices(VertexNum);
@@ -73,6 +81,16 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			CornerNormals[i].y = MeshData->CornerNormal.row(i).y();
 			CornerNormals[i].z = MeshData->CornerNormal.row(i).z();
 		}
+		return std::tuple{Vertices, Triangles, CornerNormals};
+	};
+
+	// Upload new mesh data
+	for (auto MeshComponent: NewMeshes)
+	{
+		auto MeshData = MeshComponent->MeshData;
+		if(!MeshData || MeshData->IsEmpty())
+			continue;
+		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
 		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
 		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
 		auto CornerlNormalBuffer = Scene.create<Buffer<float3>>(CornerNormals.size());
@@ -96,22 +114,66 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		StaticMeshDatas[Id].triangle_id = TBindlessid;
 		StaticMeshDatas[Id].material_id = MaterialID;
 		StaticMeshDatas[Id].corner_normal_id = CNBindlessid;
+		StaticMeshResource[Id] = {AccelMesh, VBuffer, TBuffer, CornerlNormalBuffer};
 	}
 	if(!NewMeshes.empty())
 	{
 		ASSERTMSG(accel.size() <= instance_max_number, "Too many static mesh in scene!");
-		stream << data_buffer.subview(0, accel.size()).copy_from(StaticMeshDatas.data());
+		stream << data_buffer.subview(0, StaticMeshDatas.size()).copy_from(StaticMeshDatas.data());
 		stream << bindlessArray.update();
 	}
 	NewMeshes.clear();
+
+	// Update mesh geometry
+	for (auto MeshComponent : DirtyGeometryMeshes)
+	{
+		auto MeshData = MeshComponent->MeshData;
+		if(!MeshData || MeshData->IsEmpty())
+			continue;
+		auto Id = MeshIndexMap[MeshComponent];
+		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
+
+		// Register and upload new data buffer
+		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
+		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
+		auto CornerlNormalBuffer = Scene.create<Buffer<float3>>(CornerNormals.size());
+		auto AccelMesh = Scene.create<Mesh>(*VBuffer, *TBuffer, AccelOption{});
+		stream << VBuffer->copy_from(Vertices.data())
+		<< TBuffer->copy_from(Triangles.data())
+		<< CornerlNormalBuffer->copy_from(CornerNormals.data())
+		<< commit()
+		<< AccelMesh->build();
+
+		auto VBindlessid = StaticMeshDatas[Id].vertex_id;
+		auto TBindlessid = StaticMeshDatas[Id].triangle_id;
+		auto CNBindlessid = StaticMeshDatas[Id].corner_normal_id;
+		bindlessArray.emplace_on_update(VBindlessid, VBuffer->view());
+		bindlessArray.emplace_on_update(TBindlessid, TBuffer->view());
+		bindlessArray.emplace_on_update(CNBindlessid, CornerlNormalBuffer->view());
+		accel.set_mesh(Id, *AccelMesh);
+
+		// Remove old data buffer
+		auto PreVBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].VertexBuffer;
+		auto PreTBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].TriangleBuffer;
+		auto PreCNBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].CornerNormalBuffer;
+		auto PreMesh = StaticMeshResource[MeshIndexMap[MeshComponent]].AccelMesh;
+		Scene.destroy(PreVBuffer); Scene.destroy(PreTBuffer); Scene.destroy(PreCNBuffer); Scene.destroy(PreMesh);
+	}
+
+	if (!DirtyGeometryMeshes.empty())
+	{
+		stream << bindlessArray.update();
+		stream << accel.build();
+	}
+	DirtyGeometryMeshes.clear();
 
 	// Update mesh visibility
 	for (auto MeshComponent: DirtyMeshes)
 	{
 		ASSERTMSG(MeshIndexMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
 		accel.set_visibility_on_update(MeshIndexMap[MeshComponent], MeshComponent->IsVisible());
-		auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshComponent->GetMeshData()->GetMaterial());
-		StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
+		// auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshComponent->GetMeshData()->GetMaterial());
+		// StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();
 }

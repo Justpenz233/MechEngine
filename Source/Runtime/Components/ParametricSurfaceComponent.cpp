@@ -16,7 +16,6 @@ void ParametricSurfaceComponent::Init()
 {
 	ActorComponent::Init();
 	Remesh();
-	MarkAsDirty(DIRTY_RENDERDATA);
 }
 
 void ParametricSurfaceComponent::PostEdit(Reflection::FieldAccessor& Field)
@@ -26,7 +25,7 @@ void ParametricSurfaceComponent::PostEdit(Reflection::FieldAccessor& Field)
 	if (FieldName == "Thickness")
 	{
 		Remesh();
-		UploadRenderingData();
+		MarkAsDirty(DIRTY_RENDERDATA);
 	}
 }
 

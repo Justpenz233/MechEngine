@@ -59,10 +59,10 @@ void StaticMeshComponent::OnSelected()
 
 void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
-	ActorComponent::PostEdit(Field);
+	RenderingComponent::PostEdit(Field);
 	String FieldName = Field.getFieldName();
 	if (FieldName == NAME(Color) || FieldName == NAME(bVisible))
-		UploadRenderingData();
+		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
 }
 
 void StaticMeshComponent::SetVisible(bool InVisible)
@@ -77,14 +77,8 @@ void StaticMeshComponent::UploadRenderingData()
 	if(MeshData != nullptr && !MeshData->IsEmpty())
 	{
 		ASSERTMSG(MeshData->GetMaterial() != nullptr, "Material should not be null!");
-	
-		if (!MeshData->CheckNormalValid()) // Geometry is modified, but not called GeometryChanged. Should remake next.
-		{
-			MeshData->CalcNormal();
-			MeshData->UpdateBoundingBox();
-		}
-
-		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
+		ASSERTMSG(MeshData->CheckNormalValid(), "Geometry is modified, but not called GeometryChanged.");
+		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(this);
 	}
 }
 void StaticMeshComponent::Remesh()

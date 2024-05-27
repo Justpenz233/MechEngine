@@ -23,6 +23,15 @@ struct static_mesh_data
 	// Material id
 	uint material_id = ~0u;
 };
+
+struct StaticMeshResource
+{
+	// CPU only
+	Mesh* AccelMesh = nullptr;
+	Buffer<Vertex>* VertexBuffer = nullptr;
+	Buffer<Triangle>* TriangleBuffer = nullptr;
+	Buffer<float3>* CornerNormalBuffer = nullptr;
+};
 }
 
 LUISA_STRUCT(MechEngine::Rendering::static_mesh_data, vertex_id, triangle_id, corner_normal_id, material_id) {};
@@ -36,6 +45,8 @@ class StaticMeshSceneProxy : public SceneProxy
 public:
 	StaticMeshSceneProxy(RayTracingScene& InScene);
 
+	virtual bool IsDirty() override;
+
 	virtual void UploadDirtyData(Stream& stream) override;
 
 	/**
@@ -46,13 +57,20 @@ public:
 	void AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID);
 
 	/**
-	 * Update the mesh data in the scene
+	 * Update the mesh property in the scene, now only consider the visibility
 	 * @param InMesh Meshcomponent to update
 	 */
 	void UpdateStaticMesh(StaticMeshComponent* InMesh);
 
-//----------------- GPU CODE -----------------
+	/**
+	* Update the mesh geometry in the scene
+	*/
+	void UpdateStaticMeshGeometry(StaticMeshComponent* InMesh);
 
+
+	/***********************************************************************************************
+	 * 								            GPU CODE						                   *
+	 ***********************************************************************************************/
 	[[nodiscard]] Var<static_mesh_data> get_static_mesh_data(const UInt& mesh_index) const
 	{
 		return bindelss_buffer<static_mesh_data>(data_buffer_id)->read(mesh_index);
@@ -88,14 +106,19 @@ protected:
 	//! We are using accel index as id for mesh, not the data array index
 	static constexpr auto instance_max_number = 65536u;
 	vector<static_mesh_data> StaticMeshDatas;
+	vector<StaticMeshResource> StaticMeshResource;
+
 	BufferView<static_mesh_data> data_buffer;
 	uint data_buffer_id; // bindless array id of data buffer, this id will never change
 
 	map<uint, StaticMeshComponent*> TransformMeshMap; // used for mapping transform id to mesh id
+	unordered_map<StaticMeshComponent*, Mesh*> MeshDataMap; // used for mapping mesh component to mesh data
 
 	map<StaticMeshComponent*, uint> MeshIndexMap; // used in update mesh
 	set<StaticMeshComponent*> NewMeshes;
 	set<StaticMeshComponent*> DirtyMeshes;
+	set<StaticMeshComponent*> DirtyGeometryMeshes;
+
 };
 
 }
