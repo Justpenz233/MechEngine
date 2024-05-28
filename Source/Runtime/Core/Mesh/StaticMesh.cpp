@@ -289,8 +289,13 @@ StaticMesh& StaticMesh::Normlize()
 	OnGeometryUpdate();
 	return *this;
 }
+ObjectPtr<StaticMesh> StaticMesh::Normlized()
+{
+	Normlize();
+	return GetThis<StaticMesh>();
+}
 
-ObjectPtr<StaticMesh> StaticMesh::LoadFromObj(const Path& FileName)
+ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 {
 	if(FileName.extension() == ".obj" || FileName.extension() == ".OBJ")
 	{

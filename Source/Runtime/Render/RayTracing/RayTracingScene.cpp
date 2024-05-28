@@ -110,22 +110,46 @@ void RayTracingScene::CompileShader()
 
 	// Main pass shader
 	MainShader = luisa::make_unique<Shader2D<view_data, uint>>(device.compile<2>(
-			[&](Var<view_data> view, UInt LightCount) noexcept {
+		[&](Var<view_data> view, UInt LightCount) noexcept {
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
-			auto pixel       = make_float2(pixel_coord) + .5f;
+			auto pixel = make_float2(pixel_coord) + .5f;
+
+			// Fill with default
+			g_buffer.set_default(pixel_coord, make_float4(1.f));
+			frame_buffer()->write(pixel_coord, make_float4(1.f));
+
+			// Ray trace rasterization
 			auto ray = view->generate_ray(pixel_coord);
 			auto intersection = intersect(ray, view);
-			intersection.pixel_coord = pixel_coord; // Ugly, to do someting
-
-			$if(intersection.valid())
+			intersection.pixel_coord = pixel_coord; // Ugly, to do something
+			Float transmission = 1.f;
+			Float3 pixel_color = make_float3(0.f);
+			$while(intersection.valid())
 			{
-				auto x  = intersection.position_world;
-				auto w_o  = normalize(-ray->direction());
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+				// Draw wireframe pass
+				//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
+				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
+				$if(material_data->show_wireframe == 1)
+				{
+					auto TestWireFrame = IsWireFrame(view, pixel,
+						intersection.vertex_ndc[0],
+						intersection.vertex_ndc[1],
+						intersection.vertex_ndc[2], 0.8f);
+					$if(TestWireFrame)
+					{
+						frame_buffer()->write(pixel_coord, make_float4(0.f)); // Write line color as black
+						transmission = 0.f;
+						$break;
+					};
+				};
+
 				/************************************************************************
 				 *								Shading
 				 ************************************************************************/
+				auto x = intersection.position_world;
+				auto w_o = normalize(-ray->direction());
 
 				// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
 				bxdf_context context{
@@ -137,17 +161,17 @@ void RayTracingScene::CompileShader()
 
 				material_parameters bxdf_parameters;
 				MaterialProxy->material_virtual_call.dispatch(
-				material_data.material_type, [&](const material_base* material) {
-					bxdf_parameters = material->calc_material_parameters(context);
-				});
+					material_data.material_type, [&](const material_base* material) {
+						bxdf_parameters = material->calc_material_parameters(context);
+					});
 				g_buffer.write(pixel_coord, bxdf_parameters, intersection);
 
 				auto normal = bxdf_parameters.normal;
 				auto reflect_dir = reflect(-w_o, normal);
 
-				Float3 pixel_color = make_float3(0.f);
-
-				$for(light_id, LightCount) {
+				Float3 pixel_radiance = make_float3(0.f);
+				$for(light_id, LightCount)
+				{
 					// First calculate light color, as rendering equation is L_i(x, w_i)
 					auto light_data = LightProxy->get_light_data(light_id);
 					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
@@ -162,38 +186,32 @@ void RayTracingScene::CompileShader()
 							// Dispatch light evaluate polymorphically, so that we can have different light type
 							LightProxy->light_virtual_call.dispatch(
 								light_data.light_type, [&](const light_base* light) {
-								light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
-							});
+									light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
+								});
 							MaterialProxy->material_virtual_call.dispatch(
 								material_data.material_type, [&](const material_base* material) {
 									mesh_color = material->bxdf(context, bxdf_parameters);
-							});
+								});
 						};
 						return mesh_color * light_color * max(dot(w_i, normal), 0.001f);
 					};
 
-					// Only two sample, one is light dir, one is reflect dir
-					pixel_color += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
+					// Only two sample, one is light dir, one is reflected dir
+					pixel_radiance += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
 				};
-
-				// Draw wireframe pass
-				//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-				$if(material_data->show_wireframe == 1)
+				auto alpha = material_data.alpha;
+				pixel_color += pixel_radiance * alpha * transmission;
+				transmission *= 1.f - alpha;
+				$if(alpha != 1.f & transmission > 1e-2f)
 				{
-					pixel_color = select(pixel_color, make_float3(0.f, 0.f, 0.f),
-						IsWireFrame(view, pixel,
-							intersection.vertex_ndc[0],
-							intersection.vertex_ndc[1],
-							intersection.vertex_ndc[2], 0.5f));
+					ray->set_origin(x + ray->direction() * make_float3(1e-4f));
+					intersection = intersect(ray, view);
+					$continue;
 				};
-				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(pixel_color), 1.f));
-			}
-			$else
-			{
-				g_buffer.set_default(pixel_coord, make_float4(1.f));
-				frame_buffer()->write(pixel_coord, make_float4(1.f));
+				$break;
 			};
+			frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(pixel_color + transmission * make_float3(1.f)), 1.f));
 		}));
+
 }
 }

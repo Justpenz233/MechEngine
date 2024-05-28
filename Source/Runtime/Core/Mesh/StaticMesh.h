@@ -183,7 +183,7 @@ public:
 	 * @return this
 	 */
 	StaticMesh& Normlize();
-
+	ObjectPtr<StaticMesh> Normlized();
 	/**
 	 * Get the Axis alignied bounding box of the mesh
 	 * @return bounding box of the mesh
@@ -197,7 +197,7 @@ public:
 	void SaveOBJ(const Path& FileName) const;
 
 
-	static ObjectPtr<StaticMesh> LoadFromObj(const Path& FileName);
+	static ObjectPtr<StaticMesh> LoadObj(const Path& FileName);
 
 	/**
 	 * Called after geometry data updated.

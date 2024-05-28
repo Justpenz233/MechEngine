@@ -40,6 +40,7 @@ public:
 
 	Material(const Material& Other);
 
+	FORCEINLINE void SetAlpha(const float& InAlpha);
 	FORCEINLINE void SetBaseColor(const FColor& InColor);
 	FORCEINLINE void SetShowWireframe(bool bShow);
 	FORCEINLINE void SetMode(MaterialMode InMode);
@@ -83,6 +84,12 @@ protected:
 	MPROPERTY()
 	NormalMode NormalType = CornerNormal;
 
+	/***
+	 * Alpha of the material
+	 */
+	MPROPERTY()
+	float Alpha = 1.f;
+
 	/**
 	 * Base color is used as diffuse color for non-metallic materials
 	 * and as the specular color for metallic materials(because metal have no diffuse)
@@ -92,7 +99,7 @@ protected:
 
 	/**
 	 * Specular tint is used to tint the specular reflection.
-	 * This property is not physical based, but it's useful for artistic control.
+	 * This property is not physically based, but it's useful for artistic control.
 	 */
 	MPROPERTY()
 	FLinearColor SpecularTint = {1.0f, 1.0f, 1.0f};
@@ -122,10 +129,17 @@ inline Material::Material(const Material& Other)
  : Object(Other) {
 	Mode = Other.Mode;
 	NormalType = Other.NormalType;
+	Alpha = Other.Alpha;
 	BaseColor = Other.BaseColor;
 	SpecularTint = Other.SpecularTint;
 	Metalness = Other.Metalness;
 	RegisterMaterial();
+}
+
+FORCEINLINE void Material::SetAlpha(const float& InAlpha)
+{
+	Alpha = InAlpha;
+	UpdateMaterial();
 }
 
 FORCEINLINE void Material::SetBaseColor(const FColor& InColor) {
