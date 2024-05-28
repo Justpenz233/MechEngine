@@ -67,9 +67,8 @@ void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 
 void StaticMeshComponent::SetVisible(bool InVisible)
 {
-	if(InVisible != bVisible)
-		MarkAsDirty(DIRTY_RENDERDATA);
 	bVisible = InVisible;
+	World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
 }
 
 void StaticMeshComponent::UploadRenderingData()
