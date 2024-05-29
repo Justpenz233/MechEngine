@@ -99,7 +99,7 @@ public:
 	void SetMaterial(ObjectPtr<Material> InMaterial);
 
 protected:
-	StaticMeshDirtyTag Dirty = DIRTY_ALL;
+	StaticMeshDirtyTag Dirty = DIRTY_RENDERDATA;
 };
 
 FORCEINLINE bool StaticMeshComponent::IsVisible() const

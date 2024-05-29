@@ -89,7 +89,10 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	{
 		auto MeshData = MeshComponent->MeshData;
 		if(!MeshData || MeshData->IsEmpty())
+		{
+			LOG_WARNING("Add an empty mesh to scene: {}", MeshComponent->GetOwnerName());
 			continue;
+		}
 		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
 		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
 		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());

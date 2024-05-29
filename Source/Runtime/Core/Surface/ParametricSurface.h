@@ -217,6 +217,16 @@ public:
 		v = v * 2.0 - 1.0;
 		return {c * cosh(v/c) * cos(u), c * cosh(v/c) * sin(u), v};
 	}
+	FVector SampleThickness(double u, double v, double Thickness) const override
+	{
+		if(u < 0) u += 1.;
+		if(u > 1.) u -= 1.;
+		u = u * 2.0 * M_PI - M_PI;
+		v = v * 2.0 - 1.0;
+		FVector2 XY = {c * cosh(v/c) * cos(u), c * cosh(v/c) * sin(u)};
+		XY += XY.normalized() * Thickness;
+		return {XY.x(), XY.y(), v};
+	}
 };
 
 

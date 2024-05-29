@@ -16,6 +16,7 @@ void ParametricSurfaceComponent::Init()
 {
 	ActorComponent::Init();
 	Remesh();
+	MarkAsDirty(DIRTY_RENDERDATA);
 }
 
 void ParametricSurfaceComponent::PostEdit(Reflection::FieldAccessor& Field)
@@ -164,7 +165,9 @@ void ParametricSurfaceComponent::Remesh()
 
 void ParametricSurfaceComponent::SetThickness(double InThickness)
 {
-    Thickness = InThickness; MarkAsDirty(DIRTY_ALL);
+    Thickness = InThickness;
+	Remesh();
+	MarkAsDirty(DIRTY_RENDERDATA);
 }
 
 FVector ParametricSurfaceComponent::GetRulingLineDir() const
