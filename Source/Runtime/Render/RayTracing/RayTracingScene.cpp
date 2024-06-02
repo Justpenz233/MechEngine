@@ -76,14 +76,12 @@ void RayTracingScene::UploadRenderData()
 	LineProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
-	view_data_buffer = CameraProxy->GetCurrentViewData();
 	if (rtAccel.dirty()) stream << rtAccel.build() << synchronize();
 }
 
 void RayTracingScene::Render()
 {
-	ASSERTMSG(g_buffer.frame_buffer, "Frame buffer is not initialized");
-	stream << (*MainShader)(view_data_buffer, LightProxy->LightCount()).dispatch(GetWindosSize());
+	stream << (*MainShader)(CameraProxy->GetCurrentViewData(), LightProxy->LightCount()).dispatch(GetWindosSize());
 
 	if(ViewMode != ViewMode::FrameBuffer)
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());

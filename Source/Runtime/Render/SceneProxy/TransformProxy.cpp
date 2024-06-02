@@ -59,10 +59,17 @@ bool TransformSceneProxy::IsExist(TransformComponent* InTransform) const
 	return TransformIndexMap.count(InTransform);
 }
 
+bool TransformSceneProxy::IsExist(const uint TransformID) const
+{
+	return std::ranges::any_of(TransformIndexMap, [TransformID](const auto& Pair) { return Pair.second == TransformID; });
+}
+
 void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)
 {
 	if(TransformIndexMap.count(InTransform))
 		DirtyTransforms.insert(InTransform);
+	else
+		LOG_ERROR("Trying to update a transform from actor: {} that does not exist in the scene.", InTransform->GetOwnerName());
 }
 
 }

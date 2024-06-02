@@ -43,7 +43,7 @@ using namespace luisa::compute;
 class StaticMeshSceneProxy : public SceneProxy
 {
 public:
-	StaticMeshSceneProxy(RayTracingScene& InScene);
+	explicit StaticMeshSceneProxy(RayTracingScene& InScene);
 
 	virtual bool IsDirty() override;
 

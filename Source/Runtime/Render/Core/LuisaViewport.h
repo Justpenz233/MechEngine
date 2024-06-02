@@ -8,6 +8,8 @@
 #include "Render/ViewportInterface.h"
 #include "luisa/gui/imgui_window.h"
 #include "IconsFontAwesome6.h"
+#include "Misc/Config.h"
+
 #include <iostream>
 
 class LuisaViewport : public ViewportInterface
@@ -15,7 +17,7 @@ class LuisaViewport : public ViewportInterface
 public:
 
 	float CurrentDpiScaling = 1.0f;
-	float DefaultFontSize = 13.f;
+	float DefaultFontSize = GConfig.Get<float>("Editor", "FontSize");
 
 	LuisaViewport(uint InWidth, uint InHeight, RenderPipeline* InRenderer,
 		luisa::compute::ImGuiWindow* InMainWindow, luisa::compute::Stream& InStream, luisa::compute::Device& InDevice)

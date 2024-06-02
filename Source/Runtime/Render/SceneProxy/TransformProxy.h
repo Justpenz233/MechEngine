@@ -36,6 +36,13 @@ namespace MechEngine::Rendering
 		bool IsExist(TransformComponent* InTransform) const;
 
 		/**
+		 * Check if a transform exists in the scene
+		 * @param TransformID The transform id to check
+		 * @return True if the transform exists
+		 */
+		bool IsExist(uint TransformID) const;
+
+		/**
 		* Try to update a transform render data, the transform may not exist in the scene
 		* @param InTransform Transformcomponent to update
 		*/

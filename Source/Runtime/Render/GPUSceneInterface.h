@@ -76,7 +76,6 @@ namespace MechEngine::Rendering
 		Accel rtAccel;
 		BindlessArray bindlessArray;
 		gbuffer g_buffer;
-		view_data view_data_buffer;
 
 		size_t _bindless_buffer_count{0u};
 		size_t _bindless_tex2d_count{0u};

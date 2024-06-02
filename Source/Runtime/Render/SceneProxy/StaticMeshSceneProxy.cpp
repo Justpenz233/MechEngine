@@ -5,6 +5,7 @@
 #include "StaticMeshSceneProxy.h"
 
 #include "MaterialSceneProxy.h"
+#include "TransformProxy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
@@ -26,6 +27,11 @@ bool StaticMeshSceneProxy::IsDirty()
 void StaticMeshSceneProxy::AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID)
 {
 	ASSERTMSG(!MeshIndexMap.count(InMesh), "StaticMeshComponent already exist in scene!");
+	if(!Scene.GetTransformProxy()->IsExist(InTransformID))
+	{
+		LOG_ERROR("Transform Actorname: {} not exist in scene!", InMesh->GetOwnerName());
+		return;
+	}
 	TransformMeshMap[InTransformID] = InMesh;
 	MeshIndexMap[InMesh] = ~0u; // Mark a temporary index, for the update call at the same frame
 	NewMeshes.insert(InMesh);

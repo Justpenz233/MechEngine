@@ -38,12 +38,10 @@ public:
 	virtual void PreRenderPass(luisa::compute::Stream& stream) {}
 	virtual void PostRenderPass(luisa::compute::Stream& stream) {}
 
-
+protected:
 	template<typename T, typename I>
 	[[nodiscard]] auto bindelss_buffer(I &&i) const noexcept { return bindlessArray->buffer<T>(std::forward<I>(i)); }
 
-
-protected:
 	RayTracingScene& Scene;
 	luisa::compute::Accel& accel;
 	luisa::compute::BindlessArray& bindlessArray;
