@@ -17,7 +17,7 @@ RenderPipeline(width, height, title)
 	Device        = Context.create_device(BackEnd);
 	Stream        = Device.create_stream(luisa::compute::StreamTag::GRAPHICS);
 	MainWindow    = luisa::make_unique<luisa::compute::ImGuiWindow>(Device, Stream, luisa::string(title),
-		luisa::compute::ImGuiWindow::Config{.size = {width, height}, .resizable = false});
+		luisa::compute::ImGuiWindow::Config{.size = {width, height}, .resizable = false, .multi_viewport = false});
 	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
 }
 

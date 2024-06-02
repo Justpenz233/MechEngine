@@ -59,11 +59,11 @@ void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)
 	static FQuat LastRotation;
 	if(StartPos == LastPos)
 	{
-		FVector2 Delta = World->GetViewport()->ScreenToNDC(StartPos.cast<double>()) -
-				World->GetViewport()->ScreenToNDC((StartPos + LastDelta).cast<double>());
+		FVector2 DeltaNDC = World->GetViewport()->ScreenToNDC(StartPos.cast<double>()) -
+				World->GetViewport()->ScreenToNDC((StartPos + Delta).cast<double>());
 
-		FQuat NewRotation = FQuat(Eigen::AngleAxisd(M_PI * Delta.x() * RotationSpeed, FVector{0,0,-1} )) * LastRotation;
-		NewRotation = NewRotation * FQuat(Eigen::AngleAxisd(M_PI * Delta.y() * RotationSpeed, FVector{0,1,0}));
+		FQuat NewRotation = FQuat(Eigen::AngleAxisd(M_PI * DeltaNDC.x() * RotationSpeed, FVector{0,0,-1} )) * LastRotation;
+		NewRotation = NewRotation * FQuat(Eigen::AngleAxisd(M_PI * DeltaNDC.y() * RotationSpeed, FVector{0,1,0}));
 		NewRotation.normalize();
 		SetRotation(NewRotation);
 
