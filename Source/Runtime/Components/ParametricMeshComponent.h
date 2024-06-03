@@ -45,7 +45,7 @@ public:
 	}
 
 	/// Override this method Is ALL YOU NEED
-	/// @math x(u,v) = Directrix(u) + v * DirectorCur    ve(u),
+	/// @math x(u,v) = Directrix(u) + v * DirectorCurve(u),
 	/// @see https://mathworld.wolfram.com/RuledSurface.html
 	virtual FVector SampleThickness(double u, double v, double ThicknessSample) const
 	{
@@ -110,6 +110,7 @@ public:
 
 	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const
 	{
+		ASSERTMSG(!Start.hasNaN() && !End.hasNaN(), "Start or End has NaN");
 		auto FindNearestTriangle = [&](const FVector& Pos) {
 			double Distance = std::numeric_limits<double>::max();
 			int Best = 0;

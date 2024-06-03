@@ -44,11 +44,22 @@ bool SegmentIntersectSegment2D(const FVector2& A0, const FVector2& A1, const FVe
 	return (u >= 0 && u <= 1 && t >= 0 && t <= 1);
 }
 
-bool MeshIntersectMesh(const ObjectPtr<::StaticMesh>& MeshA, const ObjectPtr<::StaticMesh>& MeshB)
+std::pair<bool, MatrixXi> MeshIntersectMesh(const ObjectPtr<::StaticMesh>& MeshA, const ObjectPtr<::StaticMesh>& MeshB)
 {
 	MatrixXi Result;
 	igl::copyleft::cgal::intersect_other(MeshA->verM, MeshA->triM, MeshB->verM, MeshB->triM, true, Result);
-	return Result.rows() > 0;
+	return {Result.rows() > 0, Result};
+}
+
+#include <igl/tri_tri_intersect.h>
+std::tuple<bool, FVector, FVector> TriangleIntersectTriangle(const FVector& A0, const FVector& A1, const FVector& A2, const FVector& B0, const FVector& B1, const FVector& B2)
+{
+	bool       coplanar;
+	RowVector3d    source, target;
+	const bool Result = igl::tri_tri_intersection_test_3d(RowVector3d(A0), RowVector3d(A1), RowVector3d(A2)
+		, RowVector3d(B0),RowVector3d(B1), RowVector3d(B2)
+		, coplanar, source, target);
+	return std::make_tuple(Result, FVector(source), FVector(target));
 }
 
 };
