@@ -49,8 +49,10 @@ public:
 	FORCEINLINE Material* GetMaterial() const;
 	FORCEINLINE ObjectPtr<Material> GetMaterialAsset() const;
 	FORCEINLINE void SetMaterial(ObjectPtr<Material> InMaterial);
+	FORCEINLINE MatrixX3d GetVertices() const;
 	FORCEINLINE FVector GetVertex(int Index) const;
 	FORCEINLINE FVector GetVertexNormal(int Index) const;
+	FORCEINLINE MatrixX3i GetTriangles() const;
 	FORCEINLINE Vector3i GetTriangle(int Index) const;
 	FORCEINLINE FVector GetTriangleCenter(int Index) const;
 	/**
@@ -246,6 +248,11 @@ FORCEINLINE FVector StaticMesh::GetVertex(int Index) const
 	return verM.row(Index);
 }
 
+FORCEINLINE MatrixX3d StaticMesh::GetVertices() const
+{
+	return verM;
+}
+
 FORCEINLINE FVector StaticMesh::GetVertexNormal(int Index) const
 {
 	ASSERT(Index < VertexNormal.rows());
@@ -256,6 +263,11 @@ FORCEINLINE Vector3i StaticMesh::GetTriangle(int Index) const
 {
 	ASSERT(Index < triM.rows());
 	return triM.row(Index);
+}
+
+FORCEINLINE MatrixX3i StaticMesh::GetTriangles() const
+{
+	return triM;
 }
 
 FORCEINLINE FVector StaticMesh::GetTriangleCenter(int Index) const

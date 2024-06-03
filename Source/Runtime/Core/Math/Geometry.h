@@ -5,8 +5,9 @@
 #pragma once
 
 #include "MathType.h"
+#include "PointerTypes.h"
 #include "Misc/Platform.h"
-
+class StaticMesh;
 namespace MechEngine::Math
 {
 
@@ -32,4 +33,12 @@ ENGINE_API std::tuple<double, FVector> PointSegmentDistance(
 ENGINE_API std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 		const FVector& A0, const FVector& A1,
 		const FVector& B0, const FVector& B1);
+
+
+/**
+ * Calculate the convex hull of a mesh.
+ * @param Mesh The mesh to calculate the convex hull of
+ * @return The convex hull of the mesh
+ */
+ENGINE_API ObjectPtr<StaticMesh> ConvexHull(const ObjectPtr<StaticMesh>& Mesh);
 }

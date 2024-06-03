@@ -3,7 +3,8 @@
 //
 
 #include "Geometry.h"
-
+#include "Mesh/StaticMesh.h"
+#include <igl/copyleft/cgal/convex_hull.h>
 namespace MechEngine::Math
 {
 
@@ -35,8 +36,8 @@ std::tuple<double, FVector> PointSegmentDistance(const FVector& P, const FVector
 }
 
 std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
-		const FVector& A0, const FVector& A1,
-		const FVector& B0, const FVector& B1)
+	const FVector& A0, const FVector& A1,
+	const FVector& B0, const FVector& B1)
 {
 	if ((A0 - A1).isZero())
 	{
@@ -59,7 +60,7 @@ std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 	const auto d = u.dot(w);
 	const auto e = v.dot(w);
 	const auto D = a * c - b * b; // always >= 0
-	assert(D>=0);
+	assert(D >= 0);
 	auto sc = D, sN = D, sD = D; // sc = sN / sD, default sD = D >= 0
 	auto tc = D, tN = D, tD = D; // tc = tN / tD, default tD = D >= 0
 
@@ -69,10 +70,10 @@ std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 	{
 		// the lines are almost parallel
 		parallel = true;
-		sN       = 0.0; // force using source point on segment S1
-		sD       = 1.0; // to prevent possible division by 0.0 later
-		tN       = e;
-		tD       = c;
+		sN = 0.0; // force using source point on segment S1
+		sD = 1.0; // to prevent possible division by 0.0 later
+		tN = e;
+		tD = c;
 	}
 	else
 	{
@@ -141,10 +142,18 @@ std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 	FVector P1 = A0 + sc * (A1 - A0);
 	FVector P2 = B0 + sc * (B1 - B0);
 	FVector dP = w + (sc * u) - (tc * v); // =  S1(sc) - S2(tc)
-	assert(dP == (P1-P2));
+	assert(dP == (P1 - P2));
 
 	double dst = dP.norm(); // return the closest distance
 	return { dst, P1, P2, parallel };
 }
 
+ObjectPtr<StaticMesh> ConvexHull(const ObjectPtr<StaticMesh>& Mesh)
+{
+	MatrixX3d Vertices = Mesh->GetVertices();
+	MatrixX3i Triangles;
+	igl::copyleft::cgal::convex_hull(Vertices, Triangles);
+	return NewObject<::StaticMesh>(std::move(Vertices), std::move(Triangles));
 }
+
+} // namespace MechEngine::Math

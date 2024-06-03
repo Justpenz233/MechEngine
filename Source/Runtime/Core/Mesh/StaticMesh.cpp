@@ -301,13 +301,22 @@ ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 	{
 		MatrixX3d verM;
 		MatrixX3i triM;
-		if(igl::readOBJ((Path::ContentDir() / FileName).string(), verM, triM))
+		Path FixedFileName = FileName;
+		if(!FileName.has_parent_path())
+		{
+			if (exists((Path::EngineContentDir() / FileName)))
+				FixedFileName = Path::EngineContentDir() / FileName;
+			if (exists((Path::ProjectContentDir() / FileName)))
+				FixedFileName = Path::ProjectContentDir() / FileName;
+		}
+		if(igl::readOBJ(FixedFileName.string(), verM, triM))
 		{
 			return NewObject<StaticMesh>(verM, triM);
 		}
 		LOG_ERROR("Fail to load mesh from file: {0}", FileName.string());
 	}
-	LOG_ERROR("Extension of file is not .obj or .OBJ: {0}", FileName.string());
+	else
+		LOG_ERROR("Extension of file is not .obj or .OBJ: {0}", FileName.string());
 }
 
 double StaticMesh::CalcVolume() const
