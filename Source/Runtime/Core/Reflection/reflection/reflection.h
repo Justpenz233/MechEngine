@@ -10,7 +10,7 @@
 
 #include "ContainerTypes.h"
 #include "Misc/Platform.h"
-
+#include "Object/ObjectPropertyTag.h"
 
 #define NAME(name) #name
 
@@ -304,7 +304,19 @@ namespace Reflection
 
         FieldAccessor& operator=(const FieldAccessor& dest);
 
-    private:
+    	/**
+    	 * Get property tag of the field
+    	 * @tparam T the property tag type, should be derived from PropertyTag::ObjectPropertyTag
+    	 * @return the property tag of the field, may be nullptr if the tag not exist
+    	 */
+		template <class T>
+    	requires std::derived_from<T, PropertyTag::ObjectPropertyTag>
+    	T* GetPropertyTag()
+		{
+			return nullptr;
+		}
+
+	private:
         FieldAccessor(FieldFunctionTuple* functions);
 
     private:
