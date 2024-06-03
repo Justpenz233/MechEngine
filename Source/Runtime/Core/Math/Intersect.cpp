@@ -44,10 +44,10 @@ bool SegmentIntersectSegment2D(const FVector2& A0, const FVector2& A1, const FVe
 	return (u >= 0 && u <= 1 && t >= 0 && t <= 1);
 }
 
-std::pair<bool, MatrixXi> MeshIntersectMesh(const ObjectPtr<::StaticMesh>& MeshA, const ObjectPtr<::StaticMesh>& MeshB)
+std::pair<bool, MatrixXi> MeshIntersectMesh(const ObjectPtr<::StaticMesh>& MeshA, const ObjectPtr<::StaticMesh>& MeshB, bool bFirstOnly)
 {
 	MatrixXi Result;
-	igl::copyleft::cgal::intersect_other(MeshA->verM, MeshA->triM, MeshB->verM, MeshB->triM, true, Result);
+	igl::copyleft::cgal::intersect_other(MeshA->verM, MeshA->triM, MeshB->verM, MeshB->triM, bFirstOnly, Result);
 	return {Result.rows() > 0, Result};
 }
 

@@ -46,10 +46,15 @@ ENGINE_API bool SegmentIntersectSegment2D(const FVector2& A0, const FVector2& A1
 
 /**
  * Check if two mesh intersect
+ * @param MeshA The first mesh
+ * @param MeshB The second mesh
+ * @param bFirstOnly If true, only return the first intersection
+ * @warning the intersection pairs will only have one if bFirstOnly is true
+ * @warning the intersection pairs is not strictly accurate, it may have false positive(so strange), should use TriangleIntersectTriangle to check the intersection
  * @return true if intersect, and have intersection pairs of triangle index
  */
 ENGINE_API std::pair<bool, MatrixXi>
-MeshIntersectMesh(const ObjectPtr<class StaticMesh>& MeshA, const ObjectPtr<StaticMesh>& MeshB);
+MeshIntersectMesh(const ObjectPtr<StaticMesh>& MeshA, const ObjectPtr<StaticMesh>& MeshB, bool bFirstOnly = true);
 
 /**
  * Check if a triangle intersect with a triangle
@@ -59,6 +64,7 @@ MeshIntersectMesh(const ObjectPtr<class StaticMesh>& MeshA, const ObjectPtr<Stat
  * @param B0 Coordinate of the first point of the second triangle
  * @param B1 Coordinate of the second point of the second triangle
  * @param B2 Coordinate of the third point of the second triangle
+ * @warning This function not perform as result from MeshIntersectMesh, which means the intersection result may not be true for testing the paris from MeshIntersectMesh
  * @return true if intersect, and the segment of intersection(valid only if intersect)
  */
 ENGINE_API std::tuple<bool, FVector, FVector>
