@@ -72,7 +72,7 @@ namespace MechEngine::Rendering
         {
             auto InstanceId = hit.instance_id;
             auto TriangleId = hit.primitive_id;
-            auto ToWorldTransform = get_instance_transform(InstanceId);
+            auto object_transform = get_instance_transform(InstanceId);
             auto Tri = StaticMeshProxy->get_triangle(InstanceId, TriangleId);
             auto bary = hit.barycentric;
             auto v_buffer = StaticMeshProxy->get_static_mesh_data(InstanceId).vertex_id;
@@ -84,15 +84,15 @@ namespace MechEngine::Rendering
             auto p1_local = v1->position();
             auto p2_local = v2->position();
 
-            auto p0_world = (ToWorldTransform * make_float4(p0_local, 1.f)).xyz();
-            auto p1_world = (ToWorldTransform * make_float4(p1_local, 1.f)).xyz();
-            auto p2_world = (ToWorldTransform * make_float4(p2_local, 1.f)).xyz();
+            auto p0_world = (object_transform * make_float4(p0_local, 1.f)).xyz();
+            auto p1_world = (object_transform * make_float4(p1_local, 1.f)).xyz();
+            auto p2_world = (object_transform * make_float4(p2_local, 1.f)).xyz();
 
             auto dp0_local = p1_local - p0_local;
             auto dp1_local = p2_local - p0_local;
 
-            auto m = make_float3x3(ToWorldTransform);
-            auto t = make_float3(ToWorldTransform[3]);
+            auto m = make_float3x3(object_transform);
+            auto t = make_float3(object_transform[3]);
             auto p = m * triangle_interpolate(bary, p0_local, p1_local, p2_local) + t;
 
             auto c = cross(m * dp0_local, m * dp1_local);

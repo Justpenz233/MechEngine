@@ -202,7 +202,7 @@ void RayTracingScene::CompileShader()
 				transmission *= 1.f - alpha;
 				$if(alpha != 1.f & transmission > 1e-2f)
 				{
-					ray->set_origin(x + ray->direction() * make_float3(1e-4f));
+					ray->set_origin(offset_ray_origin(x, intersection.triangle_normal_world, ray->direction()));
 					intersection = intersect(ray, view);
 					$continue;
 				};
