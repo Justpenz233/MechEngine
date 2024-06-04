@@ -20,8 +20,8 @@
     public: explicit class_name(const MObjectInitiliazer&) {}; \
 
 #if defined(__REFLECTION_PARSER__)
-#define MPROPERTY(...) __attribute__((annotate("MPROPERTY" #__VA_ARGS__)))
-#define MFUNCTION(...) __attribute__((annotate("MFUNCTION" #__VA_ARGS__)))
+#define MPROPERTY(...) __attribute__((annotate("MPROPERTY," #__VA_ARGS__)))
+#define MFUNCTION(...) __attribute__((annotate("MFUNCTION," #__VA_ARGS__)))
 #else
 #define MPROPERTY(...)
 #define MFUNCTION(...)
@@ -310,7 +310,7 @@ namespace Reflection
     	 * @return the property tag of the field, may be nullptr if the tag not exist
     	 */
 		template <class T>
-    	requires std::derived_from<T, PropertyTag::ObjectPropertyTag>
+    	requires std::derived_from<T, ObjectPropertyTag>
     	T* GetPropertyTag()
 		{
 			return nullptr;

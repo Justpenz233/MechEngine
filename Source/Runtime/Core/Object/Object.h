@@ -8,6 +8,7 @@
 #include "Delegate.h"
 #include "ObjectInitiliazer.h"
 #include "Reflection/reflection/reflection.h"
+#include "ObjectPropertyTag.h"
 #include "Misc/Platform.h"
 
 DECLARE_MULTICAST_DELEGATE_PARMS(FOnPostEdit, Reflection::FieldAccessor&)
