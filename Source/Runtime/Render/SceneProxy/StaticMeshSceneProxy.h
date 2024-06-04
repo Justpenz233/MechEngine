@@ -102,6 +102,7 @@ public://----------------- CPU CODE -----------------
 	}
 
 protected:
+	bool bFrameUpdated = false;
 
 	//! We are using accel index as id for mesh, not the data array index
 	static constexpr auto instance_max_number = 65536u;

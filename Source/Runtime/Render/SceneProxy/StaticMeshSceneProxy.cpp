@@ -52,8 +52,8 @@ void StaticMeshSceneProxy::UpdateStaticMeshGeometry(StaticMeshComponent* InMesh)
 
 void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 {
+	bFrameUpdated = false;
 	if (!IsDirty()) return;
-
 	auto GetFlattenMeshData = [&](StaticMesh* MeshData)
 	{
 		int VertexNum = MeshData->GetVertexNum();
@@ -89,7 +89,6 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		}
 		return std::tuple{Vertices, Triangles, CornerNormals};
 	};
-
 	// Upload new mesh data
 	for (auto MeshComponent: NewMeshes)
 	{
@@ -99,6 +98,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			LOG_WARNING("Add an empty mesh to scene: {}", MeshComponent->GetOwnerName());
 			continue;
 		}
+		bFrameUpdated = true;
 		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
 		auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
 		auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
@@ -125,7 +125,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		StaticMeshDatas[Id].corner_normal_id = CNBindlessid;
 		StaticMeshResource[Id] = {AccelMesh, VBuffer, TBuffer, CornerlNormalBuffer};
 	}
-	if(!NewMeshes.empty())
+	if(bFrameUpdated)
 	{
 		ASSERTMSG(accel.size() <= instance_max_number, "Too many static mesh in scene!");
 		stream << data_buffer.subview(0, StaticMeshDatas.size()).copy_from(StaticMeshDatas.data());
@@ -139,6 +139,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		auto MeshData = MeshComponent->MeshData;
 		if(!MeshData || MeshData->IsEmpty())
 			continue;
+		bFrameUpdated = true;
 		auto Id = MeshIndexMap[MeshComponent];
 		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
 
@@ -168,12 +169,6 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		auto PreMesh = StaticMeshResource[MeshIndexMap[MeshComponent]].AccelMesh;
 		Scene.destroy(PreVBuffer); Scene.destroy(PreTBuffer); Scene.destroy(PreCNBuffer); Scene.destroy(PreMesh);
 	}
-
-	if (!DirtyGeometryMeshes.empty())
-	{
-		stream << bindlessArray.update();
-		stream << accel.build();
-	}
 	DirtyGeometryMeshes.clear();
 
 	// Update mesh visibility
@@ -185,6 +180,10 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		// StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();
+	if(bindlessArray.dirty())
+		stream << bindlessArray.update();
+	if(accel.dirty())
+		stream << accel.build();
 }
 
 }

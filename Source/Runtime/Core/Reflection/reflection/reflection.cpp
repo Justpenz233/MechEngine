@@ -226,13 +226,13 @@ namespace Reflection
         return *this;
     }
     FieldAccessor::FieldAccessor()
-    {
-        m_field_type_name = k_unknown_type;
-        class_name      = k_unknown;
-        m_functions       = nullptr;
-    }
+	{
+		m_field_type_name = k_unknown_type;
+		class_name = k_unknown;
+		m_functions = nullptr;
+	}
 
-    FieldAccessor::FieldAccessor(FieldFunctionTuple* functions) : m_functions(functions)
+	FieldAccessor::FieldAccessor(FieldFunctionTuple* functions) : m_functions(functions)
     {
         m_field_type_name = k_unknown_type;
         class_name      = k_unknown;
@@ -278,7 +278,7 @@ namespace Reflection
     }
 
     const char* FieldAccessor::getFieldName() const { return class_name; }
-    const char* FieldAccessor::getFieldTypeName() { return m_field_type_name; }
+    std::string FieldAccessor::getFieldTypeName() const { return m_field_type_name; }
 
     std::string FieldAccessor::GetPureTypeName()
     {
@@ -326,18 +326,27 @@ namespace Reflection
     }
 
     FieldAccessor& FieldAccessor::operator=(const FieldAccessor& dest)
-    {
-        if (this == &dest)
-        {
-            return *this;
-        }
-        m_functions       = dest.m_functions;
-        class_name      = dest.class_name;
-        m_field_type_name = dest.m_field_type_name;
-        return *this;
-    }
+	{
+		if (this == &dest)
+		{
+			return *this;
+		}
+		m_functions = dest.m_functions;
+		class_name = dest.class_name;
+		m_field_type_name = dest.m_field_type_name;
+		return *this;
+	}
 
-    MethodAccessor::MethodAccessor()
+	std::vector<const ObjectPropertyTag*> FieldAccessor::GetPropertyTags() const
+	{
+    	auto tags = std::get<8>(*m_functions)();
+    	auto result = std::vector<const ObjectPropertyTag*>();
+    	for (auto tag : tags)
+			result.push_back(static_cast<std::vector<const ObjectPropertyTag*>::value_type>(tag));
+    	return result;
+	}
+
+	MethodAccessor::MethodAccessor()
     {
         m_method_name = k_unknown;
         m_functions   = nullptr;

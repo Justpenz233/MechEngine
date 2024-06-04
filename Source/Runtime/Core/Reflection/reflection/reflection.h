@@ -175,7 +175,8 @@ typedef std::function<void*(const Json&)> ConstructorWithJson;
 typedef std::function<Json(void*)> WriteJsonByName;
 typedef std::function<int(Reflection::ReflectionInstance*&, void*)> GetBaseClassReflectionInstanceListFunc;
 
-typedef std::tuple<SetFuncion, GetFuncion, GetNameFuncion, GetNameFuncion, GetNameFuncion, GetBoolFunc, GetBoolFunc, GetBoolFunc>
+typedef std::tuple<SetFuncion, GetFuncion, GetNameFuncion, GetNameFuncion, GetNameFuncion, GetBoolFunc, GetBoolFunc, GetBoolFunc,
+std::function<std::vector<void*>()>>
 FieldFunctionTuple;
 typedef std::tuple<GetNameFuncion, InvokeFunction> MethodFunctionTuple;
 typedef std::tuple<GetBaseClassReflectionInstanceListFunc, ConstructorWithJson, WriteJsonByName> ClassFunctionTuple;
@@ -207,7 +208,7 @@ namespace Reflection
         static void unregisterAll();
     };
 
-    class  TypeMeta
+    class ENGINE_API TypeMeta
     {
         friend class FieldAccessor;
         friend class ArrayAccessor;
@@ -278,12 +279,9 @@ namespace Reflection
 
         const char* getFieldName() const;
 
-    	FORCEINLINE String GetName() const
-    	{
-    		return class_name;
-    	}
+    	FORCEINLINE String GetName() const{ return class_name; }
 
-        const char* getFieldTypeName();
+		std::string getFieldTypeName() const;
 
         // Remove ref and const and namespace
         std::string GetPureTypeName();
@@ -301,19 +299,36 @@ namespace Reflection
          */
         EnumAccessor GetEnumAccessor(void* instance);
     	PointerAccessor GetPointerAccessor(void* instance);
-
         FieldAccessor& operator=(const FieldAccessor& dest);
 
+		/**
+		 * Get all property tags of the field
+		 * @return array of property tags
+		 */
+		std::vector<const ObjectPropertyTag *> GetPropertyTags() const;
+
     	/**
-    	 * Get property tag of the field
-    	 * @tparam T the property tag type, should be derived from PropertyTag::ObjectPropertyTag
-    	 * @return the property tag of the field, may be nullptr if the tag not exist
-    	 */
+		 * Get property tag of the field
+		 * @tparam T the property tag type, should be derived from PropertyTag::ObjectPropertyTag
+		 * @return the property tag of the field, may be nullptr if the tag not exist
+		 */
 		template <class T>
     	requires std::derived_from<T, ObjectPropertyTag>
-    	T* GetPropertyTag()
+    	const T* GetPropertyTag()
 		{
+			for (auto tag : GetPropertyTags())
+			{
+				if (auto p = dynamic_cast<const T*>(tag))
+				{
+					return p;
+				}
+			}
 			return nullptr;
+		}
+
+    	FORCEINLINE bool operator == (const std::string& FieldName) const
+		{
+			return GetName() == FieldName;
 		}
 
 	private:

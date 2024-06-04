@@ -7,7 +7,10 @@
 #include "Containers/FString.h"
 
 
-struct ENGINE_API ObjectPropertyTag {};
+struct ENGINE_API ObjectPropertyTag
+{
+	virtual ~ObjectPropertyTag() = default;
+};
 
 struct ENGINE_API Drag_ : public ObjectPropertyTag
 {
