@@ -129,7 +129,6 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	{
 		ASSERTMSG(accel.size() <= instance_max_number, "Too many static mesh in scene!");
 		stream << data_buffer.subview(0, StaticMeshDatas.size()).copy_from(StaticMeshDatas.data());
-		stream << bindlessArray.update();
 	}
 	NewMeshes.clear();
 
@@ -180,10 +179,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		// StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();
-	if(bindlessArray.dirty())
-		stream << bindlessArray.update();
-	if(accel.dirty())
-		stream << accel.build();
+	if(accel.dirty()) stream << accel.build();
 }
 
 }

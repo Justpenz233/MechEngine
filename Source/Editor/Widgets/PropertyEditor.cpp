@@ -48,15 +48,20 @@ namespace MechEngine
         PropertyWidget CreateIntEditWidget()
 		{
 			return [](void* instance, Reflection::FieldAccessor& Field) {
-				static int Value;
-				Value = Field.get<int>(instance);
-				std::string Lable = Field.getFieldName();
+				auto Value = static_cast<int*>(Field.get(instance));
+				std::string	 Lable = Field.getFieldName();
 				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
-				ImGui::InputInt("", &Value);
-				if (ImGui::IsItemDeactivatedAfterEdit())
-					Field.set(instance, &Value);
+				if(auto SlideTag = Field.GetPropertyTag<Slide_>())
+				{
+					ImGui::SliderInt("", Value, SlideTag->GetMin(), SlideTag->GetMax());
+				} else if(auto StepTag = Field.GetPropertyTag<Step_>())
+				{
+					ImGui::InputInt("", Value, StepTag->GetStep(), StepTag->GetStep() * 10);
+				}else ImGui::InputInt("", Value);
+				if(ImGui::IsItemDeactivatedAfterEdit())
+					Field.set(instance, Value);
 				ImGui::PopID();
 			};
 		}
@@ -83,44 +88,48 @@ namespace MechEngine
 		PropertyWidget CreateFloatEditWidget()
 		{
 			return [](void* instance, Reflection::FieldAccessor& Field) {
-				static float Value;
-				Value = Field.get<float>(instance);
+				auto Value = static_cast<float*>(Field.get(instance));
 				std::string	 Lable = Field.getFieldName();
 				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
-				// if(auto SlideTag = Field.GetPropertyTag<Slide_>())
-				// {
-				// 	ImGui::SliderFloat("", &Value, SlideTag->GetMin(), SlideTag->GetMax());
-				// } else   // Have critical bugs, should make Imgui ClassOriented
+				if(auto SlideTag = Field.GetPropertyTag<Slide_>())
+				{
+					ImGui::SliderFloat("", Value, SlideTag->GetMin(), SlideTag->GetMax());
+				} else   // Have critical bugs, should make Imgui ClassOriented
 				if(auto StepTag = Field.GetPropertyTag<Step_>())
 				{
-					ImGui::InputFloat("", &Value, StepTag->GetStep(), StepTag->GetStep() * 10);
-					Value = std::clamp(Value, StepTag->GetMin(), StepTag->GetMax());
+					ImGui::InputFloat("", Value, StepTag->GetStep(), StepTag->GetStep() * 10);
+					*Value = std::clamp(*Value, StepTag->GetMin(), StepTag->GetMax());
 				}
 				else
-					ImGui::InputFloat("", &Value);
+					ImGui::InputFloat("", Value);
 
 				if(ImGui::IsItemDeactivatedAfterEdit())
-					Field.set(instance, &Value);
+					Field.set(instance, Value);
 				ImGui::PopID();
 			};
 		}
 		PropertyWidget CreateDoubleEditWidget()
 		{
         	return [](void* instance, Reflection::FieldAccessor& Field) {
-        		static float Value;
-        		Value = Field.get<double>(instance);
+        		auto Value = static_cast<double*>(Field.get(instance));
+        		auto fValue = static_cast<float>(*Value);
         		std::string	 Lable = Field.getFieldName();
         		Lable = UI::PretifyUIName(Lable);
         		ShowLableLeft(Lable);
         		ImGui::PushID(Lable.c_str());
-        		ImGui::InputFloat("", &Value);
-        		if(ImGui::IsItemDeactivatedAfterEdit())
+        		if(auto SlideTag = Field.GetPropertyTag<Slide_>())
         		{
-        			double t = Value;
-        			Field.set(instance, &t);
-        		}
+        			if(ImGui::SliderFloat("", &fValue, SlideTag->GetMin(), SlideTag->GetMax()))
+        				*Value = fValue;
+        		} else if(auto StepTag = Field.GetPropertyTag<Step_>())
+        		{
+        			if(ImGui::InputFloat("", &fValue, StepTag->GetStep(), StepTag->GetStep() * 10))
+        				*Value = std::clamp(fValue, StepTag->GetMin(), StepTag->GetMax());
+        		}else if(ImGui::InputFloat("", &fValue)) *Value = fValue;
+        		if(ImGui::IsItemDeactivatedAfterEdit())
+        			Field.set(instance, Value);
         		ImGui::PopID();
         	};
 		}

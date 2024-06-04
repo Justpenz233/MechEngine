@@ -18,7 +18,7 @@ namespace MechEngine {
 	template <class... Args>
 	bool LOG_ERROR_IF(bool Value, Args&&... args)
     {
-    	if(Value)
+    	if(Value) [[unlikely]]
     		LOG_ERROR(std::forward<Args>(args)...);
     	return Value;
     }
@@ -33,7 +33,7 @@ namespace MechEngine {
 	template <class... Args>
 	bool LOG_WARNING_IF(bool Value, Args&&... args)
     {
-	    if(Value)
+	    if(Value) [[unlikely]]
 	    	LOG_WARNING(std::forward<Args>(args)...);
     	return Value;
     }
@@ -66,7 +66,7 @@ namespace MechEngine {
     template<typename... Args>
 	void __M_AssertMSG(const char* expr_str, bool expr, const char* file, int line, Args... args)
     {
-        if (!expr)
+        if (!expr) [[unlikely]]
         {
             LOG_CRITICAL(args...);
             LOG_CRITICAL("Assert failed, Expected:\t {0}", expr_str);
@@ -77,7 +77,7 @@ namespace MechEngine {
 
 	inline void __M_Assert(const char* expr_str, bool expr, const char* file, int line)
     {
-        if (!expr)
+        if (!expr) [[unlikely]]
         {
             LOG_CRITICAL("Assert failed: Expected:\t {0}\n Source:\t\t {1}, line {2} \n", expr_str, file, line);
             abort();

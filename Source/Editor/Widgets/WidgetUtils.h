@@ -33,4 +33,6 @@ namespace MechEngine::UI
 
 	void DrawObjectPanel(class Object* Obj);
 
+	void DrawPropertyPanel(class Object* Obj, Reflection::FieldAccessor& Property);
+
 } // namespace MechEngine::Editor

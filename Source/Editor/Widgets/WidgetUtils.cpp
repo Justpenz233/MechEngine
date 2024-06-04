@@ -11,35 +11,50 @@
 void UI::DrawObjectPanel(Object* Obj)
 {
 	auto Properties = Obj->GetAllPropertyAceessors();
-	if(Properties.empty()) return;
+	if (Properties.empty())
+		return;
 	ImGui::PushID(Obj);
 	for (auto Property : Properties)
 	{
-		if(Property.isEnumType())
-		{
-			auto Accessor = Property.GetEnumAccessor(Obj);
-			if(auto EditWidget = Widgets::PropertyEditDraw(Accessor))
-				EditWidget(Accessor);
-		}
-		else if (Property.isPointerType())
-		{
-			auto Accessor = Property.GetPointerAccessor(Obj);
-			if(auto Ptr = static_cast<Object*>(Accessor.GetPointer()))
-			{
-				if(ImGui::TreeNodeEx((ICON_FA_LINK "  " + UI::GetObjectDisplayName(Ptr)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					DrawObjectPanel(Ptr);
-					ImGui::TreePop();
-				}
-			}
-		}
-		else
-		{
-			auto EditWidget = Widgets::PropertyEditDraw(Property);
-			if(EditWidget) EditWidget(Obj, Property);
-		}
+		//@warning We need to gather all the properties with the same category and draw them together otherwise the ImGui::TreeNodeEx will not work properly
+		// if (auto Category = Property.GetPropertyTag<Category_>())
+		// {
+		// 	if (ImGui::TreeNodeEx(Category->ParseCategory()[0].c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+		// 	{
+		// 		DrawPropertyPanel(Obj, Property);
+		// 		ImGui::TreePop();
+		// 	}
+		// }
+		// else
+			DrawPropertyPanel(Obj, Property);
 	}
 	ImGui::PopID();
+}
+void UI::DrawPropertyPanel(Object* Obj, Reflection::FieldAccessor& Property)
+{
+	if(Property.isEnumType())
+	{
+		auto Accessor = Property.GetEnumAccessor(Obj);
+		if(auto EditWidget = Widgets::PropertyEditDraw(Accessor))
+			EditWidget(Accessor);
+	}
+	else if (Property.isPointerType())
+	{
+		auto Accessor = Property.GetPointerAccessor(Obj);
+		if(auto Ptr = static_cast<Object*>(Accessor.GetPointer()))
+		{
+			if(ImGui::TreeNodeEx((ICON_FA_LINK "  " + UI::GetObjectDisplayName(Ptr)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				DrawObjectPanel(Ptr);
+				ImGui::TreePop();
+			}
+		}
+	}
+	else
+	{
+		auto EditWidget = Widgets::PropertyEditDraw(Property);
+		if(EditWidget) EditWidget(Obj, Property);
+	}
 }
 
 void UI::DrawActorPanel(ObjectPtr<class Actor> Actor)
