@@ -12,22 +12,48 @@ struct ENGINE_API ObjectPropertyTag
 	virtual ~ObjectPropertyTag() = default;
 };
 
-struct ENGINE_API Drag_ : public ObjectPropertyTag
+/***
+ * Create a drag slider widget for the property, in range [ValueMin, ValueMax] with step SlideStep
+ */
+struct ENGINE_API Slide_ : public ObjectPropertyTag
 {
-	explicit constexpr Drag_(float InValueMin = 0.f, float InValueMax = 1.f, float InDragStep = 0.01f)
-		: ValueMin(InValueMin), ValueMax(InValueMax), DragStep(InDragStep) {}
+	explicit constexpr Slide_(float InValueMin = 0.f, float InValueMax = 1.f)
+		: ValueMin(InValueMin), ValueMax(InValueMax){}
 
 	[[nodiscard]] constexpr float GetMin() const { return ValueMin; }
 	[[nodiscard]] constexpr float GetMax() const { return ValueMax; }
-	[[nodiscard]] constexpr float GetDragStep() const { return DragStep; }
 
 protected:
 	float ValueMin;
 	float ValueMax;
-	float DragStep;
 };
 
+/***
+ * Create a step widget(with button + and - ) for the property, in range [ValueMin, ValueMax] with step
+ */
+struct ENGINE_API Step_ : public ObjectPropertyTag
+{
+	explicit constexpr Step_(float InValueMin, float InValueMax, float InStep)
+		: ValueMin(InValueMin), ValueMax(InValueMax), Step(InStep) {}
 
+	explicit constexpr Step_(float InValueMin = 0.f, float InValueMax = 1.f)
+			: ValueMin(InValueMin), ValueMax(InValueMax), Step((InValueMin + InValueMax) / 5.f ) {}
+
+
+	[[nodiscard]] constexpr float GetMin() const { return ValueMin; }
+	[[nodiscard]] constexpr float GetMax() const { return ValueMax; }
+	[[nodiscard]] constexpr float GetStep() const { return Step; }
+
+protected:
+	float ValueMin;
+	float ValueMax;
+	float Step;
+};
+
+/***
+ * Create a category for the property, the category should split by '|' as the delimiter, represent the category from root to leaf
+ * Example: Category_("Rendering|Shadow")
+ */
 struct ENGINE_API Category_ : public ObjectPropertyTag
 {
 public:

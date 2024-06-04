@@ -89,7 +89,18 @@ namespace MechEngine
 				Lable = UI::PretifyUIName(Lable);
 				ShowLableLeft(Lable);
 				ImGui::PushID(Lable.c_str());
-				ImGui::InputFloat("", &Value);
+				// if(auto SlideTag = Field.GetPropertyTag<Slide_>())
+				// {
+				// 	ImGui::SliderFloat("", &Value, SlideTag->GetMin(), SlideTag->GetMax());
+				// } else   // Have critical bugs, should make Imgui ClassOriented
+				if(auto StepTag = Field.GetPropertyTag<Step_>())
+				{
+					ImGui::InputFloat("", &Value, StepTag->GetStep(), StepTag->GetStep() * 10);
+					Value = std::clamp(Value, StepTag->GetMin(), StepTag->GetMax());
+				}
+				else
+					ImGui::InputFloat("", &Value);
+
 				if(ImGui::IsItemDeactivatedAfterEdit())
 					Field.set(instance, &Value);
 				ImGui::PopID();
