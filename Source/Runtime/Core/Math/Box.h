@@ -213,11 +213,11 @@ struct TBox
 	/**
 	 * Calculate line intersection of this bounding box.
 	 * @see https://en.wikipedia.org/wiki/Slab_method
-	 * @param Origin The start of the line.
-	 * @param Dir The direction of the line.
-	 * @return Intersection point t as Origin + t * Dir.
+	 * @param Start The start of the line.
+	 * @param End The End of the line.
+	 * @return Intersection point t as Start + t * Dir. Empty array if no intersection.
 	 */
-	FORCEINLINE TArray<T> Intersect(const Vector3<T>& Origin, const Vector3<T>& Dir) const;
+	FORCEINLINE TArray<T> Intersect(const Vector3<T>& Start, const Vector3<T>& End) const;
 
 	/**
 	 * Checks whether the given line intersects (or is contained in) this bounding box.
@@ -265,11 +265,13 @@ bool TBox<T>::Intersect(const TBox<T>& Other) const
 }
 
 template <class T>
-TArray<T> TBox<T>::Intersect(const Vector3<T>& Origin, const Vector3<T>& Dir) const
+TArray<T> TBox<T>::Intersect(const Vector3<T>& Start, const Vector3<T>& End) const
 {
 	T tmin, tmax;
-	igl::ray_box_intersect(Origin, Dir, Eigen::AlignedBox<T, 3>(Min, Max), 0., 1., tmin, tmax);
-	return {tmin, tmax};
+	if(igl::ray_box_intersect(Start, End - Start, Eigen::AlignedBox<T, 3>(Min, Max), 0., 1., tmin, tmax))
+		return {tmin, tmax};
+	else
+		return {};
 }
 
 template <class T>
