@@ -109,6 +109,16 @@ public:
         return SurfaceComponent->Projection(GetFTransform().Inverse() * Point);
     }
 
+	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point) const
+	{
+		return SurfaceComponent->ProjectionThickness(GetFTransform().Inverse() * Point);
+	}
+
+	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const
+	{
+		return SurfaceComponent->ProjectionThickness(GetFTransform().Inverse() * Point, ThicknessSample);
+	}
+
 	FORCEINLINE bool IsClosed()
     {
 	    return false;

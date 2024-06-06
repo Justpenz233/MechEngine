@@ -8,9 +8,7 @@
 #include "igl/per_corner_normals.h"
 
 ParametricSurfaceComponent::ParametricSurfaceComponent(ObjectPtr<ParametricSurface> NewSurface, double InThickness)
-:SurfaceData(NewSurface), Thickness(InThickness)
-{
-}
+:SurfaceData(NewSurface) {MeshThickness = InThickness;}
 
 void ParametricSurfaceComponent::Init()
 {
@@ -22,8 +20,7 @@ void ParametricSurfaceComponent::Init()
 void ParametricSurfaceComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
 	StaticMeshComponent::PostEdit(Field);
-	String FieldName = Field.getFieldName();
-	if (FieldName == "Thickness")
+	if (Field == NAME(MeshThickness))
 	{
 		Remesh();
 		MarkAsDirty(DIRTY_RENDERDATA);
@@ -89,7 +86,7 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
 
 
 void ParametricSurfaceComponent::Triangular() {
-    double ThicknessFix = Thickness < 1e-4 ? 1e-3 : Thickness; // When nearlly zero, set to 1e-3 as alternative of two sided surface
+    double ThicknessFix = MeshThickness < 1e-4 ? 1e-3 : MeshThickness; // When nearlly zero, set to 1e-3 as alternative of two sided surface
 
     auto Inner  = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, -ThicknessFix*0.5);}, true, SurfaceData->bIsClosed);
     auto Outter = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, ThicknessFix*0.5);}, false, SurfaceData->bIsClosed);
@@ -144,15 +141,15 @@ void ParametricSurfaceComponent::Triangular() {
     assert(SupossedTriangleNum == TriangleIndex);
 }
 
-FVector ParametricSurfaceComponent::Sample(double u, double v) const {
+FVector ParametricSurfaceComponent::Sample(const double u, const double v) const {
     return SurfaceData->Sample(u, v);
 }
 
 FVector ParametricSurfaceComponent::SampleThickness(double u, double v) const {
-    return SurfaceData->SampleThickness(u, v, Thickness);
+    return SurfaceData->SampleThickness(u, v, MeshThickness * 0.5);
 }
 
-FVector ParametricSurfaceComponent::SampleThickness(double u, double v, double ThicknessSample) const
+FVector ParametricSurfaceComponent::SampleThickness(const double u, const double v, const double ThicknessSample) const
 {
     return SurfaceData->SampleThickness(u, v, ThicknessSample);
 }
@@ -165,7 +162,7 @@ void ParametricSurfaceComponent::Remesh()
 
 void ParametricSurfaceComponent::SetThickness(double InThickness)
 {
-    Thickness = InThickness;
+    MeshThickness = InThickness;
 	Remesh();
 	MarkAsDirty(DIRTY_RENDERDATA);
 }

@@ -283,7 +283,16 @@ FORCEINLINE Math::FBox StaticMesh::GetBoundingBox() const
 
 FORCEINLINE void StaticMesh::OnGeometryUpdate()
 {
-	ASSERTMSG(triM.maxCoeff() < verM.rows(), "Invalid triangle index");
+	if(triM.rows() == 0 || verM.rows() == 0)
+	{
+		LOG_ERROR("StaticMesh constructed with null geometry data");
+		return;
+	}
+	if(triM.maxCoeff() >= verM.rows())
+	{
+		LOG_ERROR("Invalid triangle index, max triangle index: {}, vertex number: {}", triM.maxCoeff(), verM.rows());
+		return;
+	}
 	UpdateBoundingBox();
 	CalcNormal();
 	OnGeometryUpdateDelegate.Broadcast();

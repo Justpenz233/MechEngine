@@ -11,19 +11,16 @@ class ENGINE_API ParametricSurfaceComponent : public ParametricMeshComponent
 protected:
     ObjectPtr<ParametricSurface> SurfaceData;
 
-	ParametricSurfaceComponent() {}
+	ParametricSurfaceComponent() = default;
     int RullingLineNumU = 128;
     int RullingLineNumV = 32;
 
-	MPROPERTY()
-    double Thickness      = 0.05;
-
 public:
 	// Thickness will be sampled from [-HalfThickness, HalfThickness]
-    ParametricSurfaceComponent(ObjectPtr<ParametricSurface> NewSurface, double InThickness = 0.05);
+    explicit ParametricSurfaceComponent(ObjectPtr<ParametricSurface> NewSurface, double InThickness = 0.05);
 
 	template<class T, class ...Args>
-	ParametricSurfaceComponent(double InThickness = 0.05, Args&& ...args) : ParametricSurfaceComponent(NewObject<T>(args...)) { Thickness = InThickness; }
+	explicit ParametricSurfaceComponent(double InThickness = 0.05, Args&& ...args) : ParametricSurfaceComponent(NewObject<T>(args...)) { MeshThickness = InThickness; }
 
     virtual void Init() override;
 
@@ -31,19 +28,16 @@ public:
 	
     static ObjectPtr<StaticMesh> TriangularSurface(int NumU, int NumV, std::function<FVector(double, double)> SampleFunc, bool NormalInside, bool ClosedSurface = false);
 
-	FORCEINLINE bool ValidUV(double u, double v) const override
-	{
-		return true;
-	}
+	FORCEINLINE bool ValidUV(double u, double v) const override { return true; }
 
     //Sample at inner surface (thickness = 0)
     virtual FVector Sample(double u, double v) const override;
 
-    //Sample at outter surface 
+    //Sample at outter surface (Sample thickness at Thickness*0.5f)
     virtual FVector SampleThickness(double u, double v) const override;
 
-    /// Override this method Is ALL YOU NEED
-    /// @math x(u,v) = Directrix(u) + v * DirectorCur    ve(u),
+    /// Override this method Is ALL YOU NEED for building a mesh of a parametric surface
+    /// @math x(u,v) = Directrix(u) + v * DirectorCurve(u),
     /// @see https://mathworld.wolfram.com/RuledSurface.html
     virtual FVector SampleThickness(double u, double v, double ThicknessSample) const override;
 
@@ -57,7 +51,22 @@ public:
 	
 	FORCEINLINE virtual FVector SampleTangentV(double u, double v) const override;
 
+	/***
+	 * Project a 3D point to 2D UV coordinate, at thickness = 0 space.
+	 * @param Point 3D point
+	 * @return 2D UV coordinate
+	 */
 	FORCEINLINE virtual FVector2 Projection(const FVector& Point) const override;
+
+	/***
+	 * Project a 3D point to 2D UV coordinate, at thickness = ThicknessSample space.
+	 * @param Point 3D point
+	 * @param ThicknessSample Thickness sample
+	 * @return 2D UV coordinate
+	 */
+	FORCEINLINE virtual FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const override;
+	FORCEINLINE virtual FVector2 ProjectionThickness(const FVector& Point) const override; // Projection at outter surface
+
 
 	/**
 	 * A UV Path, direct path from Start to End
@@ -68,10 +77,11 @@ public:
 	TArray<FVector> UVPath(const FVector& Start, const FVector& End) const;
 
 	virtual void Remesh() override;
+
     /// Triangular this surface 
     virtual void Triangular();
 
-	virtual double GetThickness() const override { return Thickness; }
+	virtual double GetThickness() const override { return MeshThickness; }
 
 	virtual void SetThickness(double InThickness) override;
 
@@ -165,4 +175,14 @@ FVector ParametricSurfaceComponent::SampleTangentV(double u, double v) const
 FVector2 ParametricSurfaceComponent::Projection(const FVector& Point) const
 {
 	return SurfaceData->Projection(Point);
+}
+
+FVector2 ParametricSurfaceComponent::ProjectionThickness(const FVector& Point, double ThicknessSample) const
+{
+	return SurfaceData->ProjectionThickness(Point, ThicknessSample);
+}
+
+FVector2 ParametricSurfaceComponent::ProjectionThickness(const FVector& Point) const
+{
+	return SurfaceData->ProjectionThickness(Point, MeshThickness * 0.5);
 }

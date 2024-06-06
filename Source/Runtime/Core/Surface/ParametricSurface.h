@@ -56,6 +56,14 @@ public:
 	// By default using a numeric method solve MSE problem
 	virtual Vector2d Projection(const FVector& Pos) const;
 
+	/***
+	 * Find a point on the surface in given thickness, minimize the distance between the point and the given position
+	 * @param Pos Given position in world space
+	 * @param Thickness Thickness of the surface to sample
+	 * @return UV coordinate which is closest to the point
+	 */
+	virtual Vector2d ProjectionThickness(const FVector& Pos, double Thickness) const;
+
 	virtual Vector2d ProjectionWithU(const FVector& Pos, double U) const
 	{
 		ASSERTMSG(false, "Not Implemented");

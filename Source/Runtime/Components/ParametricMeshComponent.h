@@ -16,9 +16,6 @@ MCLASS(ParametricMeshComponent)
 class ENGINE_API ParametricMeshComponent : public StaticMeshComponent
 {
 	REFLECTION_BODY(ParametricMeshComponent)
-protected:
-	ParametricMeshComponent() = default;
-
 public:
 
 	/**
@@ -79,13 +76,35 @@ public:
 		return {};
 	}
 
-	/**
-	 * Project a point to the surface
+	/***
+	 * Project a point to the surface at thickness = 0
 	 * \min ||Sample(UV) - Point||
 	 * @param Point Position in world space
 	 * @return UV coordinate which is closest to the point
 	 */
 	virtual FVector2 Projection(const FVector& Point) const
+	{
+		ASSERTMSG(false, "Not implemented");
+		return {};
+	}
+
+	/***
+	 * Project a point to the surface at given thickness
+	 * \min ||SampleThickness(U, V, thickness) - Point||
+	 * @param Point Position in world space
+	 * @return UV coordinate which is closest to the point
+	 */
+	virtual FVector2 ProjectionThickness(const FVector& Point, double Thickness) const
+	{
+		ASSERTMSG(false, "Not implemented");
+		return {};
+	}
+
+	/***
+	 * Project a point to the surface at outter surface
+	 * i.e. Thickness = MeshThickness * 0.5
+	 */
+	virtual FVector2 ProjectionThickness(const FVector& Point) const
 	{
 		ASSERTMSG(false, "Not implemented");
 		return {};
@@ -133,4 +152,10 @@ public:
 		return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
 				StartTriIndex, EndTriIndex);;
 	}
+
+protected:
+	ParametricMeshComponent() = default;
+
+	MPROPERTY()
+	double MeshThickness = 0.05;
 };

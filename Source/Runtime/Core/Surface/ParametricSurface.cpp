@@ -7,7 +7,14 @@
 
 Vector2d ParametricSurface::Projection(const FVector& Pos) const
 {
-    return Algorithm::GeometryProcess::Projection(Pos, [&](const FVector2& UV) {
+	return Algorithm::GeometryProcess::Projection(Pos, [&](const FVector2& UV) {
 		return Sample(UV[0], UV[1]);
+	});
+}
+
+Vector2d ParametricSurface::ProjectionThickness(const FVector& Pos, double Thickness) const
+{
+	return Algorithm::GeometryProcess::Projection(Pos, [&](const FVector2& UV) {
+		return SampleThickness(UV[0], UV[1], Thickness);
 	});
 }
