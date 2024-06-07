@@ -50,6 +50,14 @@ IGL_INLINE void igl::swept_volume_signed_distance(
     V,F,PER_EDGE_NORMALS_WEIGHTING_TYPE_UNIFORM,FN,EN,E,EMAP);
   AABB<MatrixXd,3> tree;
   tree.init(V,F);
+
+	igl::FastWindingNumberBVH fwn_bvh;
+	int order = 2;
+	igl::fast_winding_number(V,F,order,fwn_bvh);
+	igl::WindingNumberAABB<Eigen::RowVector3d,Eigen::MatrixXd,Eigen::MatrixXi> hier;
+	hier.set_mesh(V,F);
+	hier.grow();
+
   for(int ti = 0;ti<t.size();ti++)
   {
     const Affine3d At = transform(t(ti));
@@ -78,7 +86,8 @@ IGL_INLINE void igl::swept_volume_signed_distance(
       sqrd = tree.squared_distance(V,F,gv,min_sqrd,i,c);
       if(sqrd<min_sqrd)
       {
-        pseudonormal_test(V,F,FN,VN,EN,EMAP,gv,i,c,s,n);
+      	double w = fast_winding_number(fwn_bvh, 2, gv.template cast<float>());
+      	s = 1.-2.*std::abs(w);
         if(S(g) == S(g))
         {
           S(g) = std::min(S(g),s*sqrt(sqrd));

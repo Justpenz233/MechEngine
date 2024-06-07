@@ -8,7 +8,6 @@
 #include <bvh/v2/tri.h>
 #include "Components/ParametricMeshComponent.h"
 
-
 struct UVMappingMeshResult
 {
 	bool Valid;
@@ -35,9 +34,6 @@ public:
 	MatrixX3d UVMesh;
 	MatrixX3d Vertices;
 	MatrixX3i Indices;
-
-	MPROPERTY()
-	bool bShowUV = false; // Show uv
 
 	SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh);
 
