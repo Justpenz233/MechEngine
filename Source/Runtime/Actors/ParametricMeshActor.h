@@ -1,11 +1,17 @@
 #pragma once
 #include "Components/ParametricSurfaceComponent.h"
 #include "Components/SCAFParametricMeshComponent.h"
+#include "Components/SCParametricMeshComponent.h"
 #include "CoreMinimal.h"
 #include "Game/Actor.h"
 
-MCLASS(ParametricMeshActor)
+enum ParametrizationMethod
+{
+	SphereicalConformal, // Require a closed mesh with genus 0, overlapping free
+	SCAF // Require an open mesh (Simplicial Complex Augmentation Framework)
+};
 
+MCLASS(ParametricMeshActor)
 class ParametricMeshActor : public Actor
 {
     REFLECTION_BODY(ParametricMeshActor)
@@ -37,9 +43,12 @@ public:
     }
 
 	// Construct with a SARFParametricMeshComponent
-	ParametricMeshActor(const ObjectPtr<StaticMesh>& InitMesh)
+	ParametricMeshActor(const ObjectPtr<StaticMesh>& InitMesh, ParametrizationMethod Method)
     {
-    	SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(InitMesh);
+    	if(Method == SphereicalConformal)
+			SurfaceComponent = AddComponent<SCParametricMeshComponent>(InitMesh);
+    	if(Method == SCAF)
+    		SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(InitMesh);
     }
 
     ~ParametricMeshActor() {};

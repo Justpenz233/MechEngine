@@ -53,6 +53,7 @@ public:
 	/// @see https://mathworld.wolfram.com/RuledSurface.html
 	virtual FVector SampleThickness(double u, double v, double ThicknessSample) const
 	{
+		if(ThicknessSample == 0.) return Sample(u, v);
 		ASSERTMSG(false, "Not implemented");
 		return {};
 	}

@@ -47,6 +47,7 @@ SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 	// Laplacian K built as discrete divergence of gradient or equivalently
 	// discrete Dirichelet energy Hessian
 	K = -G.transpose() * T * G;
+	U = V;
 	for(int i = 0; i < Iteration; i ++){
 		// Recompute just mass matrix on each step
 		Eigen::SparseMatrix<double> M;
