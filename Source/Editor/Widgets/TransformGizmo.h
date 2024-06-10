@@ -4,7 +4,7 @@
 #include "UI/UIWidget.h"
 
 
-class TransformGizmo : public UIWidget
+class EDITOR_API TransformGizmo : public UIWidget
 {
 public:
     TransformGizmo():  UIWidget("GizoManager") { Visible = false; }

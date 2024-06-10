@@ -10,7 +10,7 @@
 #include "imgui.h"
 
 
-class ViewGizmo : public UIWidget
+class EDITOR_API ViewGizmo : public UIWidget
 {
 public:
     ViewGizmo():  UIWidget("ViewGizmo") { Visible = true; }

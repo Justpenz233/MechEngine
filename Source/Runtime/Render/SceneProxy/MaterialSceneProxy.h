@@ -13,7 +13,7 @@ namespace MechEngine::Rendering
 {
 using namespace luisa;
 using namespace luisa::compute;
-class MaterialSceneProxy : public SceneProxy
+class ENGINE_API MaterialSceneProxy : public SceneProxy
 {
 public:
 	MaterialSceneProxy(RayTracingScene& InScene);

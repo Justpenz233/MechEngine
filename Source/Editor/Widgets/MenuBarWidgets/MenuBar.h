@@ -36,7 +36,7 @@ struct MenuBarTreeRoot
     void Draw();
 };
 
-class MenuBar : public UIWidget
+class EDITOR_API MenuBar : public UIWidget
 {
 public:
     MenuBarTreeRoot Root;

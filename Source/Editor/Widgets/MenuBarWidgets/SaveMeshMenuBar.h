@@ -10,7 +10,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Game/Actor.h"
 
-class SaveMeshMenuBar : public MenuBarItem
+class EDITOR_API SaveMeshMenuBar : public MenuBarItem
 {
 public:
 	SaveMeshMenuBar()
@@ -31,7 +31,7 @@ public:
 	virtual void Draw() override {}
 };
 
-class SaveSceneMenuBar : public MenuBarItem
+class EDITOR_API SaveSceneMenuBar : public MenuBarItem
 {
 public:
 	SaveSceneMenuBar() : MenuBarItem(NAME(SaveSceneMenuBar)) {}

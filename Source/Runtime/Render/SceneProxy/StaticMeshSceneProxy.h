@@ -40,7 +40,7 @@ namespace MechEngine::Rendering
 {
 using namespace luisa;
 using namespace luisa::compute;
-class StaticMeshSceneProxy : public SceneProxy
+class ENGINE_API StaticMeshSceneProxy : public SceneProxy
 {
 public:
 	explicit StaticMeshSceneProxy(RayTracingScene& InScene);

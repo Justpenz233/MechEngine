@@ -7,8 +7,6 @@ set(BINARY_ROOT_DIR "${CMAKE_INSTALL_PREFIX}/")
 list(PREPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR})
 set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE INTERNAL "" FORCE)
 
-add_definitions(-w)
-
 project(MechEngineRuntime)
 file(GLOB_RECURSE ENGINE_SOURCE_FILES
         *.cpp *.ipp
@@ -23,7 +21,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_HEADER_FILES} ${E
 add_library(MechEngineRuntime SHARED ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILES})
 target_compile_features(MechEngineRuntime PUBLIC cxx_std_20)
 target_compile_definitions(MechEngineRuntime PUBLIC _USE_MATH_DEFINES)
-
+target_compile_definitions(MechEngineRuntime PRIVATE ENGINE_API_EXPORT)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
     # Set debug-specific options
     set(SANITIZE_FLAGS "-fsanitize=undefined,return")
@@ -43,8 +41,8 @@ if(MSVC)
     target_compile_options(MechEngineRuntime PUBLIC /W0)
     set_target_properties(MechEngineRuntime PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS FALSE)
     target_compile_definitions(MechEngineRuntime PUBLIC
-            "IMGUI_API=__declspec(dllexport)"
-            "IMGUI_IMPL_API=__declspec(dllexport)")
+            "IMGUI_API=__declspec(dllimport)"
+            "IMGUI_IMPL_API=__declspec(dllimport)")
 endif()
 
 target_include_directories(MechEngineRuntime PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

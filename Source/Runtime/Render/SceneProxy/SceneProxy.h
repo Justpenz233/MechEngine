@@ -4,7 +4,7 @@
 
 #pragma once
 #include <luisa/luisa-compute.h>
-
+#include "Misc/Platform.h"
 namespace luisa::compute {
 class BindlessArray;
 class Accel;
@@ -25,7 +25,7 @@ namespace MechEngine::Rendering
 // A scene proxy is a data structure that holds the data for collection of a specific type of scene object, like a light or a camera.
 // Usually should provide a AddXXX and UpdateXXX function to add or update to the proxy;
 // It is used to upload the data to the GPU, and to keep track of what data has changed.
-class SceneProxy
+class ENGINE_API SceneProxy
 {
 public:
 	virtual ~SceneProxy() = default;

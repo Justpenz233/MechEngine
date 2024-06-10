@@ -51,7 +51,7 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 
-    class LineSceneProxy : public SceneProxy
+    class ENGINE_API LineSceneProxy : public SceneProxy
     {
     public:
         explicit LineSceneProxy(RayTracingScene& InScene) noexcept;

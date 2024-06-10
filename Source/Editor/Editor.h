@@ -17,7 +17,7 @@ DECLARE_MULTICAST_DELEGATE(KeyPressedEvent);
  * MechEngine Editor for multi world
  * First Init the editor, then load the world
  */
-class ENGINE_API Editor
+class EDITOR_API Editor
 {
 public:
     static Editor &Get();

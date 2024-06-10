@@ -71,18 +71,11 @@ ENGINE_API std::tuple<bool, FVector, FVector>
 TriangleIntersectTriangle(const FVector& A0, const FVector& A1, const FVector& A2, const FVector& B0, const FVector& B1, const FVector& B2);
 
 /**
- * \brief Check if a mesh intersect with a box
- * \return true if intersect
+ * Check if a mesh intersect with a box
+ * @return true if intersect
  */
 template <class T>
-ENGINE_API bool MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const TBox<T>& Box);
-
-};
-
-
-
-template <class T>
-bool MechEngine::Math::MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const TBox<T>& Box)
+ENGINE_API bool MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const TBox<T>& Box)
 {
 	FBox MeshBox = Mesh->GetBoundingBox();
 	if (!MeshBox.Intersect(Box))
@@ -96,3 +89,8 @@ bool MechEngine::Math::MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const
 
 	return false;
 }
+
+};
+
+
+

@@ -37,7 +37,7 @@ using namespace luisa;
 using namespace luisa::compute;
 
 // Currently support only one camera
-class CameraSceneProxy : public SceneProxy
+class ENGINE_API CameraSceneProxy : public SceneProxy
 {
 public:
 	explicit CameraSceneProxy(RayTracingScene& InScene);

@@ -14,7 +14,7 @@ namespace MechEngine::Rendering
 	using namespace luisa;
 	using namespace luisa::compute;
 
-	class TransformSceneProxy : public SceneProxy
+	class ENGINE_API TransformSceneProxy : public SceneProxy
 	{
 	public:
 		explicit TransformSceneProxy(RayTracingScene& InScene);

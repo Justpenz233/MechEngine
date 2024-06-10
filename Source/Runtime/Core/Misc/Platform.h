@@ -29,7 +29,18 @@ typedef unsigned char uint8;
 
 // Export dll symbol
 #ifdef _MSC_VER
-	#define ENGINE_API __declspec(dllexport)
+	#ifdef ENGINE_API_EXPORT
+		#define ENGINE_API __declspec(dllexport)
+	#else
+		#define ENGINE_API __declspec(dllimport)
+	#endif
+
+	#ifdef EDITOR_API_EXPORT
+		#define EDITOR_API __declspec(dllexport)
+	#else
+		#define EDITOR_API __declspec(dllimport)
+	#endif
 #else
 	#define ENGINE_API
+	#define EDITOR_API
 #endif

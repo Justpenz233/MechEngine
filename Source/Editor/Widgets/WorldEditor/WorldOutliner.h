@@ -7,7 +7,7 @@
 #include "Core/CoreMinimal.h"
 
 class Actor;
-class WorldOutliner : public UIWidget
+class EDITOR_API WorldOutliner : public UIWidget
 {
 public:
 	explicit WorldOutliner() : UIWidget("WorldOutliner") {}
