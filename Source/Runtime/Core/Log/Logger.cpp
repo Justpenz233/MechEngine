@@ -27,7 +27,7 @@ namespace MechEngine
         return logger;
     }
 
-    std::string GetFileName()
+    auto GetLogFileName()
     {
         auto now = std::chrono::system_clock::now();
         auto in_time_t = std::chrono::system_clock::to_time_t(now);
@@ -35,17 +35,18 @@ namespace MechEngine
         std::stringstream ss;
     	ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d-%H-%M-%S");
     	std::string FileName = ss.str() + ".log";
-    	return (Path::ProjectLogDir()/ FileName).make_preferred().string();
+    	return (Path::ProjectLogDir()/ FileName).make_preferred();
     }
 
     Logger::Logger()
     {
         size_t q_size = 8192;
         spdlog::init_thread_pool(q_size, 1);
-
-        auto FileName = GetFileName();
+		if(!Path::ProjectLogDir().Existing())
+			create_directories(Path::ProjectLogDir());
+        auto FileName = GetLogFileName();
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(FileName, true);
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(FileName.string(), true);
         std::vector<spdlog::sink_ptr> sinks {console_sink, file_sink};
         AsyncLogger = std::make_shared<spdlog::async_logger>("Log", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::overrun_oldest);
 		AsyncLogger->flush_on(spdlog::level::level_enum::info);

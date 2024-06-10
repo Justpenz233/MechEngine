@@ -75,7 +75,7 @@ TriangleIntersectTriangle(const FVector& A0, const FVector& A1, const FVector& A
  * @return true if intersect
  */
 template <class T>
-ENGINE_API bool MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const TBox<T>& Box)
+inline bool MeshIntersectBox(const ObjectPtr<StaticMesh>& Mesh, const TBox<T>& Box)
 {
 	FBox MeshBox = Mesh->GetBoundingBox();
 	if (!MeshBox.Intersect(Box))

@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <cassert>
 
 #include "Reflection/json.h"
 #include "Reflection/reflection/reflection.h"

@@ -31,6 +31,9 @@ protected:
 	{
 		ObjectName = Name;
 	}
+	UIWidget(const UIWidget&) = delete;
+	UIWidget(UIWidget&&) = delete;
+	UIWidget& operator=(const UIWidget&) = delete;
 
 	friend class World;
 

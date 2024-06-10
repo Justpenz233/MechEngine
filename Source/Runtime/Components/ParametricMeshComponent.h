@@ -100,10 +100,12 @@ public:
 	 * Project a point to the surface at given thickness
 	 * \min ||SampleThickness(U, V, thickness) - Point||
 	 * @param Point Position in world space
+	 * @param Thickness Thickness to project
 	 * @return UV coordinate which is closest to the point
 	 */
 	virtual FVector2 ProjectionThickness(const FVector& Point, double Thickness) const
 	{
+		if(Thickness == 0.) return Projection(Point);
 		ASSERTMSG(false, "Not implemented");
 		return {};
 	}
@@ -114,6 +116,7 @@ public:
 	 */
 	virtual FVector2 ProjectionThickness(const FVector& Point) const
 	{
+		if (MeshThickness == 0.) return Projection(Point);
 		ASSERTMSG(false, "Not implemented");
 		return {};
 	}
@@ -165,5 +168,5 @@ protected:
 	ParametricMeshComponent() = default;
 
 	MPROPERTY()
-	double MeshThickness = 0.05;
+	double MeshThickness = 0.;
 };

@@ -82,85 +82,86 @@ public:
     }
 };
 
-// implementation of base types
 template<>
-Json Serializer::write(const char& instance);
-template<>
-char& Serializer::read(const Json& json_context, char& instance);
-
-template<>
-Json Serializer::write(const int& instance);
-template<>
-int& Serializer::read(const Json& json_context, int& instance);
-
-template<>
-Json Serializer::write(const unsigned int& instance);
-template<>
-unsigned int& Serializer::read(const Json& json_context, unsigned int& instance);
-
-template<>
-Json Serializer::write(const float& instance);
-template<>
-float& Serializer::read(const Json& json_context, float& instance);
-
-template<>
-Json Serializer::write(const double& instance);
-template<>
-double& Serializer::read(const Json& json_context, double& instance);
-
-template<>
-Json Serializer::write(const bool& instance);
-template<>
-bool& Serializer::read(const Json& json_context, bool& instance);
-
-template<>
-Json Serializer::write(const std::string& instance);
-template<>
-std::string& Serializer::read(const Json& json_context, std::string& instance);
-
-// template<>
-// Json Serializer::write(const Reflection::object& instance);
-// template<>
-// Reflection::object& Serializer::read(const Json& json_context, Reflection::object& instance);
-
-////////////////////////////////////
-////sample of generation coder
-////////////////////////////////////
-// class test_class
-//{
-// public:
-//     int a;
-//     unsigned int b;
-//     std::vector<int> c;
-// };
-// class ss;
-// class jkj;
-// template<>
-// Json Serializer::write(const ss& instance);
-// template<>
-// Json Serializer::write(const jkj& instance);
-
-/*REFLECTION_TYPE(jkj)
-CLASS(jkj,Fields)
+inline Json Serializer::write(const char& instance)
 {
-    REFLECTION_BODY(jkj);
-    int jl;
-};
-
-REFLECTION_TYPE(ss)
-CLASS(ss:public jkj,WhiteListFields)
+	return {instance};
+}
+template<>
+inline char& Serializer::read(const Json& json_context, char& instance)
 {
-    REFLECTION_BODY(ss);
-    int jl;
-};*/
+	assert(json_context.is_number());
+	return instance = json_context.number_value();
+}
 
-////////////////////////////////////
-////template of generation coder
-////////////////////////////////////
-// template<>
-// Json Serializer::write(const test_class& instance);
-// template<>
-// test_class& Serializer::read(const Json& json_context, test_class& instance);
+template<>
+inline Json Serializer::write(const int& instance)
+{
+	return {instance};
+}
+template<>
+inline int& Serializer::read(const Json& json_context, int& instance)
+{
+	assert(json_context.is_number());
+	return instance = static_cast<int>(json_context.number_value());
+}
 
-//
-////////////////////////////////////
+template<>
+inline Json Serializer::write(const unsigned int& instance)
+{
+	return {static_cast<int>(instance)};
+}
+template<>
+inline unsigned int& Serializer::read(const Json& json_context, unsigned int& instance)
+{
+	assert(json_context.is_number());
+	return instance = static_cast<unsigned int>(json_context.number_value());
+}
+
+template<>
+inline Json Serializer::write(const float& instance)
+{
+	return {instance};
+}
+template<>
+inline float& Serializer::read(const Json& json_context, float& instance)
+{
+	assert(json_context.is_number());
+	return instance = static_cast<float>(json_context.number_value());
+}
+
+template<>
+inline Json Serializer::write(const double& instance)
+{
+	return {instance};
+}
+template<>
+inline double& Serializer::read(const Json& json_context, double& instance)
+{
+	assert(json_context.is_number());
+	return instance = static_cast<float>(json_context.number_value());
+}
+
+template<>
+inline Json Serializer::write(const bool& instance)
+{
+	return {instance};
+}
+template<>
+inline bool& Serializer::read(const Json& json_context, bool& instance)
+{
+	assert(json_context.is_bool());
+	return instance = json_context.bool_value();
+}
+
+template<>
+inline Json Serializer::write(const std::string& instance)
+{
+	return {instance};
+}
+template<>
+inline std::string& Serializer::read(const Json& json_context, std::string& instance)
+{
+	assert(json_context.is_string());
+	return instance = json_context.string_value();
+}
