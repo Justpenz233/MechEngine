@@ -14,7 +14,7 @@
  */
 
 MCLASS(SCParametricMeshComponent)
-class SCParametricMeshComponent : public ParametricMeshComponent
+class ENGINE_API SCParametricMeshComponent : public ParametricMeshComponent
 {
 	REFLECTION_BODY(SCParametricMeshComponent)
 

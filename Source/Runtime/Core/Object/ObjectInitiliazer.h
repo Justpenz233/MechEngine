@@ -12,8 +12,9 @@ public:
     static MObjectInitiliazer& Get();
 };
 
+// The concept have very different behaviours in different platforms, so one condition is enough
 template<class T>
-concept DefaultConstructible = requires { T{}; } && requires {new T;};
+concept DefaultConstructible = requires { T{}; } || requires {new T;} || std::is_default_constructible_v<T>;
 
 #define CheckDefaultConstructible(class_name)\
 	static_assert(DefaultConstructible<class_name>, "\n \t MCLASS must be default constructible, add "#class_name"() = default \n");

@@ -6,10 +6,8 @@
 #include "Game/Actor.h"
 #include "Components/PointLightComponent.h"
 
-class PointLightComponent;
-
 MCLASS(PointLightActor)
-class ENGINE_API PointLightActor : public Actor
+class PointLightActor : public Actor
 {
 	REFLECTION_BODY(PointLightActor)
 public:

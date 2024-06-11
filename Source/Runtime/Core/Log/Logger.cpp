@@ -51,7 +51,7 @@ namespace MechEngine
         AsyncLogger = std::make_shared<spdlog::async_logger>("Log", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::overrun_oldest);
 		AsyncLogger->flush_on(spdlog::level::level_enum::info);
 		AsyncLogger->set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
-        AsyncLogger->info("Set default logger, {}", FileName);
+        AsyncLogger->info("Set default logger, {}", FileName.string());
 
 
 		TempLogger = spdlog::stdout_color_mt("TempLogger");

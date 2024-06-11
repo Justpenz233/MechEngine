@@ -472,7 +472,7 @@ namespace Reflection
 		void* m_instance;
 	};
 
-    class ReflectionInstance
+    class ENGINE_API ReflectionInstance
     {
     public:
         ReflectionInstance(TypeMeta meta, void* instance) : m_meta(meta), m_instance(instance)

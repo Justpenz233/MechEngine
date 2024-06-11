@@ -8,7 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 
 MCLASS(JointComponent)
-class JointComponent : public StaticMeshComponent
+class ENGINE_API JointComponent : public StaticMeshComponent
 {
 	REFLECTION_BODY(JointComponent)
 protected:

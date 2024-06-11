@@ -46,6 +46,9 @@ public:
 	}
 
 protected:
+	MaterialSceneProxy(const MaterialSceneProxy&) = delete;
+	MaterialSceneProxy& operator=(const MaterialSceneProxy&) = delete;
+	MaterialSceneProxy(MaterialSceneProxy&&) = delete;
 	static constexpr uint MaxMaterials = 8192;
 	vector<materialData> MaterialDataVector;
 	BufferView<materialData> material_data_buffer;

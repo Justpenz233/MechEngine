@@ -55,6 +55,9 @@ public:
 
 	Polymorphic<light_base> light_virtual_call;
 protected:
+	LightSceneProxy(const LightSceneProxy&) = delete;
+	LightSceneProxy& operator=(const LightSceneProxy&) = delete;
+	LightSceneProxy(LightSceneProxy&&) = delete;
 	//Light collection
 	uint id = 0;
 	static constexpr auto light_max_number = 256u;
