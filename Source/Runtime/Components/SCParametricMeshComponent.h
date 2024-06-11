@@ -18,7 +18,7 @@ class ENGINE_API SCParametricMeshComponent : public ParametricMeshComponent
 {
 	REFLECTION_BODY(SCParametricMeshComponent)
 
-	explicit SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration = 100);
+	explicit SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration = 500);
 
 	FORCEINLINE virtual FVector Sample(double U, double V) const override;
 

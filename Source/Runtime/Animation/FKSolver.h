@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/CoreMinimal.h"
 #include "Animation/Joints.h"
-class FKSolver : public Object
+class ENGINE_API FKSolver : public Object
 {
 protected:
     std::set<ObjectPtr<Joint>> JointsSet;

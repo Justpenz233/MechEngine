@@ -6,8 +6,10 @@
 
 #include "Algorithm/GeometryProcess.h"
 #include "igl/barycenter.h"
+#include "igl/barycentric_interpolation.h"
 #include "igl/cotmatrix.h"
 #include "igl/grad.h"
+#include "igl/point_mesh_squared_distance.h"
 
 #include <bvh/v2/default_builder.h>
 #include <bvh/v2/stack.h>
@@ -26,19 +28,21 @@ using Ray     = bvh::v2::Ray<Scalar, 3>;
 
 SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration)
 {
-	Eigen::MatrixXd V,U;
+	Eigen::MatrixX3d V,U;
 	Eigen::MatrixXi F;
 	Eigen::SparseMatrix<double> L;
 
 	V = InitMesh->GetVertices();
 	F = InitMesh->GetTriangles();
+	Vertices = V;
+	Indices = F;
 	// Compute Laplace-Beltrami operator: #V by #V
 	igl::cotmatrix(V,F,L);
 
 	// Alternative construction of same Laplacian
 	Eigen::SparseMatrix<double> G,K;
 	// Gradient/Divergence
-	igl::grad(V,F,G);
+	igl::grad(V, F,G);
 	// Diagonal per-triangle "mass matrix"
 	VectorXd dblA;
 	igl::doublearea(V,F,dblA);
@@ -78,6 +82,10 @@ SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
 	Config.quality = bvh::v2::DefaultBuilder<BVHNode>::Quality::High;
 	Triangles.resize(F.rows());
+	// Normalize U To box[-1, 1]
+	double Max = U.maxCoeff(); double Min = U.minCoeff();
+	U = (U.array() - Min) / (Max - Min) * 2. - 1.;
+
 	TArray<BBox> BBoxes(F.rows());
 	TArray<Vec3> Centers(F.rows());
 	auto ToVec3 = [](const FVector& T){ return Vec3(T.x(), T.y(), T.z());};
@@ -151,8 +159,9 @@ FVector2 SCParametricMeshComponent::Projection(const FVector& Point) const
 }
 SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::SampleHit(double U, double V) const
 {
+	//https://mathworld.wolfram.com/SphericalCoordinates.html
 	V = std::clamp(V, 0., 1.);
-	V = Lerp(-M_PI_2, M_PI_2, V);
+	V *= M_PI;
 
 	U = std::fmod(U, 1.);
 	if(U < 0.) U += 1.;
@@ -160,7 +169,7 @@ SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::Samp
 
 	auto ray = Ray {
 		Vec3(0., 0., 0.), // Ray direction
-		normalize(Vec3(sin(U), cos(U), tan(V))), // Ray origin
+		normalize(Vec3(sin(V) * cos(U), sin(V) * sin(U), cos(V))), // Ray origin
 	};
 
 	static constexpr size_t invalid_id = std::numeric_limits<size_t>::max();
@@ -192,11 +201,11 @@ SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::Samp
 		return {false};
 	}
 
-	auto T1 = MeshData->triM(prim_id, 0);
-	auto T2 = MeshData->triM(prim_id, 1);
-	auto T3 = MeshData->triM(prim_id, 2);
+	auto T1 = Indices(prim_id, 0);
+	auto T2 = Indices(prim_id, 1);
+	auto T3 = Indices(prim_id, 2);
 
-	auto Result = MeshData->verM.row(T1) * (1. - u - v) + MeshData->verM.row(T2) * u + MeshData->verM.row(T3) * v;
+	auto Result = Vertices.row(T1) * (1. - u - v) + Vertices.row(T2) * u + Vertices.row(T3) * v;
 
 	return {true, static_cast<int>(prim_id), u, v,{Result[0], Result[1], Result[2]}};
 }

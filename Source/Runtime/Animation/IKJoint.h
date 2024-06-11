@@ -36,7 +36,7 @@ struct IKEffectorTarget
 	}
 };
 
-class IKJoint : public Joint
+class ENGINE_API IKJoint : public Joint
 {
 protected:
     FVector RotationStiffness = FVector::Ones();

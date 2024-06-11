@@ -31,7 +31,6 @@ public:
 	{
 		v = std::clamp(v, 0., 1.);
 		u = std::fmod(u, 1.);
-		if (u < 0) u += 1.;
 	}
 
 	//Sample at inner surface (thickness = 0)

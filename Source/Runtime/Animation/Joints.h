@@ -8,7 +8,7 @@
 // Kniematic joints, in tree hireachy, represent a actor in kniematic solvers
 // Have no paramters in optimizing. 
 
-class Joint : public Object
+class ENGINE_API Joint : public Object
 {
 protected:
     bool IsRoot = false;

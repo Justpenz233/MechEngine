@@ -52,7 +52,7 @@ struct IKLossFunction : IKBaseFunctor<double>
 /// \brief An IKSolver based on Levenberg-Marquardt-Optimization of Eigen lib
 /// Cannot perform animation, only solve IK
 /// @see IKController
-class IKSolver : public FKSolver
+class ENGINE_API IKSolver : public FKSolver
 {
 protected:
 	VectorXd PreParameter;
