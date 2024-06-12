@@ -162,6 +162,21 @@ public:
 	void Scale(double InScale);
 
 	/**
+	 * Scale the mesh according to the bounding box center
+	 * @param InScale scale factor
+	 *
+	 */
+	ObjectPtr<StaticMesh> ScaleByBoundingBoxCenter(const double& InScale) {return ScaleByBoundingBoxCenter(FVector::Constant(InScale));}
+	ObjectPtr<StaticMesh> ScaleByBoundingBoxCenter(const FVector& InScale);
+
+	/**
+	 * Offset the mesh along the vertex normal direction by a distance. A.K.A shrink the mesh
+	 * @param Distance offset distance
+	 * @return offseted mesh
+	 */
+	ObjectPtr<StaticMesh> OffesetVertex(const double& Distance);
+
+	/**
 	 * Check if the mesh is self intersect
 	 * @return if the mesh is self intersect
 	 */

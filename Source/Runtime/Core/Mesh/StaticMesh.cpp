@@ -208,7 +208,26 @@ void StaticMesh::Scale(const FVector& InScale)
 
 void StaticMesh::Scale(double InScale)
 {
-	Scale({InScale, InScale, InScale});
+	Scale({ InScale, InScale, InScale });
+}
+
+ObjectPtr<StaticMesh> StaticMesh::ScaleByBoundingBoxCenter(const FVector& InScale)
+{
+	auto Center = GetBoundingBox().GetCenter();
+	ParallelFor(verM.rows(), [this, InScale, Center](int i) {
+		verM.row(i) = Center + (FVector(verM.row(i)) - Center).cwiseProduct(InScale);
+	});
+	OnGeometryUpdate();
+	return GetThis<StaticMesh>();
+}
+
+ObjectPtr<StaticMesh> StaticMesh::OffesetVertex(const double& Distance)
+{
+	ParallelFor(verM.rows(), [this, Distance](int i) {
+		verM.row(i) += Distance * VertexNormal.row(i);
+	});
+	OnGeometryUpdate();
+	return GetThis<StaticMesh>();
 }
 
 bool StaticMesh::IsSelfIntersect() const
