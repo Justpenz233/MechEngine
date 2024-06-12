@@ -25,17 +25,16 @@ public:
 
 	/**
 	 * Generate a capsule
-	 * \param Radius Radius of the capsule
-	 * \param Height Height of the capsule body, so the Box height is Height + 2 * Radius
-	 * \return
+	 * @param Radius Radius of the capsule
+	 * @param Height Height of the capsule body, so the Box height is Height + 2 * Radius
+	 * @return Mesh
 	 */
 	static ObjectPtr<StaticMesh> GenerateCapsule(double Radius, double Height, int Sample = 32, int RingSample = 32);
 
 	/**
 	 * Generate a capsule with one hat
-	 * \param Radius Radius of the capsule
-	 * \param Height Height of the capsule body, so the Box height is Height + Radius
-	 * \return
+	 * @param Radius Radius of the capsule
+	 * @param Height Height of the capsule body, so the Box height is Height + Radius
 	 */
 	static ObjectPtr<StaticMesh> GenerateOneHatCapsule(double Radius, double Height, bool bTopHat = true, int Sample = 32, int RingSample = 32);
 
@@ -51,5 +50,16 @@ public:
 
 
 	static ObjectPtr<StaticMesh> GeneratePlane();
+
+	/**
+	 * Generate a fan shape, with a height in Z direction, as (sin(theta), cos(theta), z)
+	 * @param Radius Radius of the fan
+	 * @param Height Height of the fan
+	 * @param StartAngle Start angle of the fan
+	 * @param EndAngle End angle of the fan
+	 * @param Sample Sample number of radial direction
+	 * @return A static mesh
+	 */
+	static ObjectPtr<StaticMesh> GenerateFan(double Radius, double Height, double StartAngle, double EndAngle, int Sample = 32);
 
 };

@@ -119,6 +119,43 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GeneratePlane()
 
 	return NewObject<StaticMesh>(verList, triList);
 }
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateFan(double Radius, double Height, double StartAngle, double EndAngle, int Sample)
+{
+	TArray<Vector3d> verList;
+	TArray<Vector3i> triList;
+
+
+	verList.emplace_back(0, 0, Height/2);
+	for(int i=0;i<=Sample;i++)
+	{
+		double theta = (EndAngle - StartAngle)/Sample * 1.0 * i + StartAngle;
+		verList.emplace_back(sin(theta)*Radius,  cos(theta)*Radius, Height/2);
+	}
+	verList.emplace_back(0, 0, -Height/2);
+	for(int i=0;i<=Sample;i++)
+	{
+		double theta = (EndAngle - StartAngle)/Sample * 1.0 * i + StartAngle;
+		verList.emplace_back(sin(theta)*Radius, cos(theta)*Radius, -Height/2);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// 2. Computer triangles of the fan
+	for(int i=0;i<Sample;i++)
+		triList.emplace_back(0,  i+2, i+1);
+	for(int i=Sample+2; i<Sample*2+2;i++)
+		triList.emplace_back(Sample+2, i+1, i+2);
+	for(int i=0;i<=Sample;i++)
+	{
+		triList.emplace_back(i, i+Sample+3, i+Sample+2);
+		triList.emplace_back(i, i+1, i+Sample+3);
+	}
+	triList.emplace_back(Sample+1, Sample+2, Sample+Sample+3);
+	triList.emplace_back(Sample+1, 0, Sample+2);
+
+	/////////////////////////////////////////////////////////////////////////
+	/// 3. Construct a triangular mesh of the cylinder
+	return NewObject<StaticMesh>(verList, triList);
+}
 
 ///=========================================================================================///
 ///                                         Sphere
