@@ -47,6 +47,8 @@ namespace MechEngine::Algorithm::GraphTheory
 		FORCEINLINE bool IsNodeValid(int NodeID) const;
 
 		FORCEINLINE int NodeNum() const;
+
+		FORCEINLINE const THashMap<int, NodeType>& GetNodes() const { return Nodes; }
 		/**
 		 * Get the node by ID
 		 * @param NodeID Unique ID of the node
@@ -102,9 +104,10 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * Calculate the connected components of the graph, each component is a list of node IDs
 		 * Assume the graph is undirected(AKA. all edges are bidirectional)
 		 * O(V + E)
-		 * @return List of connected components
+		 * @return List of connected components, by descending order of the size of the components
 		 */
-		TArray<TArray<int>> ConnectedComponents();
+		[[nodiscard]] TArray<TArray<int>> ConnectedComponents() const;
+		[[nodiscard]] TArray<TArray<int>> ConnectedComponents(const TFunction<bool(int)>& Visit) const;
 
 
 		/**
@@ -280,24 +283,50 @@ namespace MechEngine::Algorithm::GraphTheory
 	}
 
 	template <class NodeContentType, class EdgeContentType>
-	TArray<TArray<int>> Graph<NodeContentType, EdgeContentType>::ConnectedComponents()
+	TArray<TArray<int>> Graph<NodeContentType, EdgeContentType>::ConnectedComponents() const
 	{
-		int ComponentID = 0;
-		THashSet<int> Visited;
+		int					ComponentID = 0;
+		THashSet<int>		Visited;
 		TArray<TArray<int>> Result;
 
 		for (auto& AllNode : Nodes)
 		{
 			auto TNodeID = AllNode.first;
-			if (Visited.contains(TNodeID)) continue;
+			if (Visited.contains(TNodeID))
+				continue;
 			Result.emplace_back();
-			BFS(TNodeID, [&](int NodeID)
-			{
+			BFS(TNodeID, [&](int NodeID) {
 				Result[ComponentID].push_back(NodeID);
 				Visited.insert(NodeID);
+				return true;
 			});
 			ComponentID++;
 		}
+		std::ranges::sort(Result, [](const TArray<int>& A, const TArray<int>& B) { return A.size() > B.size(); });
+		return Result;
+	}
+	template <class NodeContentType, class EdgeContentType>
+	TArray<TArray<int>> Graph<NodeContentType, EdgeContentType>::ConnectedComponents(const TFunction<bool(int)>& Visit) const
+	{
+		int					ComponentID = 0;
+		THashSet<int>		Visited;
+		TArray<TArray<int>> Result;
+
+		for (auto& AllNode : Nodes)
+		{
+			auto TNodeID = AllNode.first;
+			if (Visited.contains(TNodeID))
+				continue;
+			Result.emplace_back();
+			BFS(TNodeID, [&](auto NodeID) {
+				if(!Visit(NodeID)) return false;
+				Result[ComponentID].push_back(NodeID);
+				Visited.insert(NodeID);
+				return true;
+			});
+			ComponentID++;
+		}
+		std::ranges::sort(Result, [](const TArray<int>& A, const TArray<int>& B) { return A.size() > B.size(); });
 		return Result;
 	}
 

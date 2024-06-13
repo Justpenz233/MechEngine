@@ -196,6 +196,12 @@ public:
 	void SmoothMesh(int Iteration = 5, bool UseUniform = false);
 
 	/**
+	 * Clean the mesh, remove the isolated or NAN vertices
+	 * @return this
+	 */
+	ObjectPtr<StaticMesh> Clean();
+
+	/**
 	 * Normize the mesh, make the bounding box of the mesh to be (0,0,0) and size of bounding box to be 1
 	 * @return this
 	 */

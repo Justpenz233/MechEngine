@@ -115,17 +115,17 @@ public:
 
     FORCEINLINE Vector2d Projection(const FVector& Point) const
     {
-        return SurfaceComponent->Projection(GetFTransform().Inverse() * Point);
+        return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point));
     }
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().Inverse() * Point);
+		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point));
 	}
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().Inverse() * Point, ThicknessSample);
+		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessSample);
 	}
 
 	FORCEINLINE bool IsClosed()

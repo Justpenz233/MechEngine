@@ -162,12 +162,10 @@ void StaticMesh::SaveOBJ(const Path& FileName) const
 		return;
 	}
 
-	int vrows = verM.rows();
-	for (int i = 0; i < vrows; i++) {
+	for (int i = 0; i < verM.rows(); i++) {
 		ofile << "v " << verM(i, 0) << " " << verM(i, 1) << " " << verM(i, 2) << std::endl;
 	}
-	int frows = triM.rows();
-	for (int i = 0; i < frows; i++) {
+	for (int i = 0; i < triM.rows(); i++) {
 		ofile << "f " << triM(i, 0) + 1 << " " << triM(i, 1) + 1 << " " << triM(i, 2) + 1 << std::endl;
 	}
 
@@ -249,6 +247,19 @@ void StaticMesh::SmoothMesh(int Iteration, bool UseUniform)
 {
 	Algorithm::GeometryProcess::SmoothMesh(verM, triM, Iteration, UseUniform);
 	OnGeometryUpdate();
+}
+
+ObjectPtr<StaticMesh> StaticMesh::Clean()
+{
+	TArray<int> ToRemoveVertex;
+	for (int i = 0;i < verM.rows();i ++)
+	{
+		if(verM.row(i).hasNaN())
+			ToRemoveVertex.push_back(i);
+	}
+	if(ToRemoveVertex.size() > 0)
+		RemoveVertices(ToRemoveVertex);
+	return GetThis<StaticMesh>();
 }
 
 StaticMesh& StaticMesh::RemoveIsolatedVertices()
