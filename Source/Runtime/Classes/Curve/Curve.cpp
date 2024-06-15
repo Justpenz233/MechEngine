@@ -3,7 +3,7 @@
 //
 #include "Curve.h"
 #include "Math/Geometry.h"
-
+#include "tinysplinecxx.h"
 
 Curve::Curve(const TArray<FVector>& InLines)
 {
@@ -24,13 +24,14 @@ void Curve::SetCurveData(const TArray<FVector>& InLines)
 
 bool Curve::ReadFromPath(const Path& InFilePath)
 {
-	if(!InFilePath.Existing())
+	if (!InFilePath.Existing())
 	{
 		LOG_ERROR("Curve file: {0} not exist", InFilePath.string());
 		return false;
 	}
 	std::ifstream File(InFilePath);
-	if(!File.good()){
+	if (!File.good())
+	{
 		LOG_ERROR("Open curve file: {0} failed", InFilePath.string());
 		return false;
 	}
@@ -38,11 +39,11 @@ bool Curve::ReadFromPath(const Path& InFilePath)
 	{
 		int Num;
 		File >> Num;
-		for(int i = 1;i <= Num;i ++)
+		for (int i = 1; i <= Num; i++)
 		{
 			FVector NewPoint;
 			File >> NewPoint[0] >> NewPoint[1] >> NewPoint[2];
-			if(i != Num && File.eof())
+			if (i != Num && File.eof())
 			{
 				LOG_ERROR("Curve file {0} format error, reach EOF early.", InFilePath.string());
 				Lines.clear();
@@ -53,6 +54,28 @@ bool Curve::ReadFromPath(const Path& InFilePath)
 		File.close();
 	}
 	return true;
+}
+
+TArray<FVector> Curve::SampleWithEqualChordLength(const TArray<FVector>& CurveData, int Samples)
+{
+	TArray<FVector> Result;
+	TArray<double> Data(CurveData.size() * 3);
+	std::memcpy(Data.data(), CurveData.data(), CurveData.size() * 3 * sizeof(double));
+	auto Spline = tinyspline::BSpline::interpolateCatmullRom(Data, 3);
+
+	auto knots = Spline.equidistantKnotSeq(Samples);
+	auto Frames = Spline.computeRMF(knots);
+	/***
+	 * Sample the linkage as a discrete curve
+	 * Used for collision detection in the next step
+	 */
+	Result.resize(Frames.size());
+	for (int i = 0; i < Frames.size(); i++)
+	{
+		auto Frame = Frames.at(i).position();
+		Result[i] = FVector(Frame.x(), Frame.y(), Frame.z());
+	}
+	return Result;
 }
 
 double Curve::Distance(const Curve& Other) const

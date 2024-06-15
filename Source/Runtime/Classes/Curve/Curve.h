@@ -33,6 +33,14 @@ public:
 
     bool ReadFromPath(const Path& InFilePath);
 
+	/**
+	 * Sample the curve with equal chord length, the sample process will interpolate the curve data with equal chord length
+	 * @param CurveData the curve data to be sampled
+	 * @param Samples the number of samples
+	 * @return the sampled curve data
+	 */
+	static TArray<FVector> SampleWithEqualChordLength(const TArray<FVector>& CurveData, int Samples = 100);
+
 	virtual FVector Sample(double u) const
     {
         ASSERTMSG(u <= 1., "Sample U: {0} out of bounds", u);
