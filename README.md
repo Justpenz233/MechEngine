@@ -27,7 +27,7 @@ We suggest you cloning the template project and rename folders or project name a
 
 * We are going to use lua as a World script, so you don't need to recompile anymore.
 
-# Supported features
+# Supported features 🔥
 
 ## Material
 

@@ -165,7 +165,7 @@ public:
     double SupporterRadius = 0.01;
 
     SpatialJointU(const FTransform& InInitTransform, bool InIsRoot = false)
-     : SpatialJointComponent(EDOF3D::FreeXY, EDOF3D::FreeNone, InInitTransform, InIsRoot)
+     : SpatialJointComponent(EDOF3D::FreeXZ, EDOF3D::FreeNone, InInitTransform, InIsRoot)
     { }
     // Diameter in Y,Z  Thickness in Z. Cylinder raidus setup for supporter
     static ObjectPtr<StaticMesh> GenerateSocketMesh(double Diameter, double JointRadius, double Thickness, double CylinderRadius);

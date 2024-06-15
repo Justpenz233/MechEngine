@@ -26,9 +26,9 @@ SpatialJoint::SpatialJoint(char InType, const FTransform& InInitTransform, bool 
         AddTranslationRange[1].x() = 0.2;
     }
     else if (Type == 'U'){
-        SetDOF(FreeXY, FreeNone);
-        AddRotationRange[0].y() = Math::DegToRad(-45.);
-        AddRotationRange[1].y() = Math::DegToRad(45.);
+        SetDOF(FreeXZ, FreeNone);
+        AddRotationRange[0].z() = Math::DegToRad(-45.);
+        AddRotationRange[1].z() = Math::DegToRad(45.);
     }
     else if (Type == 'S'){
         SetDOF(FreeXYZ, FreeNone);

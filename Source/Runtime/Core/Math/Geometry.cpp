@@ -142,7 +142,6 @@ std::tuple<double, FVector, FVector, bool> SegmentSegmentDistance(
 	FVector P1 = A0 + sc * (A1 - A0);
 	FVector P2 = B0 + sc * (B1 - B0);
 	FVector dP = w + (sc * u) - (tc * v); // =  S1(sc) - S2(tc)
-	assert(dP == (P1 - P2));
 
 	double dst = dP.norm(); // return the closest distance
 	return { dst, P1, P2, parallel };
