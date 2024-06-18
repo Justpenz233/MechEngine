@@ -190,17 +190,20 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMesh(ObjectPtr<Curve> Cur
 	{
 		Vector3d N_1, N_2;
 		auto Tangent = Frames.at(i).tangent();
+		auto P = Frames.at(i).position();
+		auto N = Frames.at(i).normal();
+		auto BN = Frames.at(i).binormal();
 		N_1 = FVector{ Tangent.x(), Tangent.y(), Tangent.z() };
 		N_2 = -N_1.cross(FVector{ 0, 0, 1 });
 		for (int j = 0; j < RingSample; j++)
 		{
 			Vector3d TubeP;
 			double	 theta = j * 2.0 * M_PI / RingSample;
-			auto P = Frames.at(i).position();
 			FVector	 Pos = FVector{ P.x(), P.y(), P.z() };
-			// using Rodrigues' rotation formula
-			FVector V = N_2 * cos(theta) + N_1.cross(N_2) * sin(theta) + N_1 * N_1.dot(N_2) * (1 - cos(theta));
-			TubeP = Pos + Radius * V.normalized();
+			FVector  Normal = FVector{ N.x(), N.y(), N.z() };
+			FVector  Binormal = FVector{ BN.x(), BN.y(), BN.z() };
+			FVector Vertex = Radius * cos(theta) * Normal + Radius * sin(theta) * Binormal;
+			TubeP = Pos + Radius * Vertex.normalized();
 			G_verList.push_back(TubeP);
 		}
 	}

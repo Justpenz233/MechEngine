@@ -88,7 +88,7 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	igl::triangle::scaf_precompute(V, F, uv_init, scaf_data, igl::MappingEnergyType::LOG_ARAP, b, bc, 0);
 
 	// Solve the SCAF
-	igl::triangle::scaf_solve(scaf_data, 200);
+	igl::triangle::scaf_solve(scaf_data, 100);
 
 	// Plot the mesh
 
