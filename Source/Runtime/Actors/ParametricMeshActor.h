@@ -65,12 +65,16 @@ public:
 
 	FORCEINLINE FVector Sample(const FVector2& UV) const
     {
-        return GetTransform() * SurfaceComponent->SampleThickness(UV[0], UV[1], ThicknessToSample);
+		if(ThicknessToSample == 0.)
+			return GetTransform() * SurfaceComponent->Sample(UV[0], UV[1]);
+        else return GetTransform() * SurfaceComponent->SampleThickness(UV[0], UV[1], ThicknessToSample);
     }
 
     FORCEINLINE FVector Sample(double u, double v) const
     {
-        return GetTransform() * SurfaceComponent->SampleThickness(u, v, ThicknessToSample);
+		if (ThicknessToSample == 0.)
+			return GetTransform() * SurfaceComponent->Sample(u, v);
+        else return GetTransform() * SurfaceComponent->SampleThickness(u, v, ThicknessToSample);
     }
 
     FORCEINLINE FVector SampleNormal(double u, double v) const
