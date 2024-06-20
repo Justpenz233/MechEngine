@@ -78,7 +78,7 @@ public:
 };
 
 
-class CylinderSurface : public ParametricSurface
+class ENGINE_API CylinderSurface : public ParametricSurface
 {
 protected:
     double Height = 1.;
@@ -118,7 +118,7 @@ public:
 	// }
 };
 
-class HyperbolicCylinderSurface : public ParametricSurface
+class ENGINE_API HyperbolicCylinderSurface : public ParametricSurface
 {
 protected:
     double Height = 1.0;
@@ -148,7 +148,7 @@ public:
 	// }
 };
 
-class PlaneSurface : public ParametricSurface
+class ENGINE_API PlaneSurface : public ParametricSurface
 {
 protected:
 	double Length = 1.;
@@ -163,7 +163,7 @@ public:
 	}
 };
 
-class ConeSurface : public ParametricSurface
+class ENGINE_API ConeSurface : public ParametricSurface
 {
 protected:
 	double Height = 1;
@@ -196,7 +196,7 @@ public:
 	// }
 };
 
-class MobiusStripSurface : public ParametricSurface
+class ENGINE_API MobiusStripSurface : public ParametricSurface
 {
 public:
 	MobiusStripSurface() :ParametricSurface(true) {}
@@ -210,9 +210,9 @@ public:
 };
 
 // @see https://en.wikipedia.org/wiki/Catenoid
-class CatenoidSurface : public ParametricSurface
+class ENGINE_API CatenoidSurface : public ParametricSurface
 {
-private:
+protected:
 	double c;
 public:
 	CatenoidSurface(double InC = 1.): ParametricSurface(true), c(InC) {}
@@ -238,9 +238,34 @@ public:
 };
 
 
-class PluckeConoidSurface : public ParametricSurface
+// @see https://mathcurve.com/surfaces.gb/ellipsoid/ellipsoid.shtml
+class ENGINE_API EllipsoidSurface : public ParametricSurface
 {
-private:
+protected:
+	double a;
+	double b;
+	double c;
+public:
+	EllipsoidSurface(double InA = 1., double InB = 0.3, double InC = 0.5): ParametricSurface(true),a(InA), b(InB), c(InC) {}
+
+	FVector Sample(double u, double v) const override
+	{
+		u = u * 2.0 * M_PI;
+		v = v * M_PI;
+		return {a * cos(u) * sin(v), b * sin(u) * sin(v), c * cos(v)};
+	}
+	FVector SampleThickness(double u, double v, double Thickness) const override
+	{
+		auto Pos = Sample(u, v);
+		Pos -= Pos.normalized() * Thickness;
+		return Pos;
+	}
+};
+
+
+class ENGINE_API PluckeConoidSurface : public ParametricSurface
+{
+protected:
 	int n;
 public:
 	PluckeConoidSurface(int InN = 3): ParametricSurface(true), n(InN) {}
@@ -250,5 +275,86 @@ public:
 		if(u > 1.) u -= 1.;
 		u = u * 2.0 * M_PI;
 		return {v*cos(u), v*sin(u), sin(n*u)};
+	}
+};
+
+// @see https://mathcurve.com/surfaces.gb/selle/selle.shtml
+class ENGINE_API MonkeySaddleSurface : public ParametricSurface
+{
+protected:
+	double A;
+public:
+	MonkeySaddleSurface(double InA = 1.): ParametricSurface(false),A(InA) {}
+	FVector Sample(double u, double v) const override
+	{
+		std::swap(u,v); v *= -2.0 * M_PI;
+		return {A*u*cos(v), A*u*sin(v), A*u*u*u*cos(3.*v)};
+	}
+	FVector SampleThickness(double u, double v, double Thickness) const override
+	{
+		return Sample(u, v) + FVector{0, 0, Thickness};
+	}
+};
+
+class ENGINE_API HorseSaddleSurface : public ParametricSurface
+{
+protected:
+	double A;
+	double B;
+	double H;
+public:
+	HorseSaddleSurface(double InA = 1., double InB = 1., double InH = 1.): ParametricSurface(false),A(InA), B(InB), H(InH) {}
+	FVector Sample(double u, double v) const override
+	{
+		u = u * 2.0 - 1.0; v = v * 2.0 - 1.0;
+		return {A*u, B*v, H*(u*u - v*v)};
+	}
+	FVector SampleThickness(double u, double v, double Thickness) const override
+	{
+		return Sample(u, v) + FVector{0, 0, Thickness};
+	}
+};
+
+// @see https://mathcurve.com/surfaces.gb/cylindreparabolic/cylindreparabolic.shtml
+class ENGINE_API ParabolicCylinderSurface : public ParametricSurface
+{
+protected:
+	double A;
+	double Length;
+public:
+	ParabolicCylinderSurface(double InA = 1., double InLength = 1.): ParametricSurface(false),A(InA), Length(InLength) {}
+	FVector Sample(double u, double v) const override
+	{
+		return {u, Length * v, A - A * std::pow(u*2.-1., 2.)};
+	}
+};
+
+// @see https://mathcurve.com/surfaces.gb/gaudi/gaudi.shtml
+class ENGINE_API CosConoidSurface : public ParametricSurface
+{
+protected:
+	double A; // Control period
+	double K; // Control height
+public:
+	CosConoidSurface(double InA = 0.5, double InK = 0.5): ParametricSurface(false), A(InA), K(InK) {}
+	FVector Sample(double u, double v) const override
+	{
+		u = u * 2.0 - 1.0;
+		return {u, v, K * u * cos(v / A * M_PI)};
+	}
+};
+
+//@see https://mathcurve.com/surfaces.gb/helicoiddeveloppable/helicoiddeveloppable.shtml
+class ENGINE_API DevelopableHelicoidSurface : public ParametricSurface
+{
+protected:
+	double A;
+	double Height;
+public:
+	DevelopableHelicoidSurface(double InA = 0.5, double InHeight = 1.): ParametricSurface(false), A(InA), Height(InHeight) {}
+	FVector Sample(double u, double v) const override
+	{
+		u = u * 2.0 * M_PI;
+		return {A * (cos(u) - v * sin(u)), A * (sin(u) + v * cos(u)), Height * (u + v) / (2 * M_PI + 1.)};
 	}
 };

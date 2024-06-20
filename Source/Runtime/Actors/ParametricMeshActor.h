@@ -21,21 +21,6 @@ protected:
 public:
 	double ThicknessToSample = 0.;
 
-	/**
-	 * Construct with a parametric surface give a name and assoicate parameters
-	 */
-    template<class ...Args>
-    ParametricMeshActor(String Type, Args ...args) {
-        if(Type == "Cylinder")
-            SurfaceComponent = AddComponent<CylinderMeshComponent>(args...);
-        if(Type == "Cone")
-            SurfaceComponent = AddComponent<ConeMeshComponent>(args...);
-        if(Type == "MobiusStrip")
-            SurfaceComponent = AddComponent<MobiusStripMeshComponent>(args...);
-        if(Type == "Catenoid")
-            SurfaceComponent = AddComponent<CatenoidMeshComponent>(args...);
-    }
-
 	// Construct with a parametric surface
     ParametricMeshActor(const ObjectPtr<ParametricSurface>& SurfaceData, double Thickness = 0.05)
     {

@@ -157,7 +157,9 @@ FVector ParametricSurfaceComponent::SampleThickness(const double u, const double
 void ParametricSurfaceComponent::Remesh()
 {
 	StaticMeshComponent::Remesh();
+	auto PreMaterial = MeshData->GetMaterialAsset();
 	Triangular();
+	MeshData->SetMaterial(PreMaterial);
 }
 
 void ParametricSurfaceComponent::SetThickness(double InThickness)

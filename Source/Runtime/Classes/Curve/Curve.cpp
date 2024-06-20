@@ -7,12 +7,12 @@
 
 Curve::Curve(const TArray<FVector>& InLines)
 {
-	SetCurveData(InLines);
+	Curve::SetCurveData(InLines);
 }
 
 Curve::Curve(const TArray<FVector>& InLines, bool InClosed)
 {
-	SetCurveData(InLines);
+	Curve::SetCurveData(InLines);
 	bClosed = InClosed;
 }
 

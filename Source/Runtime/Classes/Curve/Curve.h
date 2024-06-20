@@ -28,10 +28,10 @@ public:
     FORCEINLINE int GetEdgeNum() const { return bClosed ? Lines.size() : Lines.size() - 1; }
 	FORCEINLINE bool IsClosed() const { return bClosed; }
 
-	void SetCurveData(const TArray<FVector>& InLines);
+	virtual void SetCurveData(const TArray<FVector>& InLines);
 	TArray<FVector> GetCurveData() const { return Lines; }
 
-    bool ReadFromPath(const Path& InFilePath);
+    [[deprecated]] bool ReadFromPath(const Path& InFilePath);
 
 	/**
 	 * Sample the curve with equal chord length, the sample process will interpolate the curve data with equal chord length
@@ -92,7 +92,7 @@ public:
     FORCEINLINE bool IsValid() const { return GetPointsNum() > 0; }
 
 	/**
-	 * Calculate the the minimum distance between two curves
+	 * Calculate the minimum distance between two curves
 	 * O(N*M) slow
 	 * @param Other
 	 * @return

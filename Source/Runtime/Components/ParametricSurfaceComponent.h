@@ -9,11 +9,16 @@ class ENGINE_API ParametricSurfaceComponent : public ParametricMeshComponent
 {
 	REFLECTION_BODY(ParametricSurfaceComponent)
 protected:
+	MPROPERTY()
     ObjectPtr<ParametricSurface> SurfaceData;
 
 	ParametricSurfaceComponent() = default;
-    int RullingLineNumU = 128;
-    int RullingLineNumV = 32;
+
+	MPROPERTY()
+	int RullingLineNumU = 128;
+
+	MPROPERTY()
+	int RullingLineNumV = 32;
 
 public:
 	// Thickness will be sampled from [-HalfThickness, HalfThickness]
@@ -88,70 +93,6 @@ public:
     FVector GetRulingLineDir() const;
 
 	bool IsClosed() { return SurfaceData->bIsClosed; }
-};
-
-class HyperbolicCylinderMesh : public ParametricSurfaceComponent {
-public:
-	double Height = 1.0;
-	double A = 4.0;
-	double B = 2.0;
-
-	HyperbolicCylinderMesh(double _A = 4., double _B = 2.0, double _Hegiht = 1.0) : Height(_Hegiht), A(_A), B(_B)
-	{
-        SurfaceData = NewObject<HyperbolicCylinderSurface>(A, B, Height);
-    }
-};
-
-class CylinderMeshComponent : public ParametricSurfaceComponent
-{
-protected:
-    double Height = 1.;
-    double Radius = 1.;
-
-public:
-    CylinderMeshComponent(double InHeight = 1., double InRadius = 1.):Height(InHeight), Radius(InRadius)
-    {
-        SurfaceData = NewObject<CylinderSurface>(Height, Radius);
-    }
-};
-
-class ConeMeshComponent : public ParametricSurfaceComponent
-{
-protected:
-	double Height = 1;
-	double Radius = 1;
-
-public:
-	ConeMeshComponent(double InHeigt = 1, double InRadius = 1) : Height(InHeigt), Radius(InRadius) { 
-		SurfaceData = NewObject<ConeSurface>(Height, Radius);
-	}
-
-	double GetHegiht() { return Height; }
-	double GetRadius() { return Radius; }
-};
-
-class MobiusStripMeshComponent : public ParametricSurfaceComponent
-{
-public:
-	MobiusStripMeshComponent()
-	{
-		SurfaceData = NewObject<MobiusStripSurface>();
-	}
-};
-
-class CatenoidMeshComponent : public ParametricSurfaceComponent
-{
-public:
-	CatenoidMeshComponent(double InC = 1.)
-	{
-		SurfaceData = NewObject<CatenoidSurface>(InC);
-	}
-};
-
-class PluckeConoidMeshComponent : public ParametricSurfaceComponent
-{
-public:
-
 };
 
 FVector ParametricSurfaceComponent::SampleNormal(double u, double v) const {
