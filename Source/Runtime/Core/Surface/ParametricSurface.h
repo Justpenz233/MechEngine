@@ -214,8 +214,9 @@ class ENGINE_API CatenoidSurface : public ParametricSurface
 {
 protected:
 	double c;
+	double h;
 public:
-	CatenoidSurface(double InC = 1.): ParametricSurface(true), c(InC) {}
+	CatenoidSurface(double InC = 1., double InH = 1.): ParametricSurface(true), c(InC), h(InH) {}
 
 	FVector Sample(double u, double v) const override
 	{
@@ -223,7 +224,7 @@ public:
 		if(u > 1.) u -= 1.;
 		u = u * 2.0 * M_PI - M_PI;
 		v = v * 2.0 - 1.0;
-		return {c * cosh(v/c) * cos(u), c * cosh(v/c) * sin(u), v};
+		return {c * cosh(v/c) * cos(u), c * cosh(v/c) * sin(u), v * h};
 	}
 	FVector SampleThickness(double u, double v, double Thickness) const override
 	{
@@ -233,7 +234,7 @@ public:
 		v = v * 2.0 - 1.0;
 		FVector2 XY = {c * cosh(v/c) * cos(u), c * cosh(v/c) * sin(u)};
 		XY += XY.normalized() * Thickness;
-		return {XY.x(), XY.y(), v};
+		return {XY.x(), XY.y(), v * h};
 	}
 };
 

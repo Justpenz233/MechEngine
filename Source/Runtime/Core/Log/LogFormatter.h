@@ -76,7 +76,7 @@ struct fmt::formatter<Eigen::RowVectorXd> : fmt::formatter<std::string>
     }
 };
 
-// Format for std::vector, with limited number of 20 elements
+// Format for std::vector, with limited number of 1000 elements
 // if the vector has more than 20 elements, the last element will be "..."
 template <typename T>
 struct fmt::formatter<std::vector<T>> : fmt::formatter<std::string> {
@@ -84,7 +84,7 @@ struct fmt::formatter<std::vector<T>> : fmt::formatter<std::string> {
 	auto format(const std::vector<T>& a, format_context& ctx) {
 		std::string Context = "[";
 		int Count = 0;
-		int EndIndex = a.size() > 20 ? 20 : a.size() - 1;
+		int EndIndex = a.size() > 100 ? 100 : a.size() - 1;
 		for (auto& i : a)
 		{
 			Context += fmt::format("{}", i);

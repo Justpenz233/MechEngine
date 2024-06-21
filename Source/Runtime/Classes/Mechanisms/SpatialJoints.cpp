@@ -32,10 +32,10 @@ SpatialJoint::SpatialJoint(char InType, const FTransform& InInitTransform, bool 
     }
     else if (Type == 'S'){
         SetDOF(FreeXYZ, FreeNone);
-        AddRotationRange[0].y() = Math::DegToRad(-45.);
-        AddRotationRange[1].y() = Math::DegToRad(45.);
-        AddRotationRange[0].z() = Math::DegToRad(-45.);
-        AddRotationRange[1].z() = Math::DegToRad(45.);
+        AddRotationRange[0].y() = Math::DegToRad(-35.);
+        AddRotationRange[1].y() = Math::DegToRad(35.);
+        AddRotationRange[0].z() = Math::DegToRad(-35.);
+        AddRotationRange[1].z() = Math::DegToRad(35.);
     }
     else if (Type == 'E')
         SetDOF(FreeNone, FreeNone);
