@@ -15,10 +15,10 @@ protected:
 	ParametricSurfaceComponent() = default;
 
 	MPROPERTY()
-	int RullingLineNumU = 128;
+	int RullingLineNumU = 256;
 
 	MPROPERTY()
-	int RullingLineNumV = 32;
+	int RullingLineNumV = 64;
 
 public:
 	// Thickness will be sampled from [-HalfThickness, HalfThickness]

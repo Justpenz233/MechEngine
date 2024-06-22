@@ -286,11 +286,11 @@ protected:
 	double A; // Width
 	double H; // Height
 public:
-	MonkeySaddleSurface(double InA = 0.5, double InH = 0.5): ParametricSurface(true),A(InA),H(InH) {}
+	MonkeySaddleSurface(double InA = 0.5, double InH = 0.5): ParametricSurface(false),A(InA),H(InH) {}
 	FVector Sample(double u, double v) const override
 	{
-		std::swap(u,v); v *= -2.0 * M_PI;
-		return {A*u*cos(v), A*u*sin(v), H*u*u*u*cos(3.*v)};
+		u = u * 2.0 - 1.0; v = v * 2.0 - 1.0;
+		return {A*u, A*v, H*(u*u*u - 2.*u*v*v)};
 	}
 	FVector SampleThickness(double u, double v, double Thickness) const override
 	{

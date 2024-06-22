@@ -98,7 +98,7 @@ namespace MechEngine::Algorithm::GeometryProcess
 	}
 
 
-	ObjectPtr<StaticMesh> SweptVolume(const ObjectPtr<StaticMesh>& Profile, const TArray<FTransform>& Path, int Steps)
+	ObjectPtr<StaticMesh> SweptVolume(const ObjectPtr<StaticMesh>& Profile, const TArray<FTransform>& Path, int Steps, int GridSize)
 	{
 		MatrixXd RV; MatrixXi RF;
 		if(Steps == -1)
@@ -109,7 +109,7 @@ namespace MechEngine::Algorithm::GeometryProcess
 			double Alph = t * (Path.size() - 1.) - index;
 			int NextIndex = Math::Min(index + 1, Path.size() - 1);
 			return Eigen::Affine3d(FTransform::Lerp(Path[index], Path[NextIndex], Alph));
-		}, Steps, 100, 0, RV, RF);
+		}, Steps, GridSize, 0, RV, RF);
 		return NewObject<StaticMesh>(::std::move(RV), ::std::move(RF));
 	}
 

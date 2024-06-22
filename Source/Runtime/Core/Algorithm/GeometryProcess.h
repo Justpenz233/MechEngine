@@ -19,7 +19,15 @@ namespace MechEngine::Algorithm::GeometryProcess
 	// Explicit smooth the mesh cotan Laplacian
 	ENGINE_API void SmoothMesh(Eigen::MatrixX3d& Vertices, Eigen::MatrixX3i& Triangles, int Iteration = 5, bool UseUniformLaplacian = false);
 
-	ENGINE_API ObjectPtr<StaticMesh> SweptVolume(const ObjectPtr<StaticMesh>& Profile, const TArray<FTransform>& Path, int Steps = -1);
+	/**
+	 * Given a mesh, and a time series of transformation, return the swept volume of the mesh motion.
+	 * @param Profile The mesh performing motion
+	 * @param Path The time series of transformation
+	 * @param Steps The number of steps to sample the swept volume, -1 means auto, when greater than given time steps, the algorithm will interpolate the path
+	 * @param GridSize The grid size of the longest edge of the bounding box of the swept volume
+	 * @return The swept volume of the mesh of the motion
+	 */
+	ENGINE_API ObjectPtr<StaticMesh> SweptVolume(const ObjectPtr<StaticMesh>& Profile, const TArray<FTransform>& Path, int Steps = -1, int GridSize = 100);
 
 	/**
 	 * \brief Give a mesh which is constructed by many disconnected components, split the mesh into components(by adjacency graph of edges and vertices)
