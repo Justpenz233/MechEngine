@@ -18,11 +18,21 @@ IGL_INLINE void igl::swept_volume_bounding_box(
   box.setEmpty();
   const VectorXd t = igl::LinSpaced<VectorXd >(steps,0,1);
   // Find extent over all time steps
-  for(int ti = 0;ti<t.size();ti++)
+	std::vector<Eigen::AlignedBox3d> boxes(steps);
+	for (size_t ti = 0; ti < steps; ti++)
+	{
+		boxes[ti].setEmpty();
+	}
+
+	parallel_for(t.size(), [&](int ti) {
+		for(size_t vi = 0;vi<n;vi++)
+		{
+		  boxes[ti].extend(V(vi,t(ti)).transpose());
+		}
+	});
+
+  for(size_t ti = 0;ti<steps;ti++)
   {
-    for(size_t vi = 0;vi<n;vi++)
-    {
-      box.extend(V(vi,t(ti)).transpose());
-    }
+	box.extend(boxes[ti]);
   }
 }
