@@ -188,13 +188,9 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMesh(ObjectPtr<Curve> Cur
 	TArray<Vector3d> G_verList;
 	for (int i = 0; i < SampleNum; i++)
 	{
-		Vector3d N_1, N_2;
-		auto Tangent = Frames.at(i).tangent();
 		auto P = Frames.at(i).position();
 		auto N = Frames.at(i).normal();
 		auto BN = Frames.at(i).binormal();
-		N_1 = FVector{ Tangent.x(), Tangent.y(), Tangent.z() };
-		N_2 = -N_1.cross(FVector{ 0, 0, 1 });
 		for (int j = 0; j < RingSample; j++)
 		{
 			Vector3d TubeP;
@@ -258,7 +254,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMeshCubiod(ObjectPtr<Curv
 {
 	bool IsClosedCurve = bClosed;
 
-	auto LinesData = CurveData->GetCurveData();
+	auto		   LinesData = CurveData->GetCurveData();
 	TArray<double> Data(LinesData.size() * 3);
 	std::memcpy(Data.data(), LinesData.data(), LinesData.size() * sizeof(double) * 3);
 	auto Spline = tinyspline::BSpline::interpolateCatmullRom(Data, 3);
@@ -275,7 +271,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMeshCubiod(ObjectPtr<Curv
 		N_1 = CurveData->SampleTangent(u);
 		FVector Up = FVector{ 0, 0, 1 };
 		FVector Right = -N_1.cross(Up).normalized();
-		FVector	Pos = CurveData->Sample(u);
+		FVector Pos = CurveData->Sample(u);
 		G_verList.emplace_back(Pos + Radius * Up + Radius * Right);
 		G_verList.emplace_back(Pos + Radius * Up - Radius * Right);
 		G_verList.emplace_back(Pos - Radius * Up - Radius * Right);
@@ -302,8 +298,8 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMeshCubiod(ObjectPtr<Curv
 		{
 			int Next = (j + 1) % 4;
 			int Bottom = G_verList.size() - 4;
-			G_triList.emplace_back( Bottom + j, Next, Bottom + Next);
-			G_triList.emplace_back(Bottom + j, j,  Next);
+			G_triList.emplace_back(Bottom + j, Next, Bottom + Next);
+			G_triList.emplace_back(Bottom + j, j, Next);
 		}
 	}
 	else
@@ -312,13 +308,72 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCurveMeshCubiod(ObjectPtr<Curv
 		G_triList.emplace_back(0, 2, 3);
 
 		int i = G_verList.size() - 4;
-		G_triList.emplace_back( i + 1, i + 3, i + 2);
+		G_triList.emplace_back(i + 1, i + 3, i + 2);
 		G_triList.emplace_back(i + 1, i, i + 3);
 	}
 
 	auto CurveMeshData = NewObject<StaticMesh>(G_verList, G_triList);
 	CurveMeshData->ReverseNormal();
 	return CurveMeshData;
+}
+
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateExtrudeMesh(const TArray<FVector>& CurveData, const TFunction<FVector2(double)>& ContourSample, int ControuSample, int CurveSample)
+{
+	TArray<double> Data(CurveData.size() * 3);
+	std::memcpy(Data.data(), CurveData.data(), CurveData.size() * sizeof(double) * 3);
+	auto Spline = tinyspline::BSpline::interpolateCatmullRom(Data, 3);
+
+	auto knots = Spline.equidistantKnotSeq(CurveSample);
+	auto Frames = Spline.computeRMF(knots);
+
+
+	TArray<Vector3d> G_verList;
+	for (int i = 0; i < CurveSample; i++)
+	{
+		auto P = Frames.at(i).position();
+		auto N = Frames.at(i).normal();
+		auto BN = Frames.at(i).binormal();
+		for (int j = 0; j < ControuSample; j++)
+		{
+			FVector	 Pos = FVector{ P.x(), P.y(), P.z() };
+			FVector  Normal = FVector{ N.x(), N.y(), N.z() };
+			FVector  Binormal = FVector{ BN.x(), BN.y(), BN.z() };
+			double t = j * 1.0 / ControuSample;
+			FVector2 O = ContourSample(t);
+			G_verList.push_back(Pos + O.y() * Normal + O.x() * Binormal);
+		}
+	}
+
+	/// triList
+	TArray<Vector3i> G_triList;
+	int				 StartId = 0;
+	for (int itr = 0; itr < CurveSample - 1; itr++)
+	{
+		for (int j = 0; j < ControuSample - 1; j++)
+		{
+			G_triList.emplace_back(StartId + j, StartId + ControuSample + j, StartId + ControuSample + 1 + j);
+			G_triList.emplace_back(StartId + j, StartId + ControuSample + 1 + j, StartId + 1 + j);
+		}
+		G_triList.emplace_back(StartId + ControuSample - 1, StartId + 2 * ControuSample - 1, StartId + ControuSample);
+		G_triList.emplace_back(StartId + ControuSample - 1, StartId + ControuSample, StartId);
+		StartId += ControuSample;
+	}
+
+
+	for (int j = 0; j < ControuSample - 1; j++)
+	{
+		G_triList.emplace_back(StartId + j, j, j + 1);
+		G_triList.emplace_back(StartId + j, j + 1, StartId + j + 1);
+	}
+	G_triList.emplace_back(StartId + ControuSample - 1, ControuSample - 1, 0);
+	G_triList.emplace_back(StartId + ControuSample - 1, 0, StartId);
+
+
+
+	auto CurveMeshData = NewObject<StaticMesh>(G_verList, G_triList);
+	CurveMeshData->ReverseNormal();
+	return CurveMeshData;
+
 }
 
 ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateSphere(double Radius, int Sample)

@@ -46,22 +46,22 @@ public:
 	FORCEINLINE FQuat GetRotation() const;
     FORCEINLINE FVector GetScale() const;
 	FORCEINLINE Eigen::Matrix4d GetTransformMatrix() const;
-	FORCEINLINE void SetTransform(const Eigen::Affine3d& InTransform);
-	FORCEINLINE void SetTransform(const FTransform& InTransform);
-	FORCEINLINE void SetTranslation(const FVector& Translation);
-	FORCEINLINE void AddTranslationGlobal(const FVector& DeltaTranslation);
-	FORCEINLINE void AddTranslationLocal(const FVector& DeltaTranslation);
+	FORCEINLINE Actor* SetTransform(const Eigen::Affine3d& InTransform);
+	FORCEINLINE Actor* SetTransform(const FTransform& InTransform);
+	FORCEINLINE Actor* SetTranslation(const FVector& Translation);
+	FORCEINLINE Actor* AddTranslationGlobal(const FVector& DeltaTranslation);
+	FORCEINLINE Actor* AddTranslationLocal(const FVector& DeltaTranslation);
 
 	// Make sure set Rotation before Scale
-	FORCEINLINE void SetRotation(const FVector& InRotation);
-	FORCEINLINE void SetRotation(const FQuat& InRotation);
-	FORCEINLINE void AddRotationLocal(const FVector& DeltaRotation);
-	FORCEINLINE void AddRotationLocal(const FQuat& DeltaRotation);
-	FORCEINLINE void AddRotationGlobal(const FVector& DeltaRotation);
-	FORCEINLINE void AddRotationGlobal(const FQuat& DeltaRotation);
+	FORCEINLINE Actor* SetRotation(const FVector& InRotation);
+	FORCEINLINE Actor* SetRotation(const FQuat& InRotation);
+	FORCEINLINE Actor* AddRotationLocal(const FVector& DeltaRotation);
+	FORCEINLINE Actor* AddRotationLocal(const FQuat& DeltaRotation);
+	FORCEINLINE Actor* AddRotationGlobal(const FVector& DeltaRotation);
+	FORCEINLINE Actor* AddRotationGlobal(const FQuat& DeltaRotation);
 	// Make sure set Scale after rotation
-	FORCEINLINE void SetScale(const FVector& InScale);
-	FORCEINLINE void AddScale(const FVector& DeltaScale);
+	FORCEINLINE Actor* SetScale(const FVector& InScale);
+	FORCEINLINE Actor* AddScale(const FVector& DeltaScale);
 
 	void AddChild (ObjectPtr<Actor> InChild);
 
@@ -162,68 +162,81 @@ FORCEINLINE FVector Actor::GetScale() const
 	return Transform->GetScale();
 }
 
-FORCEINLINE void Actor::SetTransform(const Eigen::Affine3d& InTransform)
+FORCEINLINE Actor* Actor::SetTransform(const Eigen::Affine3d& InTransform)
 {
 	Transform->SetTransform(InTransform);
+	return this;
 }
 
-FORCEINLINE void Actor::SetTransform(const FTransform& InTransform)
+FORCEINLINE Actor* Actor::SetTransform(const FTransform& InTransform)
 {
 	Transform->SetTransform(InTransform);
+	return this;
 }
 
-FORCEINLINE void Actor::SetTranslation(const FVector& Translation)
+FORCEINLINE Actor* Actor::SetTranslation(const FVector& Translation)
 {
 	Transform->SetTranslation(Translation);
+	return this;
 }
-FORCEINLINE void Actor::AddTranslationGlobal(const FVector &DeltaTranslation)
+FORCEINLINE Actor* Actor::AddTranslationGlobal(const FVector &DeltaTranslation)
 {
 	Transform->AddTranslationGlobal(DeltaTranslation);
+	return this;
 }
 
-FORCEINLINE void Actor::AddTranslationLocal(const FVector &DeltaTranslation)
+FORCEINLINE Actor* Actor::AddTranslationLocal(const FVector &DeltaTranslation)
 {
 	Transform->AddTranslationLocal(DeltaTranslation);
+	return this;
 }
 
-FORCEINLINE void Actor::SetRotation(const FVector& InRotation)
+FORCEINLINE Actor* Actor::SetRotation(const FVector& InRotation)
 {
 	Transform->SetRotation(InRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::SetRotation(const FQuat &InRotation)
+FORCEINLINE Actor* Actor::SetRotation(const FQuat &InRotation)
 {
 	Transform->SetRotation(InRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::AddRotationLocal(const FVector& DeltaRotation)
+FORCEINLINE Actor* Actor::AddRotationLocal(const FVector& DeltaRotation)
 {
 	Transform->AddRotationLocal(DeltaRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::AddRotationLocal(const FQuat &DeltaRotation)
+FORCEINLINE Actor* Actor::AddRotationLocal(const FQuat &DeltaRotation)
 {
 	Transform->AddRotationLocal(DeltaRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::AddRotationGlobal(const FVector& DeltaRotation)
+FORCEINLINE Actor* Actor::AddRotationGlobal(const FVector& DeltaRotation)
 {
 	Transform->AddRotationGlobal(DeltaRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::AddRotationGlobal(const FQuat &DeltaRotation)
+FORCEINLINE Actor* Actor::AddRotationGlobal(const FQuat &DeltaRotation)
 {
 	Transform->AddRotationGlobal(DeltaRotation);
+	return this;
 }
 
-FORCEINLINE void Actor::SetScale(const FVector& InScale)
+FORCEINLINE Actor* Actor::SetScale(const FVector& InScale)
 {
 	Transform->SetScale(InScale);
+	return this;
 }
 
-FORCEINLINE void Actor::AddScale(const FVector &DeltaScale)
+FORCEINLINE Actor* Actor::AddScale(const FVector &DeltaScale)
 {
 	Transform->AddScale(DeltaScale);
+	return this;
 }
 
 FORCEINLINE TArray<ObjectPtr<ActorComponent>> Actor::GetAllComponents()

@@ -16,6 +16,18 @@ public:
     static ObjectPtr<StaticMesh> GenerateCurveMesh(ObjectPtr<Curve> CurveData, double Radius, bool bClosed, int RingSample = 32, int SampleNum = 64);
 	static ObjectPtr<StaticMesh> GenerateCurveMeshCubiod(ObjectPtr<Curve> CurveData, double Radius, bool bClosed, int SampleNum = 64);
 
+
+	/**
+	 * Generate a mesh by extruding a contour along a curve, the curve will be force closed
+	 * @param CurveData Curve data
+	 * @param ContourSample Sample function for contour, return a 2D point by a parameter. In the 2D plane, the Y is Normal of the curve, X is the binormal of the curve
+	 * @param ControuSample Sample number of contour
+	 * @param CurveSample Sample number of curve
+	 * @return Mesh generated mesh asset
+	 */
+	static ObjectPtr<StaticMesh> GenerateExtrudeMesh(const TArray<FVector>& CurveData, const TFunction<FVector2(double)>& ContourSample, int ControuSample = 32, int CurveSample = 64);
+
+
     static ObjectPtr<StaticMesh> GenerateSphere(double Radius, int Sample = 32);
 	static ObjectPtr<StaticMesh> GenerateHemisphere(double Radius, bool bTopHalf = true, int Sample = 32);
 
