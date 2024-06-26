@@ -123,10 +123,14 @@ FVector SCParametricMeshComponent::SampleNormal(double u, double v) const
 	auto N3 = MeshData->VertexNormal.row(T3);
 	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
 }
+
 bool SCParametricMeshComponent::ValidUV(double U, double V) const
 {
-	return true;
+	NormlizeUV(U, V);
+	auto Hit = SampleHit(U, V);
+	return Hit.Valid;
 }
+
 TArray<FVector> SCParametricMeshComponent::GeodicShortestPath(const FVector& Start, const FVector& End) const
 {
 	auto FindNearestTriangle = [&](const FVector& Pos) {
@@ -168,8 +172,8 @@ SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::Samp
 	U *= 2. * M_PI;
 
 	auto ray = Ray {
-		Vec3(0., 0., 0.), // Ray direction
-		normalize(Vec3(sin(V) * cos(U), sin(V) * sin(U), cos(V))), // Ray origin
+		Vec3(0., 0., 0.), // Ray Origin
+		normalize(Vec3(sin(V) * cos(U), sin(V) * sin(U), cos(V))), // Ray Direction
 	};
 
 	static constexpr size_t invalid_id = std::numeric_limits<size_t>::max();

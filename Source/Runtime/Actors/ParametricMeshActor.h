@@ -3,12 +3,14 @@
 #include "Components/SCAFParametricMeshComponent.h"
 #include "Components/SCParametricMeshComponent.h"
 #include "CoreMinimal.h"
+#include "Components/BCParametricMeshComponent.h"
 #include "Game/Actor.h"
 
 enum ParametrizationMethod
 {
 	SphereicalConformal, // Require a closed mesh with genus 0, overlapping free
-	SCAF // Require an open mesh (Simplicial Complex Augmentation Framework)
+	SCAF, // Require an open mesh (Simplicial Complex Augmentation Framework)
+	BoxBorderConformal // Conformal map with a box boundary(Require a closed mesh with genus 0)
 };
 
 MCLASS(ParametricMeshActor)
@@ -34,6 +36,8 @@ public:
 			SurfaceComponent = AddComponent<SCParametricMeshComponent>(InitMesh);
     	if(Method == SCAF)
     		SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(InitMesh);
+    	if (Method == BoxBorderConformal)
+			SurfaceComponent = AddComponent<BCParametricMeshComponent>(InitMesh);
     }
 
     ~ParametricMeshActor() {};

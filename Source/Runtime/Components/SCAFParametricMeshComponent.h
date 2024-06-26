@@ -75,6 +75,7 @@ FORCEINLINE FVector SCAFParametricMeshComponent::Sample(double U, double V) cons
 
 FORCEINLINE bool SCAFParametricMeshComponent::ValidUV(double U, double V) const
 {
+	NormlizeUV(U, V);
 	return SampleHit(U, V).Valid;
 }
 

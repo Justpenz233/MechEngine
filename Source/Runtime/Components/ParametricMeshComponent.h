@@ -6,11 +6,12 @@
 #include <igl/exact_geodesic.h>
 
 #include "StaticMeshComponent.h"
+#include "Algorithm/GeometryProcess.h"
 
 /**
-* Abstract class for parametric mesh component
-* Should manage a mesh component and a parametric surface
-*/
+ * Abstract class for parametric mesh component
+ * Should manage a mesh component and a parametric surface
+ */
 
 MCLASS(ParametricMeshComponent)
 class ENGINE_API ParametricMeshComponent : public StaticMeshComponent
@@ -91,8 +92,9 @@ public:
 	 */
 	virtual FVector2 Projection(const FVector& Point) const
 	{
-		ASSERTMSG(false, "Not implemented");
-		return {};
+		return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
+			return Sample(UV.x(), UV.y());
+		});
 	}
 
 	/***
