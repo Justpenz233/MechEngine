@@ -65,8 +65,6 @@ StaticMesh::StaticMesh(StaticMesh&& Other) noexcept
 {
 	verM = std::move(Other.verM);
 	triM = std::move(Other.triM);
-	if (Other.colM.rows() != 0)
-		colM = std::move(Other.colM);
 	VertexNormal = std::move(Other.VertexNormal);
 	CornerNormal = std::move(Other.CornerNormal);
 	BoundingBox = Other.BoundingBox;
@@ -78,7 +76,6 @@ StaticMesh::StaticMesh(const StaticMesh& Other)
  : Object(Other) {
 	verM = Other.verM;
 	triM = Other.triM;
-	colM = Other.colM;
 	VertexNormal = Other.VertexNormal;
 	CornerNormal = Other.CornerNormal;
 	BoundingBox = Other.BoundingBox;
@@ -99,7 +96,6 @@ StaticMesh& StaticMesh::operator=(const StaticMesh& Other) noexcept
 {
 	verM = Other.verM;
 	triM = Other.triM;
-	colM = Other.colM;
 	VertexNormal = Other.VertexNormal;
 	CornerNormal = Other.CornerNormal;
 	BoundingBox = Other.BoundingBox;
@@ -112,8 +108,6 @@ StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 {
 	verM = std::move(Other.verM);
 	triM = std::move(Other.triM);
-	if (Other.colM.rows() != 0)
-		colM = std::move(Other.colM);
 	VertexNormal = std::move(Other.VertexNormal);
 	CornerNormal = std::move(Other.CornerNormal);
 	BoundingBox = Other.BoundingBox;
@@ -122,27 +116,30 @@ StaticMesh& StaticMesh::operator=(StaticMesh&& Other) noexcept
 	return *this;
 }
 
-void StaticMesh::TransformMesh(const Matrix4d& TransformMatrix)
+StaticMesh* StaticMesh::TransformMesh(const Matrix4d& TransformMatrix)
 {
 	if (TransformMatrix == Matrix4d::Identity())
-		return;
+		return this;
 
 	ParallelFor(verM.rows(), [this, &TransformMatrix](int i) {
 		Vector4d NewPos = TransformMatrix * (verM.row(i).homogeneous()).transpose();
 		verM.row(i) = NewPos.head(3); }, 1e7);
 
 	OnGeometryUpdate();
+	return this;
 }
-void StaticMesh::TransformMesh(const FTransform& Transform)
+
+StaticMesh* StaticMesh::TransformMesh(const FTransform& Transform)
 {
 	if (Transform == FTransform::Identity())
-		return;
+		return this;
 
 	ParallelFor(verM.rows(), [&](int i) {
 		Vector3d NewPos = Transform * FVector(verM.row(i));
 		verM.row(i) = NewPos; }, 1e7);
 
 	OnGeometryUpdate();
+	return this;
 }
 
 void StaticMesh::SaveOBJ(const Path& FileName) const
@@ -172,29 +169,32 @@ void StaticMesh::SaveOBJ(const Path& FileName) const
 	ofile.close();
 }
 
-void StaticMesh::Translate(const FVector& Translation)
+StaticMesh* StaticMesh::Translate(const FVector& Translation)
 {
 	ParallelFor(verM.rows(), [this, Translation](int i){
 		verM.row(i) += Translation;
 	});
 	OnGeometryUpdate();
+	return this;
 }
 
-void StaticMesh::Rotate(const FQuat& Rotation)
+StaticMesh* StaticMesh::Rotate(const FQuat& Rotation)
 {
 	ParallelFor(verM.rows(), [this, Rotation](int i){
 		verM.row(i) = verM.row(i) * Rotation.matrix();
 	});
 	OnGeometryUpdate();
+	return this;
 }
 
-void StaticMesh::RotateEuler(const FVector& RotationEuler)
+StaticMesh* StaticMesh::RotateEuler(const FVector& RotationEuler)
 {
 	TransformMesh(MMath::RotationMatrix4FromEulerXYZ(RotationEuler));
 	OnGeometryUpdate();
+	return this;
 }
 
-void StaticMesh::Scale(const FVector& InScale)
+StaticMesh* StaticMesh::Scale(const FVector& InScale)
 {
 	ParallelFor(verM.rows(), [this, InScale](int i) {
 		verM(i, 0) *= InScale[0];
@@ -202,30 +202,32 @@ void StaticMesh::Scale(const FVector& InScale)
 		verM(i, 2) *= InScale[2];
 	});
 	OnGeometryUpdate();
+	return this;
 }
 
-void StaticMesh::Scale(double InScale)
+StaticMesh* StaticMesh::Scale(double InScale)
 {
 	Scale({ InScale, InScale, InScale });
+	return this;
 }
 
-ObjectPtr<StaticMesh> StaticMesh::ScaleByBoundingBoxCenter(const FVector& InScale)
+StaticMesh* StaticMesh::ScaleByBoundingBoxCenter(const FVector& InScale)
 {
 	auto Center = GetBoundingBox().GetCenter();
 	ParallelFor(verM.rows(), [this, InScale, Center](int i) {
 		verM.row(i) = Center + (FVector(verM.row(i)) - Center).cwiseProduct(InScale);
 	});
 	OnGeometryUpdate();
-	return GetThis<StaticMesh>();
+	return this;
 }
 
-ObjectPtr<StaticMesh> StaticMesh::OffesetVertex(const double& Distance)
+StaticMesh* StaticMesh::OffsetVertex(const double& Distance)
 {
 	ParallelFor(verM.rows(), [this, Distance](int i) {
 		verM.row(i) += Distance * VertexNormal.row(i);
 	});
 	OnGeometryUpdate();
-	return GetThis<StaticMesh>();
+	return this;
 }
 
 bool StaticMesh::IsSelfIntersect() const
@@ -236,20 +238,21 @@ bool StaticMesh::IsSelfIntersect() const
 	return IF.rows() > 0;
 }
 
-bool StaticMesh::FillHoles()
+StaticMesh* StaticMesh::FillHoles()
 {
 	auto Result = Algorithm::GeometryProcess::FillAllHoles(verM, triM);
 	if (Result) OnGeometryUpdate();
-	return Result;
+	return this;
 }
 
-void StaticMesh::SmoothMesh(int Iteration, bool UseUniform)
+StaticMesh* StaticMesh::SmoothMesh(int Iteration, bool UseUniform)
 {
 	Algorithm::GeometryProcess::SmoothMesh(verM, triM, Iteration, UseUniform);
 	OnGeometryUpdate();
+	return this;
 }
 
-ObjectPtr<StaticMesh> StaticMesh::Clean()
+StaticMesh* StaticMesh::Clean()
 {
 	TArray<int> ToRemoveVertex;
 	for (int i = 0;i < verM.rows();i ++)
@@ -259,10 +262,10 @@ ObjectPtr<StaticMesh> StaticMesh::Clean()
 	}
 	if(ToRemoveVertex.size() > 0)
 		RemoveVertices(ToRemoveVertex);
-	return GetThis<StaticMesh>();
+	return this;
 }
 
-StaticMesh& StaticMesh::RemoveIsolatedVertices()
+StaticMesh* StaticMesh::RemoveIsolatedVertices()
 {
 	THashSet<int> VertexSet;
 	for (int i = 0; i < triM.rows(); i++)
@@ -272,7 +275,7 @@ StaticMesh& StaticMesh::RemoveIsolatedVertices()
 		VertexSet.insert(triM(i, 2));
 	}
 	if (VertexSet.size() == verM.rows())
-		return *this;
+		return this;
 
 	THashMap<int, int> VertexMap;
 	int Index = 0;
@@ -294,7 +297,7 @@ StaticMesh& StaticMesh::RemoveIsolatedVertices()
 	}
 	verM = NewVerM;
 	OnGeometryUpdate();
-	return *this;
+	return this;
 }
 
 bool StaticMesh::HasIsolatedVertices() const
@@ -309,7 +312,7 @@ bool StaticMesh::HasIsolatedVertices() const
 	return VertexSet.size() != verM.rows();
 }
 
-StaticMesh& StaticMesh::Normlize()
+StaticMesh* StaticMesh::Normalize()
 {
 	auto Center = GetBoundingBox().GetCenter();
 	auto Scale = 1. / GetBoundingBox().GetSize().maxCoeff();
@@ -317,29 +320,29 @@ StaticMesh& StaticMesh::Normlize()
 	verM *= Scale;
 
 	OnGeometryUpdate();
-	return *this;
+	return this;
 }
-ObjectPtr<StaticMesh> StaticMesh::Normlized()
+ObjectPtr<StaticMesh> StaticMesh::Normalized()
 {
-	Normlize();
+	Normalize();
 	return GetThis<StaticMesh>();
 }
 
 ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 {
-	if(FileName.extension() == ".obj" || FileName.extension() == ".OBJ")
+	if (FileName.extension() == ".obj" || FileName.extension() == ".OBJ")
 	{
 		MatrixX3d verM;
 		MatrixX3i triM;
-		Path FixedFileName = FileName;
-		if(!FileName.has_parent_path())
+		Path	  FixedFileName = FileName;
+		if (!FileName.has_parent_path())
 		{
 			if (exists((Path::EngineContentDir() / FileName)))
 				FixedFileName = Path::EngineContentDir() / FileName;
 			if (exists((Path::ProjectContentDir() / FileName)))
 				FixedFileName = Path::ProjectContentDir() / FileName;
 		}
-		if(igl::readOBJ(FixedFileName.string(), verM, triM))
+		if (igl::readOBJ(FixedFileName.string(), verM, triM))
 		{
 			return NewObject<StaticMesh>(verM, triM);
 		}
@@ -347,6 +350,22 @@ ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 	}
 	else
 		LOG_ERROR("Extension of file is not .obj or .OBJ: {0}", FileName.string());
+}
+
+StaticMesh* StaticMesh::SetGeometry(const MatrixX3d& InVerM, const MatrixX3i& InTriM)
+{
+	verM = InVerM; triM = InTriM; OnGeometryUpdate();
+	return this;
+}
+StaticMesh* StaticMesh::SetGeometry(const MatrixX3d& InVerM)
+{
+	verM = InVerM; OnGeometryUpdate();
+	return this;
+}
+StaticMesh* StaticMesh::SetGeometry(const MatrixX3i& InTriM)
+{
+	triM = InTriM; OnGeometryUpdate();
+	return this;
 }
 
 double StaticMesh::CalcVolume() const
@@ -373,12 +392,6 @@ int StaticMesh::GetFaceNum() const
 	return triM.rows();
 }
 
-void StaticMesh::SetColor(const FColor& Color)
-{
-	colM.resize(1, 3);
-	colM.row(0) = Color;
-}
-
 void StaticMesh::CalcNormal()
 {
 	igl::per_vertex_normals(verM, triM, VertexNormal);
@@ -390,7 +403,7 @@ bool StaticMesh::CheckNormalValid() const
 	return VertexNormal.rows() == verM.rows() && CornerNormal.rows() == triM.rows() * 3;
 }
 
-void StaticMesh::ReverseNormal()
+StaticMesh* StaticMesh::ReverseNormal()
 {
 	for (int i = 0; i < triM.rows(); i++)
 	{
@@ -401,9 +414,10 @@ void StaticMesh::ReverseNormal()
 		triM(i, 2) = tmp_y;
 	}
 	OnGeometryUpdate();
+	return this;
 }
 
-void StaticMesh::RemoveVertex(int VertexIndex)
+StaticMesh* StaticMesh::RemoveVertex(int VertexIndex)
 {
 	for (int i = 0;i < triM.rows();i ++)
 	{
@@ -415,9 +429,10 @@ void StaticMesh::RemoveVertex(int VertexIndex)
 		}
 	}
 	RemoveIsolatedVertices();
+	return this;
 }
 
-void StaticMesh::RemoveVertices(const TArray<int>& VertexIndices)
+StaticMesh* StaticMesh::RemoveVertices(const TArray<int>& VertexIndices)
 {
 	THashSet<int> VertexSet;
 	for (int VertexIndice : VertexIndices) VertexSet.insert(VertexIndice);
@@ -431,21 +446,24 @@ void StaticMesh::RemoveVertices(const TArray<int>& VertexIndices)
 		}
 	}
 	RemoveIsolatedVertices();
+	return this;
 }
 
-void StaticMesh::RemoveFace(int FaceIndex)
+StaticMesh* StaticMesh::RemoveFace(int FaceIndex)
 {
 	triM.row(FaceIndex) = triM.row(triM.rows() - 1);
 	triM.conservativeResize(triM.rows() - 1, 3);
+	return this;
 }
 
-void StaticMesh::RemoveFaces(const TArray<int>& FaceIndices)
+StaticMesh* StaticMesh::RemoveFaces(const TArray<int>& FaceIndices)
 {
 	for (int FaceIndex : FaceIndices)
 	{
 		triM.row(FaceIndex) = triM.row(triM.rows() - 1);
 		triM.conservativeResize(triM.rows() - 1, 3);
 	}
+	return this;
 }
 
 ObjectPtr<StaticMesh> StaticMesh::SubMesh(const TArray<int>& FaceIndices)
@@ -481,15 +499,15 @@ ObjectPtr<StaticMesh> StaticMesh::SubMesh(const TArray<int>& FaceIndices)
 	return NewObject<StaticMesh>(NewVerM, NewTriM);
 }
 
-void StaticMesh::Clear()
+StaticMesh* StaticMesh::Clear()
 {
 	verM.resize(0, 3);
 	triM.resize(0, 3);
-	colM.resize(0, 3);
 	VertexNormal.resize(0, 3);
 	CornerNormal.resize(0, 3);
 	BoundingBox = Math::FBox();
 	OnGeometryUpdateDelegate.Broadcast();
+	return this;
 }
 
 bool StaticMesh::IsEmpty() const

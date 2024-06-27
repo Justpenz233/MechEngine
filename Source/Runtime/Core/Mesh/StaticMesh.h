@@ -37,8 +37,6 @@ public:
 	// This is model space data
 	MatrixX3d  verM; // Store vertices in a matrix (n,3)
 	MatrixX3i  triM; // Store triangles in a matrix (m,3)
-	//! DEPRECATED, only used in Libigl
-	MatrixX3d  colM; // Store per triangle color or vertex color in a matrix (m,3) or (n,3).
 
 	MatrixX3d VertexNormal; // Store per vertex normal in a matrix (V, 3)
 	MatrixX3d CornerNormal; // Store per corner normal in a matrix (F * 3, 3), per face have 3 corner normal.
@@ -55,6 +53,17 @@ public:
 	FORCEINLINE MatrixX3i GetTriangles() const;
 	FORCEINLINE Vector3i GetTriangle(int Index) const;
 	FORCEINLINE FVector GetTriangleCenter(int Index) const;
+
+	/**
+	 * Set the geometry of the mesh
+	 * @param InVerM InVerM vertices matrix
+	 * @param InTriM InTriM triangles matrix
+	 * @return this
+	 */
+	StaticMesh* SetGeometry(const MatrixX3d& InVerM, const MatrixX3i& InTriM);
+	StaticMesh* SetGeometry(const MatrixX3d& InVerM);
+	StaticMesh* SetGeometry(const MatrixX3i& InTriM);
+
 	/**
 	 * https://ieeexplore.ieee.org/document/958278 , to calc signed volume of a tetrahedron with Origin as the fourth vertex
 	 * @return volume of this mesh
@@ -72,12 +81,6 @@ public:
 	int GetFaceNum() const;
 
 	/**
-	 * Set the color of the mesh
-	 * @param Color Linear color of the mesh
-	 */
-	void SetColor(const FColor& Color);
-
-	/**
 	 * Explict calculate the normal of the mesh
 	 * Should called when the mesh is modified
 	 */
@@ -93,31 +96,31 @@ public:
 	 * Reverse the normal of the mesh
 	 * By reverse indices in the triangles order
 	 */
-	void ReverseNormal();
+	StaticMesh* ReverseNormal();
 
 	/**
 	 * Delete one vertex of the mesh
 	 * @param VertexIndex Index of the vertex to be deleted
 	 */
-	void RemoveVertex(int VertexIndex);
+	StaticMesh* RemoveVertex(int VertexIndex);
 
 	/**
 	 * Delete multiple vertices of the mesh
 	 * @param VertexIndices Indices of the vertices to be deleted
 	 */
-	void RemoveVertices(const TArray<int>& VertexIndices);
+	StaticMesh* RemoveVertices(const TArray<int>& VertexIndices);
 
 	/**
 	 * Delete one face of the mesh
 	 * @param FaceIndex Index of the face to be deleted
 	 */
-	void RemoveFace(int FaceIndex);
+	StaticMesh* RemoveFace(int FaceIndex);
 
 	/**
 	 * Delete multiple faces of the mesh
 	 * @param FaceIndices Indices of the faces to be deleted
 	 */
-	void RemoveFaces(const TArray<int>& FaceIndices);
+	StaticMesh* RemoveFaces(const TArray<int>& FaceIndices);
 
 	/**
 	 * Submesh the mesh with given face indices
@@ -130,7 +133,7 @@ public:
 	 * Remove the isolated vertices of the mesh(not used in any face)
 	 * @return this
 	 */
-	StaticMesh& RemoveIsolatedVertices();
+	StaticMesh* RemoveIsolatedVertices();
 
 	/**
 	 * Detect if the mesh has isolated vertices
@@ -141,7 +144,7 @@ public:
 	/**
 	 * Clear all the data of the mesh, make it empty
 	 */
-	void Clear();
+	StaticMesh* Clear();
 
 	/**
 	 * If the mesh is empty
@@ -152,29 +155,29 @@ public:
 	 * Transform the mesh with a transform matrix
 	 * @param TransformMatrix transform matrix
 	 */
-	void TransformMesh(const Matrix4d& TransformMatrix);
-	void TransformMesh(const FTransform& Transform);
+	StaticMesh* TransformMesh(const Matrix4d& TransformMatrix);
+	StaticMesh* TransformMesh(const FTransform& Transform);
 
-	void Translate(const FVector& Translation);
-	void Rotate(const FQuat& Rotation);
-	void RotateEuler(const FVector& RotationEuler);
-	void Scale(const FVector& InScale);
-	void Scale(double InScale);
+	StaticMesh* Translate(const FVector& Translation);
+	StaticMesh* Rotate(const FQuat& Rotation);
+	StaticMesh* RotateEuler(const FVector& RotationEuler);
+	StaticMesh* Scale(const FVector& InScale);
+	StaticMesh* Scale(double InScale);
 
 	/**
 	 * Scale the mesh according to the bounding box center
 	 * @param InScale scale factor
 	 *
 	 */
-	ObjectPtr<StaticMesh> ScaleByBoundingBoxCenter(const double& InScale) {return ScaleByBoundingBoxCenter(FVector::Constant(InScale));}
-	ObjectPtr<StaticMesh> ScaleByBoundingBoxCenter(const FVector& InScale);
+	StaticMesh* ScaleByBoundingBoxCenter(const double& InScale) {return ScaleByBoundingBoxCenter(FVector::Constant(InScale));}
+	StaticMesh* ScaleByBoundingBoxCenter(const FVector& InScale);
 
 	/**
-	 * Offset the mesh along the vertex normal direction by a distance. A.K.A shrink the mesh
+	 * Offset the mesh along the vertex normal direction by a distance. A.K.A. shrink the mesh
 	 * @param Distance offset distance
 	 * @return offseted mesh
 	 */
-	ObjectPtr<StaticMesh> OffesetVertex(const double& Distance);
+	StaticMesh* OffsetVertex(const double& Distance);
 
 	/**
 	 * Check if the mesh is self intersect
@@ -186,27 +189,27 @@ public:
 	 * Fille all the holes in the mesh, the process will be slow
 	 * @return false if the mesh does not have holes
 	 */
-	bool FillHoles();
+	StaticMesh* FillHoles();
 
 	/**
 	 * Explicit smooth the mesh cotan Laplacian
 	 * @param Iteration iterations of smoothing
 	 * @param UseUniform use uniform Laplacian or cotan Laplacian
 	 */
-	void SmoothMesh(int Iteration = 5, bool UseUniform = false);
+	StaticMesh* SmoothMesh(int Iteration = 5, bool UseUniform = false);
 
 	/**
 	 * Clean the mesh, remove the isolated or NAN vertices
 	 * @return this
 	 */
-	ObjectPtr<StaticMesh> Clean();
+	StaticMesh* Clean();
 
 	/**
 	 * Normize the mesh, make the bounding box of the mesh to be (0,0,0) and size of bounding box to be 1
 	 * @return this
 	 */
-	StaticMesh& Normlize();
-	ObjectPtr<StaticMesh> Normlized();
+	StaticMesh* Normalize();
+	ObjectPtr<StaticMesh> Normalized();
 	/**
 	 * Get the Axis alignied bounding box of the mesh
 	 * @return bounding box of the mesh

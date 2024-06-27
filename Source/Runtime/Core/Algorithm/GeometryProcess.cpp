@@ -6,6 +6,7 @@
 #include "Mesh/StaticMesh.h"
 #include "igl/swept_volume.h"
 #include "Math/FTransform.h"
+#include "Mesh/MeshBoolean.h"
 #include "igl/vertex_components.h"
 
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
@@ -13,6 +14,7 @@
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
 #include <CGAL/Polygon_mesh_processing/border.h>
+#include <igl/boundary_loop.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
@@ -201,35 +203,68 @@ namespace MechEngine::Algorithm::GeometryProcess
 	{
 		SurfaceProjectFunctor fucnctor([&](double u, double v) {
 			return SampleFunction(FVector2(u, v));
-		}, Pos);
-		double BestEnergy = 1e6;
-		Vector2d Best;
-		for(double u = 0.; u <= 1.; u += 0.1)
+		},
+			Pos);
+		double				  BestEnergy = 1e6;
+		Vector2d			  Best;
+		for (double u = 0.; u <= 1.; u += 0.1)
 		{
 			for (double v = 0.; v <= 1.; v += 0.1)
 			{
 				VectorXd UV(2);
 				UV << u, v;
-				Eigen::NumericalDiff<SurfaceProjectFunctor> numDiff(fucnctor);
+				Eigen::NumericalDiff<SurfaceProjectFunctor>									   numDiff(fucnctor);
 				Eigen::LevenbergMarquardt<Eigen::NumericalDiff<SurfaceProjectFunctor>, double> lm(numDiff);
-				int t = lm.minimize(UV);
+				int																			   t = lm.minimize(UV);
 
 				double Energy = (SampleFunction(FVector2(u, v)) - Pos).norm();
-				if(Energy < BestEnergy)
+				if (Energy < BestEnergy)
 				{
 					BestEnergy = Energy;
-					Best = {u, v};
+					Best = { u, v };
 				}
 				Energy = (SampleFunction(UV) - Pos).norm();
-				if(Energy < BestEnergy)
+				if (Energy < BestEnergy)
 				{
 					BestEnergy = Energy;
-					Best = {UV(0), UV(1)};
+					Best = { UV(0), UV(1) };
 				}
 			}
 		}
 		return Best;
+	}
+	ObjectPtr<StaticMesh> SolidifyMesh(const ObjectPtr<StaticMesh>& Mesh, double Thickness)
+	{
+		std::vector<std::vector<int>> Boundarys;
+		igl::boundary_loop(Mesh->triM, Boundarys);
+		auto Inner = NewObject<StaticMesh>(*Mesh);
+		Inner->OffsetVertex(-Thickness);
+		Inner->ReverseNormal();
+		auto Result = MeshBoolean::MeshConnect(Mesh, Inner);
+		// No boundary
+		if(Boundarys.empty()) return Result;
 
+		// With boundary need to seal the boundary
+		int IndexBias = Mesh->GetVertexNum();
+		MatrixX3i TriM = Result->GetTriangles();
+		//Seal the boundary
+		for (const auto& Bound : Boundarys)
+		{
+			MatrixX3i NewTri(Bound.size() * 2, 3);
+			for(int j = 0;j < Bound.size(); j ++)
+			{
+				int Next = (j + 1) % Bound.size();
+				Vector3i Tri;
+				Tri << Bound[j], Bound[Next] + IndexBias, Bound[Next];
+				NewTri.row(j * 2) = Tri;
+				Tri = {Bound[j], Bound[j] + IndexBias, Bound[Next] + IndexBias};
+				NewTri.row(j * 2 + 1) = Tri;
+			}
+			TriM.conservativeResize(TriM.rows() + NewTri.rows(), 3);
+			TriM.bottomRows(NewTri.rows()) = NewTri;
+		}
+		Result->SetGeometry(TriM);
+		return Result;
 	}
 
-} // namespace MechEngine::Algorithm::GeometryProcess
+	} // namespace MechEngine::Algorithm::GeometryProcess

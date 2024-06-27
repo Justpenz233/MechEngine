@@ -50,4 +50,16 @@ namespace MechEngine::Algorithm::GeometryProcess
 	 * @return 2D UV position
 	 */
 	ENGINE_API FVector2 Projection(const FVector& Pos, TFunction<FVector(const FVector2&)> SampleFunction);
+
+	/**
+	 * Given a mesh, and a thickness, return a new mesh which is the solidified version of the input mesh
+	 * When Thickness is positive, the solidified mesh will thicken inside the mesh.
+	 * @see Blender solidify modifier
+	 * @warning This function works by offset mesh with vertex normal direction. May cause self-intersection well when thickness is too large.
+	 * @param Mesh The input mesh
+	 * @param Thickness The thickness of the solidified mesh
+	 * @return The solidified mesh
+	 */
+	ENGINE_API ObjectPtr<StaticMesh> SolidifyMesh(const ObjectPtr<StaticMesh>& Mesh, double Thickness);
+
 };

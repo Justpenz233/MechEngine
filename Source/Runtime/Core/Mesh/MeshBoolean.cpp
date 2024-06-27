@@ -44,24 +44,19 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPt
     auto numVertNormB = B->VertexNormal.rows();
 	auto numCornerNormA = A->CornerNormal.rows();
 	auto numCornerNormB = B->CornerNormal.rows();
-    auto numColA = A->colM.rows();
-    auto numColB = B->colM.rows();
 
     Vertex.resize(numVertA + numVertB, 3);
     FC.resize(numFaceA + numFaceB, 3);
     VertNorm.resize(numVertNormA + numVertNormB, 3);
 	CornerNorm.resize(numCornerNormA + numCornerNormB, 3);
-    Col.resize(numColA + numColB, 3);
 
 
     Vertex.block(0, 0, numVertA, 3) = A->verM;
     FC.block(0, 0, numFaceA, 3) = A->triM;
-    Col.block(0, 0, numColA, 3)  = A->colM;
     VertNorm.block(0, 0, numVertNormA, 3) = A->VertexNormal;
 	CornerNorm.block(0, 0, numCornerNormA, 3) = A->CornerNormal;
 
     Vertex.block(numVertA, 0, numVertB, 3) = B->verM;
-    Col.block(numColA, 0, numColB, 3)   = B->colM;
     VertNorm.block(numVertNormA, 0, numVertNormB, 3) = B->VertexNormal;
 	CornerNorm.block(numCornerNormA, 0, numCornerNormB, 3) = B->CornerNormal;
 
@@ -73,7 +68,6 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPt
     auto NewMesh = NewObject<StaticMesh>(std::move(Vertex), std::move(FC));
 	NewMesh->VertexNormal = VertNorm;
 	NewMesh->CornerNormal = CornerNorm;
-	NewMesh->colM = Col;
 	return NewMesh;
 }
 // std::ObjectPtr<StaticMesh> BooleanMcut(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
