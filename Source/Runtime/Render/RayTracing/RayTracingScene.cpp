@@ -126,23 +126,6 @@ void RayTracingScene::CompileShader()
 			$while(intersection.valid())
 			{
 				auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-				// Draw wireframe pass
-				//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-				$if(material_data->show_wireframe == 1)
-				{
-					auto TestWireFrame = IsWireFrame(view, pixel,
-						intersection.vertex_ndc[0],
-						intersection.vertex_ndc[1],
-						intersection.vertex_ndc[2], 0.8f);
-					$if(TestWireFrame)
-					{
-						frame_buffer()->write(pixel_coord, make_float4(0.f)); // Write line color as black
-						transmission = 0.f;
-						$break;
-					};
-				};
-
 				/************************************************************************
 				 *								Shading
 				 ************************************************************************/
@@ -197,6 +180,23 @@ void RayTracingScene::CompileShader()
 					// Only two sample, one is light dir, one is reflected dir
 					pixel_radiance += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
 				};
+
+				// Draw wireframe pass, blend wireframe with the pixel color as Anti-aliasing
+				//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
+				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
+				$if(material_data->show_wireframe == 1)
+				{
+					auto d = distance_to_triangle(
+						view, pixel,
+						intersection.vertex_ndc[0],
+						intersection.vertex_ndc[1],
+						intersection.vertex_ndc[2]);
+
+					//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
+					auto wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
+					pixel_radiance = lerp(pixel_radiance, make_float3(0.f), wireframe_intensity);
+				};
+
 				auto alpha = material_data.alpha;
 				pixel_color += pixel_radiance * alpha * transmission;
 				transmission *= 1.f - alpha;

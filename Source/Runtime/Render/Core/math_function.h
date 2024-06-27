@@ -77,6 +77,25 @@ namespace MechEngine::Rendering
                on_the_lines(p, v2_coord, v0_coord, thickness);
     }
 
+	/**
+	 * Given the viewport coordinate, and world space triangle, calculate the distance from the pixel to the triangle.
+	* @param view current view
+	* @param p pixel in viewport space
+	* @param v0 vertex 0 of the triangle in NDC space
+	* @param v1 vertex 1 of the triangle in NDC space
+	* @param v2 vertex 2 of the triangle in NDC space
+	* @return the distance from the pixel to the triangle
+	 */
+	FORCEINLINE Float distance_to_triangle(Var<view_data> view, const Float2& p, const Float3& v0, const Float3& v1, const Float3& v2)
+	{
+		auto v0_coord = view->ndc_to_screen(v0);
+		auto v1_coord = view->ndc_to_screen(v1);
+		auto v2_coord = view->ndc_to_screen(v2);
+		return min(distance_to_segment(p, v0_coord, v1_coord),
+			min(distance_to_segment(p, v1_coord, v2_coord),
+				distance_to_segment(p, v2_coord, v0_coord)));
+	}
+
 
 
 }
