@@ -28,6 +28,7 @@ using Ray     = bvh::v2::Ray<Scalar, 3>;
 
 SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration)
 {
+	OriginalMesh = InitMesh;
 	Eigen::MatrixX3d V,U;
 	Eigen::MatrixXi F;
 	Eigen::SparseMatrix<double> L;
@@ -158,8 +159,13 @@ TArray<FVector> SCParametricMeshComponent::GeodicShortestPath(const FVector& Sta
 FVector2 SCParametricMeshComponent::Projection(const FVector& Point) const
 {
 	return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
-	return Sample(UV.x(), UV.y());
-});
+		return Sample(UV.x(), UV.y());
+	});
+}
+void SCParametricMeshComponent::Remesh()
+{
+	ParametricMeshComponent::Remesh();
+	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
 }
 SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::SampleHit(double U, double V) const
 {

@@ -30,8 +30,10 @@ using Node    = bvh::v2::Node<Scalar, 3>;
 using Bvh     = bvh::v2::Bvh<Node>;
 using Ray     = bvh::v2::Ray<Scalar, 3>;
 
-SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh) : ParametricMeshComponent()
+SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh)
+	: ParametricMeshComponent()
 {
+	OriginalMesh = InitMesh;
 	MatrixX3d& V = InitMesh->verM;
 	MatrixX3i& F = InitMesh->triM;
 
@@ -52,7 +54,7 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	ASSERTMSG(!all_bnds.empty(), "no boundary found, the mesh should have at least one boundary");
 
 	// Heuristic primary boundary choice: longest
-	auto primary_bnd = std::max_element(all_bnds.begin(), all_bnds.end(), [](const std::vector<int> &a, const std::vector<int> &b) { return a.size()<b.size(); });
+	auto primary_bnd = std::max_element(all_bnds.begin(), all_bnds.end(), [](const std::vector<int>& a, const std::vector<int>& b) { return a.size() < b.size(); });
 
 	Eigen::VectorXi bnd = Eigen::Map<Eigen::VectorXi>(primary_bnd->data(), primary_bnd->size());
 
@@ -79,12 +81,13 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 		all_bnds.erase(primary_bnd);
 		Eigen::MatrixXi F_filled;
 		igl::topological_hole_fill(F, all_bnds, F_filled);
-		igl::harmonic(F_filled, bnd, bnd_uv ,1, uv_init);
+		igl::harmonic(F_filled, bnd, bnd_uv, 1, uv_init);
 		uv_init.conservativeResize(V.rows(), 2);
 	}
 	igl::triangle::SCAFData scaf_data;
 
-	Eigen::VectorXi b; Eigen::MatrixXd bc;
+	Eigen::VectorXi b;
+	Eigen::MatrixXd bc;
 	igl::triangle::scaf_precompute(V, F, uv_init, scaf_data, igl::MappingEnergyType::LOG_ARAP, b, bc, 0);
 
 	// Solve the SCAF
@@ -97,24 +100,29 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	UV_Temp *= 1. / (UV_Temp.maxCoeff() - UV_Temp.minCoeff());
 
 	UVMesh.resize(UV_Temp.rows(), 3);
-	for (int i = 0;i < UV_Temp.rows();i ++)
-		UVMesh.row(i) = FVector{UV_Temp(i, 0), UV_Temp(i, 1), 0};
+	for (int i = 0; i < UV_Temp.rows(); i++)
+		UVMesh.row(i) = FVector{ UV_Temp(i, 0), UV_Temp(i, 1), 0 };
 	// Set up the BVH tree
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
 	Config.quality = bvh::v2::DefaultBuilder<BVHNode>::Quality::High;
 	TArray<BBox> BBoxes(F.rows());
 	TArray<Vec3> Centers(F.rows());
-	for (int i = 0;i < F.rows();i ++)
+	for (int i = 0; i < F.rows(); i++)
 	{
 		Vec3 V0 = Vec3(UVMesh(F(i, 0), 0), UVMesh(F(i, 0), 1), 0);
 		Vec3 V1 = Vec3(UVMesh(F(i, 1), 0), UVMesh(F(i, 1), 1), 0);
 		Vec3 V2 = Vec3(UVMesh(F(i, 2), 0), UVMesh(F(i, 2), 1), 0);
-		Tri T = Tri(V0, V1, V2);
+		Tri	 T = Tri(V0, V1, V2);
 		Triangles[i] = T;
 		BBoxes[i] = T.get_bbox();
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
+}
+void SCAFParametricMeshComponent::Remesh()
+{
+	ParametricMeshComponent::Remesh();
+	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
 }
 
 UVMappingMeshResult SCAFParametricMeshComponent::SampleHit(double U, double V) const

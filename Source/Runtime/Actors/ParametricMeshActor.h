@@ -113,7 +113,7 @@ public:
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point));
+		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessToSample);
 	}
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const

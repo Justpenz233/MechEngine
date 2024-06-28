@@ -32,6 +32,9 @@ class ENGINE_API SCParametricMeshComponent : public ParametricMeshComponent
 	virtual FVector2 Projection(const FVector& Point) const override;
 
 protected:
+
+	virtual void Remesh() override;
+
 	struct UVMappingSampleResult
 	{
 		bool Valid;
@@ -50,6 +53,8 @@ protected:
 	// BVH tree which store the UV mesh, used to fast sample UV
 	using BVHNode = bvh::v2::Node<double, 3>;
 	bvh::v2::Bvh<BVHNode> BVHUVMesh;
+
+	ObjectPtr<StaticMesh> OriginalMesh;
 
 	// Triangle structure
 	TArray<bvh::v2::PrecomputedTri<double>> Triangles;

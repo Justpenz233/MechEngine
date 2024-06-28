@@ -26,6 +26,9 @@ public:
 
 	FORCEINLINE virtual bool ValidUV(double U, double V) const override;
 protected:
+
+	virtual void Remesh() override;
+
 	struct UVMappingSampleResult
 	{
 		bool Valid;
@@ -40,6 +43,7 @@ protected:
 	MatrixX3d UVMesh;
 	MatrixX3d Vertices;
 	MatrixX3i Indices;
+	ObjectPtr<StaticMesh> OriginalMesh;
 
 	// BVH tree which store the UV mesh, used to fast sample UV
 	using BVHNode = bvh::v2::Node<double, 3>;

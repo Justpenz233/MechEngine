@@ -37,6 +37,8 @@ public:
 
 	SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh);
 
+	virtual void Remesh() override;
+
 	// Calc UV correspond to 3D position in model space
 	UVMappingMeshResult SampleHit(double U, double V) const;
 
@@ -59,6 +61,8 @@ private:
 
 	// Triangle structure
 	TArray<bvh::v2::PrecomputedTri<double>> Triangles;
+
+	ObjectPtr<StaticMesh> OriginalMesh;
 };
 
 

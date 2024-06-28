@@ -18,7 +18,6 @@ class ENGINE_API ParametricMeshComponent : public StaticMeshComponent
 {
 	REFLECTION_BODY(ParametricMeshComponent)
 public:
-
 	/**
 	* Check if the UV coordinate is valid
 	*/
@@ -130,7 +129,8 @@ public:
 
 	virtual void SetThickness(double InThickness)
 	{
-		ASSERTMSG(false, "Not implemented");
+		MeshThickness = InThickness;
+		MarkAsDirty(DIRTY_REMESH);
 	}
 
 	virtual double GetThickness() const
@@ -163,6 +163,12 @@ public:
 		int EndTriIndex = FindNearestTriangle(End);
 		return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
 				StartTriIndex, EndTriIndex);;
+	}
+
+	virtual void PostEdit(Reflection::FieldAccessor& Field) override
+	{
+		if (Field == NAME(MeshThickness))
+			SetThickness(MeshThickness);
 	}
 
 protected:

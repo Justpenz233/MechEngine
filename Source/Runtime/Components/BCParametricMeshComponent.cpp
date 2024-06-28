@@ -55,6 +55,7 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 	Eigen::MatrixXi F;
 	Eigen::SparseMatrix<double> L;
 
+	OriginalMesh = InitMesh;
 	V = InitMesh->GetVertices();
 	F = InitMesh->GetTriangles();
 	Vertices = V;
@@ -112,6 +113,11 @@ FVector BCParametricMeshComponent::SampleNormal(double u, double v) const
 	auto N2 = MeshData->VertexNormal.row(T2);
 	auto N3 = MeshData->VertexNormal.row(T3);
 	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
+}
+void BCParametricMeshComponent::Remesh()
+{
+	ParametricMeshComponent::Remesh();
+	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
 }
 BCParametricMeshComponent::UVMappingSampleResult BCParametricMeshComponent::SampleHit(double U, double V) const
 {
