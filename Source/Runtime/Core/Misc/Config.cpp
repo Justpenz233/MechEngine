@@ -23,11 +23,12 @@ void Config::LoadFile(const String& InFilename)
 		LOG_ERROR("Config file {} already loaded", InFilename.c_str());
 		return;
 	}
-	ConfigFiles.insert({ FileName, inih::INIReader(InFilename) });
-	if (int ErrorCode = ConfigFiles[FileName].ParseError(); ErrorCode != 0)
-	{
-		LOG_ERROR("Failed to load config file: {}, error code: {}", InFilename.c_str(), ErrorCode);
-	}
+	mINI::INIFile file(Path(InFilename).string());
+	mINI::INIStructure ini;
+	if(file.read(ini))
+		ConfigFiles.insert({ FileName, { std::move(file), std::move(ini) } });
+	else
+		LOG_ERROR("Failed to load config file: {}", InFilename.c_str());
 }
 
 void Config::UnloadFile(const String& Filename)

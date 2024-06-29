@@ -13,7 +13,7 @@ namespace MechEngine
 class ENGINE_API Config
 {
 private:
-	TMap<String, inih::INIReader> ConfigFiles;
+	TMap<String, std::pair<mINI::INIFile, mINI::INIStructure>> ConfigFiles;
 
 public:
 	Config() = default;
@@ -30,15 +30,30 @@ public:
 
 	template <typename T>
 	TArray<T> GetArray( const String& Section, const String& Key);
+
+
+protected:
+	template <typename T>
+	T Converter(const std::string& s) const;
+	[[nodiscard]] const bool BoolConverter(std::string s) const;
 };
 
 template <typename T>
 T Config::Get(const String& Section, const String& Key)
 {
-	for(const auto& [FileName, ConfigFile] : ConfigFiles)
+	for(const auto& [FileName, InI] : ConfigFiles)
 	{
-		if(ConfigFile.ContainKey(Section, Key))
-			return ConfigFile.template Get<T>(Section, Key);
+		if(InI.second.has(Section) && InI.second.get(Section).has(Key))
+		{
+			auto value = InI.second.get(Section).get(Key);
+			if constexpr (std::is_same<T, std::string>()) {
+				return value;
+			} else if constexpr (std::is_same<T, bool>()) {
+				return BoolConverter(value);
+			} else {
+				return Converter<T>(value);
+			};
+		}
 	}
 	LOG_ERROR("Section {} , Key {} not found in config", Section, Key);
 	return {};
@@ -47,14 +62,45 @@ T Config::Get(const String& Section, const String& Key)
 template <typename T>
 TArray<T> Config::GetArray(const String& Section, const String& Key)
 {
-	for(const auto& [FileName, ConfigFile] : ConfigFiles)
-	{
-		if(ConfigFile.ContainKey(Section, Key))
-			return ConfigFile.template GetVector<T>(Section, Key);
+	std::string value = Get<std::string>(Section, Key);
+
+	std::istringstream out{value};
+	const std::vector<std::string> strs{std::istream_iterator<std::string>{out},
+		std::istream_iterator<std::string>()};
+
+	std::vector<T> vs{};
+	for (const std::string& s : strs) {
+		vs.emplace_back(Converter<T>(s));
 	}
-	LOG_ERROR("Section {} , Key {} not found in config", Section, Key);
-	return {};
+	return vs;
 }
+
+template <typename T>
+inline T Config::Converter(const std::string& s) const {
+	try {
+		T v{};
+		std::istringstream _{s};
+		_.exceptions(std::ios::failbit);
+		_ >> v;
+		return v;
+	} catch (std::exception& e) {
+		throw std::runtime_error("cannot parse value '" + s + "' to type<T>.");
+	};
+}
+
+inline const bool Config::BoolConverter(std::string s) const {
+	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+	static const std::unordered_map<std::string, bool> s2b{
+		{"1", true},  {"true", true},   {"yes", true}, {"on", true},
+		{"0", false}, {"false", false}, {"no", false}, {"off", false},
+	};
+	auto const value = s2b.find(s);
+	if (value == s2b.end()) {
+		throw std::runtime_error("'" + s + "' is not a valid boolean value.");
+	}
+	return value->second;
+}
+
 
 }
 

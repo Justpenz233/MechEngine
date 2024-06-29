@@ -5,8 +5,8 @@ if(MSVC)
 endif()
 
 # Use system packages if available
-find_package(Boost)
-find_package(Eigen)
+find_package(Boost QUIET)
+find_package(Eigen QUIET)
 
 if (NOT TARGET luisa::compute)
     option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" OFF)
