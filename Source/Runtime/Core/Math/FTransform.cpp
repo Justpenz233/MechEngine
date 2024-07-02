@@ -52,7 +52,7 @@ FTransform FTransform::LerpTo(const FTransform& Other, double Alpha) const
 	return FTransform::Lerp(*this, Other, Alpha);
 }
 
-FVector FTransform::ToLocalSpace(const FVector& WolrdLocation)
+FVector FTransform::ToLocalSpace(const FVector& WolrdLocation) const
 {
 	Matrix4d InverseTransfrom = GetMatrix().inverse();
 	Vector4d Location;

@@ -49,7 +49,7 @@ public:
 	FORCEINLINE void SetScale(const Vector3d& InScale) { Scale = InScale; }
 	FTransform LerpTo(const FTransform& Other, double Alpha) const;
 
-	FVector		ToLocalSpace(const FVector& WolrdLocation);
+	FVector		ToLocalSpace(const FVector& WolrdLocation) const;
 	FTransform	Inverse() const;
 	FTransform& operator=(const FTransform& Other);
 	FTransform& operator=(const Eigen::Affine3d& Other);

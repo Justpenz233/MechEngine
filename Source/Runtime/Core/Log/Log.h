@@ -1,5 +1,6 @@
 #pragma once
 #include "Log/Logger.h"
+#include <format>
 
 namespace MechEngine {
     template <class... Args>
