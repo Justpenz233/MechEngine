@@ -48,6 +48,10 @@ if(NOT TARGET tinysplinecxx)
     add_subdirectory(tinyspline)
 endif ()
 
+if (NOT TARGET pmp)
+    add_subdirectory(libpmp)
+endif ()
+
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
@@ -58,4 +62,5 @@ target_link_libraries(ThirdParty INTERFACE
         magic_enum
         luisa::compute
         bvh
+        pmp
 )
