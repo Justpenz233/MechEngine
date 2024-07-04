@@ -451,18 +451,31 @@ StaticMesh* StaticMesh::RemoveVertices(const TArray<int>& VertexIndices)
 
 StaticMesh* StaticMesh::RemoveFace(int FaceIndex)
 {
-	triM.row(FaceIndex) = triM.row(triM.rows() - 1);
-	triM.conservativeResize(triM.rows() - 1, 3);
+	if (FaceIndex < 0 || FaceIndex >= triM.rows())
+	{
+		LOG_WARNING("Try to remove face with index out of range: {0}", FaceIndex);
+	}
+	MatrixX3i NewTriM(triM.rows() - 1, 3);
+	NewTriM.topRows(FaceIndex) = triM.topRows(FaceIndex);
+	NewTriM.bottomRows(triM.rows() - FaceIndex - 1) = triM.bottomRows(triM.rows() - FaceIndex - 1);
+	RemoveIsolatedVertices();
 	return this;
 }
 
 StaticMesh* StaticMesh::RemoveFaces(const TArray<int>& FaceIndices)
 {
-	for (int FaceIndex : FaceIndices)
+	THashSet<int> FaceSet;
+	for (int FaceIndex : FaceIndices) FaceSet.insert(FaceIndex);
+	MatrixX3i NewTriM(triM.rows() - FaceSet.size(), 3);
+	int Index = 0;
+	for (int i = 0; i < triM.rows(); i++)
 	{
-		triM.row(FaceIndex) = triM.row(triM.rows() - 1);
-		triM.conservativeResize(triM.rows() - 1, 3);
+		if (FaceSet.contains(i)) continue;
+		NewTriM.row(Index) = triM.row(i);
+		Index++;
 	}
+	triM = NewTriM;
+	RemoveIsolatedVertices();
 	return this;
 }
 

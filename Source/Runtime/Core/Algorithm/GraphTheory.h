@@ -55,6 +55,7 @@ namespace MechEngine::Algorithm::GraphTheory
 		 * @return Reference to the node
 		 */
 		FORCEINLINE NodeType& GetNode(int NodeID);
+		FORCEINLINE const NodeType& GetNode(int NodeID) const;
 
 		/**
 		 * Add a node to the graph
@@ -185,6 +186,12 @@ namespace MechEngine::Algorithm::GraphTheory
 	FORCEINLINE typename Graph<NodeContentType, EdgeContentType>::NodeType& Graph<NodeContentType, EdgeContentType>::GetNode(int NodeID)
 	{
 		return Nodes[NodeID];
+	}
+
+	template <class NodeContentType, class EdgeContentType>
+	FORCEINLINE const typename Graph<NodeContentType, EdgeContentType>::NodeType& Graph<NodeContentType, EdgeContentType>::GetNode(int NodeID) const
+	{
+		return Nodes.at(NodeID);
 	}
 
 	template <class NodeContentType, class EdgeContentType>
