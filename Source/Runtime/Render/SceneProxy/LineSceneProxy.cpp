@@ -84,9 +84,9 @@ namespace MechEngine::Rendering
     		pixel_max_int = min(pixel_max_int, make_uint2(view->viewport_size.x, view->viewport_size.y));
 
     		auto radius_square = square(radius);
-    		$for(x, pixel_min_int.x, pixel_max_int.x)
+    		$for(x, pixel_min_int.x, pixel_max_int.x + 1)
     		{
-    			$for(y, pixel_min_int.y, pixel_max_int.y)
+    			$for(y, pixel_min_int.y, pixel_max_int.y + 1)
     			{
     				auto pixel = make_uint2(x, y);
     				auto distance = square(x - screen_position.x) + square(y - screen_position.y);
@@ -120,56 +120,69 @@ namespace MechEngine::Rendering
 				auto line = bindelss_buffer<lines_data>(lines_data_bindless_id)->read(line_id);
 				auto ndc_start = view->world_to_ndc(line.world_start);
 				auto ndc_end = view->world_to_ndc(line.world_end);
-				auto screen_start = view->ndc_to_screen(ndc_start);
-				auto screen_end = view->ndc_to_screen(ndc_end);
-				auto thickness = line.thickness;
-
-				// TODO should recalculate the line start and end clamped to the screen
-
-				$if(ndc_start.z < 0.f & ndc_end.z < 0.f)
+				$if(!(ndc_start.z < 0.f & ndc_end.z < 0.f) &
+					!(ndc_start.x > 0.5f & ndc_end.x > 0.5f) &
+					!(ndc_start.x < -0.5f & ndc_end.x < -0.5f) &
+					!(ndc_start.y > 0.5f & ndc_end.y > 0.5f) &
+					!(ndc_start.y < -0.5f & ndc_end.y < -0.5f))
 				{
-					return;
-				};
-
-				Bool Steep = false;
-				$if(abs(screen_start.x - screen_end.x) < abs(screen_start.y - screen_end.y))
-				{
-					swap(screen_start.x, screen_start.y);
-					swap(screen_end.x, screen_end.y);
-					Steep = true;
-				};
-				$if(screen_start.x > screen_end.x)
-				{
-					swap(ndc_start, ndc_end);
-					swap(screen_start, screen_end);
-				};
-				Int dx = screen_end.x - screen_start.x;
-				Int dy = screen_end.y - screen_start.y;
-				Int derror2 = abs(dy) * 2;
-				Int error = 0;
-
-				Int y = screen_start.y;
-				Float t = 0.f;
-
-				$for(x, Int(screen_start.x), Int(screen_end.x))
-				{
-					t = Float(x - screen_start.x) / Float(dx);
-					auto pixel_pos = make_float3((Float)x, (Float)y, lerp(ndc_start.z, ndc_end.z, t));
-					$if (Steep)
+					auto screen_start = view->ndc_to_screen(ndc_start);
+					auto screen_end = view->ndc_to_screen(ndc_end);
+					auto thickness = line.thickness;
+					Bool Steep = false;
+					$if(abs(screen_start.x - screen_end.x) < abs(screen_start.y - screen_end.y))
 					{
-						swap(pixel_pos.x, pixel_pos.y);
+						swap(screen_start.x, screen_start.y);
+						swap(screen_end.x, screen_end.y);
+						Steep = true;
 					};
-					raster_point(view, pixel_pos, thickness, line.color);
-
-					error += derror2;
-					$if(error > dx)
+					$if(screen_start.x > screen_end.x)
 					{
-						y += select( -1 , 1, dy > 0);
-						error -= dx * 2;
+						swap(ndc_start, ndc_end);
+						swap(screen_start, screen_end);
+					};
+					Int dx = screen_end.x - screen_start.x;
+					Int dy = screen_end.y - screen_start.y;
+					Int derror2 = abs(dy) * 2;
+					Int error = 0;
+
+					Float t = 0.f;
+					Float2 clip_screen_start = screen_start, clip_screen_end = screen_end;
+					// clip line into screen box
+					$if(Steep)
+					{
+						swap(clip_screen_start.x, clip_screen_start.y);
+						swap(clip_screen_end.x, clip_screen_end.y);
+						std::tie(clip_screen_start, clip_screen_end)
+						= view->clamp_to_screen(clip_screen_start, clip_screen_end);
+						swap(clip_screen_start.x, clip_screen_start.y);
+						swap(clip_screen_end.x, clip_screen_end.y);
+					}
+					$else
+					{
+						std::tie(clip_screen_start, clip_screen_end)
+						= view->clamp_to_screen(screen_start, screen_end);
+					};
+					Int y = clip_screen_start.y;
+					$for(x, Int(clip_screen_start.x), Int(clip_screen_end.x))
+					{
+						t = Float(x - screen_start.x) / Float(dx);
+						auto pixel_pos = make_float3((Float)x, (Float)y, lerp(ndc_start.z, ndc_end.z, t));
+						$if (Steep)
+						{
+							swap(pixel_pos.x, pixel_pos.y);
+						};
+						raster_point(view, pixel_pos, thickness, line.color);
+
+						error += derror2;
+						$if(error > dx)
+						{
+							y += select( -1 , 1, dy > 0);
+							error -= dx * 2;
+						};
 					};
 				};
 			}));
-
 	}
 
 	void LineSceneProxy::PostRenderPass(Stream& stream)

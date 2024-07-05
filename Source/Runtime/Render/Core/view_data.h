@@ -75,4 +75,49 @@ LUISA_STRUCT(MechEngine::Rendering::view_data,
     {
         return ndc_to_screen(world_to_ndc(world_position));
     }
+
+	/**
+	* Calc the range of the clipping window to determine the intersections between the line and the clip window.
+	* With these intersections it knows which portion of the line should be drawn. Matthes¨CDrakopoulos Line Clipping
+	* @see https://arxiv.org/abs/1908.01350
+	* @see https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9605407/pdf/jimaging-08-00286.pdf
+	* @param p0 the screen position start of the line
+	* @param p1 the screen position end of the line
+	*/
+	[[nodiscard]] std::pair<luisa::compute::Float2, luisa::compute::Float2> clamp_to_screen(
+		const luisa::compute::Float2& p0, const luisa::compute::Float2& p1)
+    {
+    	luisa::compute::Float2 x = make_float2(p0.x, p1.x);
+    	luisa::compute::Float2 y = make_float2(p0.y, p1.y);
+    	$if(!(p0.x < 0 & p1.x < 0) & !(p0.x > viewport_size.x & p1.x > viewport_size.x) &
+			!(p0.y < 0 & p1.y < 0) & !(p0.y > viewport_size.y & p1.y > viewport_size.y))
+		{
+    		luisa::compute::Float xmax = viewport_size.x;
+    		luisa::compute::Float ymax = viewport_size.y;
+    		$for(i, 0, 2)
+    		{
+    			$if(x[i] < 0.f)
+    			{
+    				x[i] = 0.f;
+    				y[i] = p0.y + (p1.y - p0.y) * (0.f - p0.x) / (p1.x - p0.x);
+    			}
+    			$elif(x[i] > xmax)
+				{
+					x[i] = xmax;
+					y[i] = p0.y + (p1.y - p0.y) * (xmax - p0.x) / (p1.x - p0.x);
+				};
+    			$if(y[i] < 0.f)
+				{
+					y[i] = 0.f;
+					x[i] = p0.x + (p1.x - p0.x) * (0.f - p0.y) / (p1.y - p0.y);
+				}
+    			$elif(y[i] > ymax)
+    			{
+    				y[i] = ymax;
+    				x[i] = p0.x + (p1.x - p0.x) * (ymax - p0.y) / (p1.y - p0.y);
+    			};
+    		};
+		};
+    	return std::make_pair(make_float2(x[0], y[0]), make_float2(x[1], y[1]));
+    }
 };
