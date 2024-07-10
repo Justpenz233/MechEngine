@@ -57,6 +57,11 @@ namespace MechEngine {
         MechEngine::Logger::Get().GetTempLogger()->info(std::forward<Args>(args)...);
     }
 
+	FORCEINLINE void LOG_FLUSH()
+    {
+    	MechEngine::Logger::Get().GetDefaultLogger()->flush();
+    }
+
 
     #define ASSERTMSG(Expr, ...) \
         __M_AssertMSG(#Expr, Expr, __FILE__, __LINE__, __VA_ARGS__)
@@ -72,6 +77,7 @@ namespace MechEngine {
             LOG_CRITICAL(args...);
             LOG_CRITICAL("Assert failed, Expected:\t {0}", expr_str);
             LOG_CRITICAL("At Source:\t {0}, line {1} \n", file, line);
+        	LOG_FLUSH();
             abort();
         }
     }
@@ -81,6 +87,7 @@ namespace MechEngine {
         if (!expr) [[unlikely]]
         {
             LOG_CRITICAL("Assert failed: Expected:\t {0}\n Source:\t\t {1}, line {2} \n", expr_str, file, line);
+        	LOG_FLUSH();
             abort();
         }
     }
