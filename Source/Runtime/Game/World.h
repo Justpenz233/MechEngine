@@ -178,8 +178,9 @@ T* World::AddWidget(Args&&... args)
 {
 	static_assert(std::is_base_of_v<UIWidget, T>, "T must be derived from UIWidget");
 	static_assert(std::is_constructible_v<T, Args...>, "T must be constructible with Args");
-	auto Widget = NewObject<T>(std::forward<Args>(args)...);
-	Widget->World = this;
+	auto RawMemory = std::malloc(sizeof(T));
+	static_cast<T*>(RawMemory)->World = this;
+	auto Widget = SharedPtr<T>(new(RawMemory) T(std::forward<Args>(args)...));
 	Viewport->AddWidget(Cast<UIWidget>(Widget));
 	Widgets.emplace_back(Widget);
 	return static_cast<T*>(Widgets.back().get());

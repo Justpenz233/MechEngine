@@ -43,7 +43,7 @@ protected:
     TArray<UniqueObjectPtr<UIWidget>> SubWidgets;
 
 	// This filed will be set by the World when calling AddWidget
-    class World* World = nullptr;
+    class World* World;
 };
 
 template <class T>
