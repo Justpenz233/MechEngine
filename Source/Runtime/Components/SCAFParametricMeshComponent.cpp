@@ -30,15 +30,11 @@ using Node    = bvh::v2::Node<Scalar, 3>;
 using Bvh     = bvh::v2::Bvh<Node>;
 using Ray     = bvh::v2::Ray<Scalar, 3>;
 
-SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh)
-	: ParametricMeshComponent()
+SCAFParametricMeshComponent::SCAFParametricMeshComponent(const ObjectPtr<StaticMesh>& InDisplayMesh, const ObjectPtr<StaticMesh>& InPMesh)
+	: ParametricAlgorithmComponent(InDisplayMesh, InPMesh)
 {
-	OriginalMesh = InitMesh;
-	MatrixX3d& V = InitMesh->verM;
-	MatrixX3i& F = InitMesh->triM;
-
-	// Scale in case the model is too small or too large
-	SetMeshData(std::move(InitMesh));
+	MatrixX3d& V = PMesh->verM;
+	MatrixX3i& F = PMesh->triM;
 
 	Vertices = V;
 	Indices = F;
@@ -119,13 +115,8 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(ObjectPtr<StaticMesh> I
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
 }
-void SCAFParametricMeshComponent::Remesh()
-{
-	ParametricMeshComponent::Remesh();
-	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
-}
 
-UVMappingMeshResult SCAFParametricMeshComponent::SampleHit(double U, double V) const
+ParametricAlgorithmComponent::UVMappingSampleResult SCAFParametricMeshComponent::SampleHit(double U, double V) const
 {
 	/**
 	 * Modify UV into a circular parameterization coordinate
@@ -187,19 +178,6 @@ UVMappingMeshResult SCAFParametricMeshComponent::SampleHit(double U, double V) c
 	return {true, static_cast<int>(prim_id), u, v,{Result[0], Result[1], Result[2]}};
 }
 
-FVector SCAFParametricMeshComponent::SampleNormal(double u, double v) const
-{
-	auto Hit = SampleHit(u, v);
-
-	// calc vertex normal by barycentric interpolation
-	auto T1 = MeshData->triM(Hit.TriangleIndex, 0);
-	auto T2 = MeshData->triM(Hit.TriangleIndex, 1);
-	auto T3 = MeshData->triM(Hit.TriangleIndex, 2);
-	auto N1 = MeshData->VertexNormal.row(T1);
-	auto N2 = MeshData->VertexNormal.row(T2);
-	auto N3 = MeshData->VertexNormal.row(T3);
-	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
-}
 
 TArray<FVector> SCAFParametricMeshComponent::GeodicShortestPath(const FVector& Start, const FVector& End) const
 {
@@ -224,11 +202,4 @@ TArray<FVector> SCAFParametricMeshComponent::GeodicShortestPath(const FVector& S
 	int EndTriIndex = FindNearestTriangle(End);
 	return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
 			StartTriIndex, EndTriIndex);;
-}
-
-FVector2 SCAFParametricMeshComponent::Projection(const FVector& Point) const
-{
-	return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
-		return Sample(UV.x(), UV.y());
-	});
 }

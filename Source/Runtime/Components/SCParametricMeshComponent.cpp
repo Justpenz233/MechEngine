@@ -26,15 +26,15 @@ using Node    = bvh::v2::Node<Scalar, 3>;
 using Bvh     = bvh::v2::Bvh<Node>;
 using Ray     = bvh::v2::Ray<Scalar, 3>;
 
-SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration)
+SCParametricMeshComponent::SCParametricMeshComponent(const ObjectPtr<StaticMesh>& InDisplayMesh, const ObjectPtr<StaticMesh>& InPMesh, int Iteration)
+	: ParametricAlgorithmComponent(InDisplayMesh, InPMesh)
 {
-	OriginalMesh = InitMesh;
 	Eigen::MatrixX3d V,U;
 	Eigen::MatrixXi F;
 	Eigen::SparseMatrix<double> L;
 
-	V = InitMesh->GetVertices();
-	F = InitMesh->GetTriangles();
+	V = PMesh->GetVertices();
+	F = PMesh->GetTriangles();
 	Vertices = V;
 	Indices = F;
 	// Compute Laplace-Beltrami operator: #V by #V
@@ -77,7 +77,6 @@ SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 		// Normalize to unit surface area (important for numerics)
 		U.array() /= sqrt(area);
 	}
-	MeshData = std::move(InitMesh);
 
 	// Build BVH for sample
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
@@ -100,36 +99,6 @@ SCParametricMeshComponent::SCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
-}
-FVector SCParametricMeshComponent::Sample(double U, double V) const
-{
-	NormlizeUV(U, V);
-	auto Hit = SampleHit(U, V);
-	if(Hit.Valid)
-		return SampleHit(U, V).Position;
-	else
-		return FVector::Zero();
-
-}
-FVector SCParametricMeshComponent::SampleNormal(double u, double v) const
-{
-	auto Hit = SampleHit(u, v);
-
-	// calc vertex normal by barycentric interpolation
-	auto T1 = MeshData->triM(Hit.TriangleIndex, 0);
-	auto T2 = MeshData->triM(Hit.TriangleIndex, 1);
-	auto T3 = MeshData->triM(Hit.TriangleIndex, 2);
-	auto N1 = MeshData->VertexNormal.row(T1);
-	auto N2 = MeshData->VertexNormal.row(T2);
-	auto N3 = MeshData->VertexNormal.row(T3);
-	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
-}
-
-bool SCParametricMeshComponent::ValidUV(double U, double V) const
-{
-	NormlizeUV(U, V);
-	auto Hit = SampleHit(U, V);
-	return Hit.Valid;
 }
 
 TArray<FVector> SCParametricMeshComponent::GeodicShortestPath(const FVector& Start, const FVector& End) const
@@ -156,17 +125,7 @@ TArray<FVector> SCParametricMeshComponent::GeodicShortestPath(const FVector& Sta
 	return igl::exact_geodesic_path(MeshData->verM, MeshData->triM, Start, End,
 			StartTriIndex, EndTriIndex);;
 }
-FVector2 SCParametricMeshComponent::Projection(const FVector& Point) const
-{
-	return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
-		return Sample(UV.x(), UV.y());
-	});
-}
-void SCParametricMeshComponent::Remesh()
-{
-	ParametricMeshComponent::Remesh();
-	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
-}
+
 SCParametricMeshComponent::UVMappingSampleResult SCParametricMeshComponent::SampleHit(double U, double V) const
 {
 	//https://mathworld.wolfram.com/SphericalCoordinates.html

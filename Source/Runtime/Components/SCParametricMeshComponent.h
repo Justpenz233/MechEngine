@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "ParametricAlgorithmComponent.h"
 #include "ParametricMeshComponent.h"
 #include "Core/CoreMinimal.h"
 #include <bvh/v2/bvh.h>
@@ -14,34 +15,16 @@
  */
 
 MCLASS(SCParametricMeshComponent)
-class ENGINE_API SCParametricMeshComponent : public ParametricMeshComponent
+class ENGINE_API SCParametricMeshComponent : public ParametricAlgorithmComponent
 {
 	REFLECTION_BODY(SCParametricMeshComponent)
 
-	explicit SCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh, int Iteration = 500);
-
-	FORCEINLINE virtual FVector Sample(double U, double V) const override;
-
-	// Use mesh vertex normal
-	virtual FVector SampleNormal(double u, double v) const override;
-
-	FORCEINLINE virtual bool ValidUV(double U, double V) const override;
+	explicit SCParametricMeshComponent(const ObjectPtr<StaticMesh>& InDisplayMesh, const ObjectPtr<StaticMesh>& InPMesh, int Iteration = 500);
 
 	virtual TArray<FVector> GeodicShortestPath(const FVector& Start, const FVector& End) const override;
 
-	virtual FVector2 Projection(const FVector& Point) const override;
-
 protected:
 
-	virtual void Remesh() override;
-
-	struct UVMappingSampleResult
-	{
-		bool Valid;
-		int TriangleIndex;
-		double u, v;
-		FVector Position;
-	};
 	UVMappingSampleResult SampleHit(double U, double V) const;
 
 	SCParametricMeshComponent() = default;
@@ -53,8 +36,6 @@ protected:
 	// BVH tree which store the UV mesh, used to fast sample UV
 	using BVHNode = bvh::v2::Node<double, 3>;
 	bvh::v2::Bvh<BVHNode> BVHUVMesh;
-
-	ObjectPtr<StaticMesh> OriginalMesh;
 
 	// Triangle structure
 	TArray<bvh::v2::PrecomputedTri<double>> Triangles;

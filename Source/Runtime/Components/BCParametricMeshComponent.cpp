@@ -49,15 +49,15 @@ CGAL::Surface_mesh<Kernel::Point_3> ToCGALSurfaceMesh(const Eigen::MatrixXd& V, 
 }
 
 
-BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InitMesh)
+BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDisplayMesh, ObjectPtr<StaticMesh> InPMesh)
+	: ParametricAlgorithmComponent(InDisplayMesh, InPMesh)
 {
-	Eigen::MatrixX3d V,U;
-	Eigen::MatrixXi F;
+	Eigen::MatrixX3d			V, U;
+	Eigen::MatrixXi				F;
 	Eigen::SparseMatrix<double> L;
 
-	OriginalMesh = InitMesh;
-	V = InitMesh->GetVertices();
-	F = InitMesh->GetTriangles();
+	V = PMesh->GetVertices();
+	F = PMesh->GetTriangles();
 	Vertices = V;
 	Indices = F;
 
@@ -65,15 +65,14 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 	// a halfedge on the border
 	halfedge_descriptor bhd = CGAL::Polygon_mesh_processing::longest_border(sm).first;
 	// The UV property map that holds the parameterized values
-	typedef SurfaceMesh::Property_map<vertex_descriptor, Point_2>  UV_pmap;
-	UV_pmap uv_map = sm.add_property_map<vertex_descriptor, Point_2>("h:uv").first;
-	typedef CGAL::Surface_mesh_parameterization::Circular_border_arc_length_parameterizer_3<SurfaceMesh> Border_parameterizer;
+	typedef SurfaceMesh::Property_map<vertex_descriptor, Point_2>														   UV_pmap;
+	UV_pmap																												   uv_map = sm.add_property_map<vertex_descriptor, Point_2>("h:uv").first;
+	typedef CGAL::Surface_mesh_parameterization::Circular_border_arc_length_parameterizer_3<SurfaceMesh>				   Border_parameterizer;
 	typedef CGAL::Surface_mesh_parameterization::Discrete_conformal_map_parameterizer_3<SurfaceMesh, Border_parameterizer> Parameterizer;
-	CGAL::Surface_mesh_parameterization::Error_code err
-	= CGAL::Surface_mesh_parameterization::parameterize(sm, Parameterizer(), bhd, uv_map);
+	CGAL::Surface_mesh_parameterization::Error_code																		   err = CGAL::Surface_mesh_parameterization::parameterize(sm, Parameterizer(), bhd, uv_map);
 	ASSERTMSG(err == CGAL::Surface_mesh_parameterization::OK, "Parameterization failed");
 
-	MeshData = std::move(InitMesh);
+	MeshData = std::move(InDisplayMesh);
 	U.resize(num_vertices(sm), 3);
 	for (auto v : vertices(sm))
 	{
@@ -88,37 +87,20 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InitM
 
 	TArray<BBox> BBoxes(F.rows());
 	TArray<Vec3> Centers(F.rows());
-	auto ToVec3 = [](const FVector& T){ return Vec3(T.x(), T.y(), T.z());};
-	for (int i = 0;i < F.rows();i ++)
+	auto		 ToVec3 = [](const FVector& T) { return Vec3(T.x(), T.y(), T.z()); };
+	for (int i = 0; i < F.rows(); i++)
 	{
 		Vec3 V0 = ToVec3(U.row(F(i, 0)));
 		Vec3 V1 = ToVec3(U.row(F(i, 1)));
 		Vec3 V2 = ToVec3(U.row(F(i, 2)));
-		Tri T = Tri(V0, V1, V2); 		Triangles[i] = T;
+		Tri	 T = Tri(V0, V1, V2);
+		Triangles[i] = T;
 		BBoxes[i] = T.get_bbox();
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
 }
 
-FVector BCParametricMeshComponent::SampleNormal(double u, double v) const
-{
-	auto Hit = SampleHit(u, v);
-
-	// calc vertex normal by barycentric interpolation
-	auto T1 = MeshData->triM(Hit.TriangleIndex, 0);
-	auto T2 = MeshData->triM(Hit.TriangleIndex, 1);
-	auto T3 = MeshData->triM(Hit.TriangleIndex, 2);
-	auto N1 = MeshData->VertexNormal.row(T1);
-	auto N2 = MeshData->VertexNormal.row(T2);
-	auto N3 = MeshData->VertexNormal.row(T3);
-	return N1 * (1. - Hit.u - Hit.v) + N2 * Hit.u + N3 * Hit.v;
-}
-void BCParametricMeshComponent::Remesh()
-{
-	ParametricMeshComponent::Remesh();
-	SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(OriginalMesh, MeshThickness));
-}
 BCParametricMeshComponent::UVMappingSampleResult BCParametricMeshComponent::SampleHit(double U, double V) const
 {
 	NormlizeUV(U, V);

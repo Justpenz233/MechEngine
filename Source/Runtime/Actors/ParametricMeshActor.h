@@ -33,11 +33,23 @@ public:
 	ParametricMeshActor(const ObjectPtr<StaticMesh>& InitMesh, ParametrizationMethod Method)
     {
     	if(Method == SphereicalConformal)
-			SurfaceComponent = AddComponent<SCParametricMeshComponent>(InitMesh);
+			SurfaceComponent = AddComponent<SCParametricMeshComponent>(InitMesh, InitMesh);
     	if(Method == SCAF)
-    		SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(InitMesh);
+    		SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(InitMesh, InitMesh);
     	if (Method == BoxBorderConformal)
-			SurfaceComponent = AddComponent<BCParametricMeshComponent>(InitMesh);
+			SurfaceComponent = AddComponent<BCParametricMeshComponent>(InitMesh, InitMesh);
+    }
+
+
+	ParametricMeshActor(const ObjectPtr<StaticMesh>& DisplayMesh, const ObjectPtr<StaticMesh>& PMesh,
+		ParametrizationMethod Method)
+    {
+    	if(Method == SphereicalConformal)
+    		SurfaceComponent = AddComponent<SCParametricMeshComponent>(DisplayMesh, PMesh);
+    	if(Method == SCAF)
+    		SurfaceComponent = AddComponent<SCAFParametricMeshComponent>(DisplayMesh, PMesh);
+    	if (Method == BoxBorderConformal)
+    		SurfaceComponent = AddComponent<BCParametricMeshComponent>(DisplayMesh, PMesh);
     }
 
     ~ParametricMeshActor() {};
