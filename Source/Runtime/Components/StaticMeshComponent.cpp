@@ -17,7 +17,9 @@ StaticMeshComponent::StaticMeshComponent()
 }
 
 StaticMeshComponent::~StaticMeshComponent()
-= default;
+{
+	GetScene()->GetStaticMeshProxy()->RemoveStaticMesh(this);
+}
 
 void StaticMeshComponent::TickComponent(double DeltaTime)
 {

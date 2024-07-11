@@ -30,7 +30,7 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 		data.transformMatrix = ToLuisaMatrix(Component->GetTransformMatrix());
 		data.scale = ToLuisaVector(Component->GetScale());
 		data.rotationQuaternion = ToLuisaVector(Component->GetRotation().coeffs());
-		if(auto InstanceId = Scene.GetStaticMeshProxy()->TransformIdToMeshId(ComponentId); InstanceId != ~0u)
+		if(auto InstanceId = Scene.GetStaticMeshProxy()->TransformIdToMeshIndex(ComponentId); InstanceId != ~0u)
 		{
 			accel.set_transform_on_update(InstanceId, data.transformMatrix);
 		}

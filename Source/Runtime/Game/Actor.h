@@ -83,6 +83,12 @@ public:
 	template <class T>
 	TArray<ObjectPtr<T>> GetComponentsFromChild();
 
+	/**
+	 * Unregister all components in the actor
+	 * Will destroy all components if not with other reference
+	 */
+	void UnregisterAllComponents();
+
 	FORCEINLINE FOnTransformUpdate& GetTransformUpdateDelegate();
 
 

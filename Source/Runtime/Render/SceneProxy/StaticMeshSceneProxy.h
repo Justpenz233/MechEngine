@@ -67,6 +67,11 @@ public:
 	*/
 	void UpdateStaticMeshGeometry(StaticMeshComponent* InMesh);
 
+	/**
+	 * Remove the mesh from the scene
+	 */
+	void RemoveStaticMesh(StaticMeshComponent* InMesh);
+
 
 	/***********************************************************************************************
 	 * 								            GPU CODE						                   *
@@ -95,10 +100,10 @@ public:
 	}
 
 public://----------------- CPU CODE -----------------
-	uint TransformIdToMeshId(uint InTransformID)
+	uint TransformIdToMeshIndex(uint InTransformID)
 	{
 		if (!TransformMeshMap.count(InTransformID)) return ~0u;
-		return MeshIndexMap[TransformMeshMap[InTransformID]];
+		return IdToIndex[MeshIdMap[TransformMeshMap[InTransformID]]];
 	}
 
 protected:
@@ -115,11 +120,13 @@ protected:
 	map<uint, StaticMeshComponent*> TransformMeshMap; // used for mapping transform id to mesh id
 	unordered_map<StaticMeshComponent*, Mesh*> MeshDataMap; // used for mapping mesh component to mesh data
 
-	map<StaticMeshComponent*, uint> MeshIndexMap; // used in update mesh
+	map<StaticMeshComponent*, uint> MeshIdMap; // used in update mesh
 	set<StaticMeshComponent*> NewMeshes;
 	set<StaticMeshComponent*> DirtyMeshes;
 	set<StaticMeshComponent*> DirtyGeometryMeshes;
 
+	uint MeshIdCounter = 0;
+	unordered_map<uint, uint> IdToIndex;
 };
 
 }

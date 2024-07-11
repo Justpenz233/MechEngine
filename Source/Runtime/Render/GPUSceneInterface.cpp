@@ -70,12 +70,13 @@ namespace MechEngine::Rendering
         ray_intersection it;
         $if(!hit.miss())
         {
-            auto InstanceId = hit.instance_id;
+            auto instance_index = hit.instance_id;
+        	auto instance_id = rtAccel->instance_user_id(instance_index);
             auto TriangleId = hit.primitive_id;
-            auto object_transform = get_instance_transform(InstanceId);
-            auto Tri = StaticMeshProxy->get_triangle(InstanceId, TriangleId);
+            auto object_transform = get_instance_transform(instance_index);
+            auto Tri = StaticMeshProxy->get_triangle(instance_id, TriangleId);
             auto bary = hit.barycentric;
-            auto v_buffer = StaticMeshProxy->get_static_mesh_data(InstanceId).vertex_id;
+            auto v_buffer = StaticMeshProxy->get_static_mesh_data(instance_id).vertex_id;
             auto v0 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i0);
             auto v1 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i1);
             auto v2 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i2);
@@ -101,18 +102,18 @@ namespace MechEngine::Rendering
             it.vertex_ndc[0] = view->world_to_ndc(p0_world);
             it.vertex_ndc[1] = view->world_to_ndc(p1_world);
             it.vertex_ndc[2] = view->world_to_ndc(p2_world);
-            it.instace_id = InstanceId;
+            it.instace_id = instance_id;
             it.primitive_id = TriangleId;
             it.position_world = p;
             it.triangle_normal_world = normal_world;
             it.vertex_normal_world = normalize(m * normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal())));
-        	Float3 cornel_normal[3] = {StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 0),
-									   StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 1),
-									   StaticMeshProxy->get_corner_normal(InstanceId, TriangleId, 2)};
+        	Float3 cornel_normal[3] = {StaticMeshProxy->get_corner_normal(instance_id, TriangleId, 0),
+									   StaticMeshProxy->get_corner_normal(instance_id, TriangleId, 1),
+									   StaticMeshProxy->get_corner_normal(instance_id, TriangleId, 2)};
         	it.cornerl_normal_world = normalize(m * normalize(triangle_interpolate(bary, cornel_normal[0], cornel_normal[1], cornel_normal[2])));
             it.depth = view->world_to_ndc(p).z;
             it.back_face = dot(normal_world, ray->direction()) > 0.f;
-            it.material_id = StaticMeshProxy->get_static_mesh_data(InstanceId).material_id;
+            it.material_id = StaticMeshProxy->get_static_mesh_data(instance_id).material_id;
             // .......
         };
         return it;

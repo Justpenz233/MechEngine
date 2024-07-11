@@ -93,3 +93,8 @@ WeakObjectPtr<Actor> Actor::GetRootActor()
 	}
 	return Root;
 }
+
+void Actor::UnregisterAllComponents()
+{
+	Components.clear();
+}

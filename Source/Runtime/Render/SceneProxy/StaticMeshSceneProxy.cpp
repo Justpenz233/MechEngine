@@ -26,28 +26,62 @@ bool StaticMeshSceneProxy::IsDirty()
 
 void StaticMeshSceneProxy::AddStaticMesh(StaticMeshComponent* InMesh, uint InTransformID)
 {
-	ASSERTMSG(!MeshIndexMap.count(InMesh), "StaticMeshComponent already exist in scene!");
+	ASSERTMSG(!MeshIdMap.count(InMesh), "StaticMeshComponent already exist in scene!");
 	if(!Scene.GetTransformProxy()->IsExist(InTransformID))
 	{
 		LOG_ERROR("Transform Actorname: {} not exist in scene!", InMesh->GetOwnerName());
 		return;
 	}
 	TransformMeshMap[InTransformID] = InMesh;
-	MeshIndexMap[InMesh] = ~0u; // Mark a temporary index, for the update call at the same frame
+	MeshIdMap[InMesh] = ~0u; // Mark a temporary index, for the update call at the same frame
 	NewMeshes.insert(InMesh);
 }
 
 void StaticMeshSceneProxy::UpdateStaticMesh(StaticMeshComponent* InMesh)
 {
-	ASSERTMSG(MeshIndexMap.count(InMesh), "StaticMeshComponent not exist in scene!");
+	ASSERTMSG(MeshIdMap.count(InMesh), "StaticMeshComponent not exist in scene!");
 	DirtyMeshes.insert(InMesh);
 }
 
 void StaticMeshSceneProxy::UpdateStaticMeshGeometry(StaticMeshComponent* InMesh)
 {
-	ASSERTMSG(MeshIndexMap.count(InMesh), "StaticMeshComponent not exist in scene!");
-	if(NewMeshes.count(InMesh)) return;
+	ASSERTMSG(MeshIdMap.count(InMesh), "StaticMeshComponent not exist in scene!");
+	if (NewMeshes.count(InMesh))
+		return;
 	DirtyGeometryMeshes.insert(InMesh);
+}
+
+void StaticMeshSceneProxy::RemoveStaticMesh(StaticMeshComponent* InMesh)
+{
+	if(!MeshIdMap.count(InMesh))
+	{
+		LOG_ERROR("Trying to remove a non-exist mesh: {}", InMesh->GetOwnerName());
+		return;
+	}
+
+	auto Id = MeshIdMap[InMesh];
+	auto Index = IdToIndex[Id];
+
+
+	// Now swap the last mesh with the mesh to remove
+	// auto LastIndex = accel.size() - 1;
+	// if (Index != LastIndex)
+	// {
+	// 	// Get and swap the last mesh data with the mesh to remove
+	//
+	// 	// Then pop the last mesh
+	// 	accel.pop_back();
+	// }
+	// Scene.destroy(StaticMeshResource[Id].VertexBuffer);
+	// Scene.destroy(StaticMeshResource[Id].TriangleBuffer);
+	// Scene.destroy(StaticMeshResource[Id].CornerNormalBuffer);
+	// Scene.destroy(StaticMeshResource[Id].AccelMesh);
+	// StaticMeshResource[Id] = {};
+	// StaticMeshDatas[Id] = {};
+
+	accel.set_visibility_on_update(Index, false);
+	Scene.GetStream() << accel.build() << synchronize();
+	MeshIdMap.erase(InMesh);
 }
 
 void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
@@ -117,8 +151,11 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshData->GetMaterial());
 
 		accel.emplace_back(*AccelMesh);
-		auto Id = accel.size() - 1;
-		MeshIndexMap[MeshComponent] = Id;
+		auto Id = ++MeshIdCounter;
+		auto InstanceId = accel.size() - 1;
+		accel.set_instance_user_id_on_update(InstanceId, Id);
+		IdToIndex[Id] = InstanceId;
+		MeshIdMap[MeshComponent] = Id;
 		StaticMeshDatas[Id].vertex_id = VBindlessid;
 		StaticMeshDatas[Id].triangle_id = TBindlessid;
 		StaticMeshDatas[Id].material_id = MaterialID;
@@ -139,7 +176,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		if(!MeshData || MeshData->IsEmpty())
 			continue;
 		bFrameUpdated = true;
-		auto Id = MeshIndexMap[MeshComponent];
+		auto Id = MeshIdMap[MeshComponent];
+		auto Index = IdToIndex[Id];
 		auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshData.get());
 
 		// Register and upload new data buffer
@@ -159,13 +197,13 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		bindlessArray.emplace_on_update(VBindlessid, VBuffer->view());
 		bindlessArray.emplace_on_update(TBindlessid, TBuffer->view());
 		bindlessArray.emplace_on_update(CNBindlessid, CornerlNormalBuffer->view());
-		accel.set_mesh(Id, *AccelMesh);
+		accel.set_mesh(Index, *AccelMesh);
 
 		// Remove old data buffer
-		auto PreVBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].VertexBuffer;
-		auto PreTBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].TriangleBuffer;
-		auto PreCNBuffer = StaticMeshResource[MeshIndexMap[MeshComponent]].CornerNormalBuffer;
-		auto PreMesh = StaticMeshResource[MeshIndexMap[MeshComponent]].AccelMesh;
+		auto PreVBuffer = StaticMeshResource[MeshIdMap[MeshComponent]].VertexBuffer;
+		auto PreTBuffer = StaticMeshResource[MeshIdMap[MeshComponent]].TriangleBuffer;
+		auto PreCNBuffer = StaticMeshResource[MeshIdMap[MeshComponent]].CornerNormalBuffer;
+		auto PreMesh = StaticMeshResource[MeshIdMap[MeshComponent]].AccelMesh;
 		Scene.destroy(PreVBuffer); Scene.destroy(PreTBuffer); Scene.destroy(PreCNBuffer); Scene.destroy(PreMesh);
 	}
 	DirtyGeometryMeshes.clear();
@@ -173,8 +211,8 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	// Update mesh visibility
 	for (auto MeshComponent: DirtyMeshes)
 	{
-		ASSERTMSG(MeshIndexMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
-		accel.set_visibility_on_update(MeshIndexMap[MeshComponent], MeshComponent->IsVisible());
+		ASSERTMSG(MeshIdMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
+		accel.set_visibility_on_update(IdToIndex[MeshIdMap[MeshComponent]], MeshComponent->IsVisible());
 		// auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshComponent->GetMeshData()->GetMaterial());
 		// StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}

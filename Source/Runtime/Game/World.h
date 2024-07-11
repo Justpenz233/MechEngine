@@ -68,7 +68,17 @@ public:
 	template <class T>
 	ObjectPtr<T> AddActor(ObjectPtr<T> InActor);
 
-	void DestroyActor(const ObjectPtr<class Actor>& InActor);
+	/**
+	 * Remove an actor from the world, but will not physically destroy the actor
+	 * @param ToRemoveActor Actor to be removed
+	 */
+	void RemoveActor(Actor* ToRemoveActor);
+
+	/**
+	 * Destroy an actor in the world
+	 * @param ToDestroyActor Actor to be destroyed
+	 */
+	void DestroyActor(Actor* ToDestroyActor);
 
     TArray<ObjectPtr<class Actor>> GetAllActors() { return Actors; }
 

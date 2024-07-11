@@ -106,29 +106,33 @@ void World::Tick(double DeltaTime)
 
 void World::EndPlay()
 {
-	if(EndPlayScript)
+	if (EndPlayScript)
 		EndPlayScript(*this);
-	
-	for(auto actor : Actors)
+
+	for (auto actor : Actors)
 		actor->EndPlay();
 
-	while(!Actors.empty())
-		DestroyActor(*Actors.begin());
+	while (!Actors.empty())
+		DestroyActor(Actors.begin()->get());
 
 	Actors.clear();
 }
-
-void World::DestroyActor(const ObjectPtr<Actor>& InActor)
+void World::RemoveActor(Actor* ToRemoveActor)
 {
 	for (auto i = Actors.begin(); i != Actors.end(); i++)
 	{
-		if (*i == InActor)
+		if (i->get() == ToRemoveActor)
 		{
 			Actors.erase(i);
 			break;
 		}
 	}
-	// here, suppose to auto run destructor to the actor
+}
+
+void World::DestroyActor(Actor* ToDestroyActor)
+{
+	ToDestroyActor->UnregisterAllComponents();
+	RemoveActor(ToDestroyActor);
 }
 
 void World::SelectActor(const ObjectPtr<Actor>& InActor)
