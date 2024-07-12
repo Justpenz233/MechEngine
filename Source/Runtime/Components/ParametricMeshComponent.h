@@ -167,6 +167,7 @@ public:
 
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override
 	{
+		StaticMeshComponent::PostEdit(Field);
 		if (Field == NAME(MeshThickness))
 			SetThickness(MeshThickness);
 	}

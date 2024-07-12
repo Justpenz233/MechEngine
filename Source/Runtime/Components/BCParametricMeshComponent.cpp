@@ -72,7 +72,6 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 	CGAL::Surface_mesh_parameterization::Error_code																		   err = CGAL::Surface_mesh_parameterization::parameterize(sm, Parameterizer(), bhd, uv_map);
 	ASSERTMSG(err == CGAL::Surface_mesh_parameterization::OK, "Parameterization failed");
 
-	MeshData = std::move(InDisplayMesh);
 	U.resize(num_vertices(sm), 3);
 	for (auto v : vertices(sm))
 	{
