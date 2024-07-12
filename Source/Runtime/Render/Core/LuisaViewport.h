@@ -78,7 +78,7 @@ public:
 		{
 			ReloadFont();
 		}
-		auto dockspace_id = ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_PassthruCentralNode);
+		auto dockspace_id = ImGui::DockSpaceOverViewport(0, 0, ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 
 protected:
