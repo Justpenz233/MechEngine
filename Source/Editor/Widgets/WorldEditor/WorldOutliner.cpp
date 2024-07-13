@@ -13,6 +13,7 @@
 
 void WorldOutliner::Draw()
 {
+	ASSERTMSG("WorldOutliner should be added to a World", World != nullptr);
 	auto WindowSize = ImGui::GetMainViewport()->WorkSize;
 	auto WindowPos = ImGui::GetMainViewport()->WorkPos;
 
@@ -20,38 +21,39 @@ void WorldOutliner::Draw()
 	ImGui::SetNextWindowPos(ImVec2(WindowPos.x + WindowSize.x - 300, WindowPos.y), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, WindowSize.y), ImGuiCond_FirstUseEver);
 
-	ImGui::Begin( ICON_FA_EARTH_ASIA "  World Outliner", nullptr);
-	ImGui::BeginTable("WorldOutliner", 2, ImGuiTableFlags_BordersH);
-
-	// Table header with colorful "Name" "Type"
-	ImGui::TableSetupColumn(ICON_FA_LIST "  Name");
-	ImGui::TableSetupColumn("Type");
-	ImGui::TableHeadersRow();
-
-	ObjectPtr<Actor> SelectedActor = nullptr;
-	for (auto Actor : World->GetAllActors())
+	if(ImGui::Begin( ICON_FA_EARTH_ASIA "  World Outliner", nullptr))
 	{
-		std::string DisplayName = UI::GetObjectDisplayName(Cast<Object>(Actor));
-		ImGui::TableNextRow();
-		ImGui::TableNextColumn();
-		ImGui::PushID(Actor.get());
-		if(ImGui::Selectable(DisplayName.c_str(), Actor->IsSelected(), ImGuiSelectableFlags_SpanAllColumns))
+		ObjectPtr<Actor> SelectedActor = nullptr;
+		if(ImGui::BeginTable("WorldOutliner", 2, ImGuiTableFlags_BordersH))
 		{
-			World->SelectActor(Actor);
-		}
-		ImGui::TableNextColumn();
-		ImGui::Text("%s", UI::PretifyUIName(Actor->ClassName()).c_str());
-		if(Actor->IsSelected())
-		{
-			SelectedActor = Actor;
-		}
-		ImGui::PopID();
-	}
-	ImGui::EndTable();
-	ImGui::End();
+			// Table header with colorful "Name" "Type"
+			ImGui::TableSetupColumn(ICON_FA_LIST "  Name");
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableHeadersRow();
 
-	if(SelectedActor)
-	{
-		UI::DrawActorPanel(SelectedActor);
+			for (auto Actor : World->GetAllActors())
+			{
+				std::string DisplayName = UI::GetObjectDisplayName(Cast<Object>(Actor));
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::PushID(Actor.get());
+				if(ImGui::Selectable(DisplayName.c_str(), Actor->IsSelected(), ImGuiSelectableFlags_SpanAllColumns))
+				{
+					World->SelectActor(Actor);
+				}
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", UI::PretifyUIName(Actor->ClassName()).c_str());
+				if(Actor->IsSelected())
+				{
+					SelectedActor = Actor;
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndTable();
+		}
+		if(SelectedActor) UI::DrawActorPanel(SelectedActor);
+		ImGui::End();
 	}
+
+
 }
