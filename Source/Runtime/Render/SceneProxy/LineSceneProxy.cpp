@@ -127,24 +127,8 @@ namespace MechEngine::Rendering
     		Int error = 0;
 
     		Float t = 0.f;
-    		Float2 clip_screen_start = screen_start, clip_screen_end = screen_end;
-    		// clip line into screen box
-    		$if(Steep)
-    		{
-    			swap(clip_screen_start.x, clip_screen_start.y);
-    			swap(clip_screen_end.x, clip_screen_end.y);
-    			std::tie(clip_screen_start, clip_screen_end)
-				= view->clamp_to_screen(clip_screen_start, clip_screen_end);
-    			swap(clip_screen_start.x, clip_screen_start.y);
-    			swap(clip_screen_end.x, clip_screen_end.y);
-    		}
-    		$else
-			{
-				std::tie(clip_screen_start, clip_screen_end)
-				= view->clamp_to_screen(screen_start, screen_end);
-			};
-    		Int y = clip_screen_start.y;
-    		$for(x, Int(clip_screen_start.x), Int(clip_screen_end.x))
+    		Int y = screen_start.y;
+    		$for(x, Int(screen_start.x), Int(screen_end.x))
     		{
     			t = Float(x - screen_start.x) / Float(dx);
     			auto pixel_pos = make_float3((Float)x, (Float)y, lerp(ndc_start.z, ndc_end.z, t));
@@ -173,9 +157,11 @@ namespace MechEngine::Rendering
 				raster_point(view, make_float3(screen_position, ndc_position.z), point.radius, point.color);
 			}));
 
-    	DrawLineShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
+    	DrawLineShader = luisa::make_unique<Shader2D<view_data>>(Scene.RegisterShader<2>(
 			[&](Var<view_data> view) {
 				auto line_id = dispatch_id().x;
+				auto segment_id = dispatch_id().y;
+				Float segments = Float(dispatch_size_y());
 				auto line = bindelss_buffer<lines_data>(lines_data_bindless_id)->read(line_id);
 				auto ndc_start = view->world_to_ndc(line.world_start);
 				auto ndc_end = view->world_to_ndc(line.world_end);
@@ -186,6 +172,9 @@ namespace MechEngine::Rendering
 					!(ndc_start.y > 1.f & ndc_end.y > 1.f) &
 					!(ndc_start.y < -1.f & ndc_end.y < -1.f))
 				{
+					std::tie(ndc_start, ndc_end) = view->clamp_to_ndc(ndc_start, ndc_end);
+					auto segment_start = lerp(ndc_start, ndc_end, Float(segment_id) / segments);
+					auto segment_end = lerp(ndc_start, ndc_end, Float(segment_id + 1) / segments);
 					raster_line(view, ndc_start, ndc_end, line.thickness, line.color);
 				};
 			}));
@@ -193,6 +182,7 @@ namespace MechEngine::Rendering
 
 	void LineSceneProxy::PostRenderPass(Stream& stream)
 	{
+    	static int NThreadPerLine = 16; // for each line, how many thread should be used
 		SceneProxy::PostRenderPass(stream);
     	if (!Points.empty())
     	{
@@ -200,7 +190,7 @@ namespace MechEngine::Rendering
     	}
     	if (!Lines.empty())
 		{
-			stream << (*DrawLineShader)(Scene.GetCameraProxy()->GetCurrentViewData()).dispatch(Lines.size());
+			stream << (*DrawLineShader)(Scene.GetCameraProxy()->GetCurrentViewData()).dispatch(Lines.size(), NThreadPerLine);
 		}
 	}
 }
