@@ -72,6 +72,7 @@ namespace MechEngine::Rendering
 	void LineSceneProxy::CompileShader()
 	{
 
+    	// Draw a cirlce in 2d screen space simulating thickness
     	Callable raster_point = [&](Var<view_data> view, Float3 screen_position, Float radius, Float3 color) {
     		auto pixel_min_int =
 					make_uint2(UInt(screen_position.x - 0.5f - radius),
@@ -103,6 +104,65 @@ namespace MechEngine::Rendering
     			};
     		};
     	};
+
+    	// Bresenham's line algorithm
+    	Callable raster_line = [&](Var<view_data> view, Float3 ndc_start, Float3 ndc_end, Float thickness, Float3 color) {
+    		auto screen_start = view->ndc_to_screen(ndc_start);
+    		auto screen_end = view->ndc_to_screen(ndc_end);
+    		Bool Steep = false;
+    		$if(abs(screen_start.x - screen_end.x) < abs(screen_start.y - screen_end.y))
+    		{
+    			swap(screen_start.x, screen_start.y);
+    			swap(screen_end.x, screen_end.y);
+    			Steep = true;
+    		};
+    		$if(screen_start.x > screen_end.x)
+    		{
+    			swap(ndc_start, ndc_end);
+    			swap(screen_start, screen_end);
+    		};
+    		Int dx = screen_end.x - screen_start.x;
+    		Int dy = screen_end.y - screen_start.y;
+    		Int derror2 = abs(dy) * 2;
+    		Int error = 0;
+
+    		Float t = 0.f;
+    		Float2 clip_screen_start = screen_start, clip_screen_end = screen_end;
+    		// clip line into screen box
+    		$if(Steep)
+    		{
+    			swap(clip_screen_start.x, clip_screen_start.y);
+    			swap(clip_screen_end.x, clip_screen_end.y);
+    			std::tie(clip_screen_start, clip_screen_end)
+				= view->clamp_to_screen(clip_screen_start, clip_screen_end);
+    			swap(clip_screen_start.x, clip_screen_start.y);
+    			swap(clip_screen_end.x, clip_screen_end.y);
+    		}
+    		$else
+			{
+				std::tie(clip_screen_start, clip_screen_end)
+				= view->clamp_to_screen(screen_start, screen_end);
+			};
+    		Int y = clip_screen_start.y;
+    		$for(x, Int(clip_screen_start.x), Int(clip_screen_end.x))
+    		{
+    			t = Float(x - screen_start.x) / Float(dx);
+    			auto pixel_pos = make_float3((Float)x, (Float)y, lerp(ndc_start.z, ndc_end.z, t));
+    			$if (Steep)
+    			{
+    				swap(pixel_pos.x, pixel_pos.y);
+    			};
+    			raster_point(view, pixel_pos, thickness, color);
+
+    			error += derror2;
+    			$if(error > dx)
+    			{
+    				y += select( -1 , 1, dy > 0);
+    				error -= dx * 2;
+    			};
+    		};
+    	};
+
 		DrawPointsShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
 			[&](Var<view_data> view) {
 				auto point_id = dispatch_id().x;
@@ -113,74 +173,20 @@ namespace MechEngine::Rendering
 				raster_point(view, make_float3(screen_position, ndc_position.z), point.radius, point.color);
 			}));
 
-
     	DrawLineShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
 			[&](Var<view_data> view) {
 				auto line_id = dispatch_id().x;
 				auto line = bindelss_buffer<lines_data>(lines_data_bindless_id)->read(line_id);
 				auto ndc_start = view->world_to_ndc(line.world_start);
 				auto ndc_end = view->world_to_ndc(line.world_end);
-				$if(!(ndc_start.z < 0.f & ndc_end.z < 0.f) &
-					!(ndc_start.x > 0.5f & ndc_end.x > 0.5f) &
-					!(ndc_start.x < -0.5f & ndc_end.x < -0.5f) &
-					!(ndc_start.y > 0.5f & ndc_end.y > 0.5f) &
-					!(ndc_start.y < -0.5f & ndc_end.y < -0.5f))
+				$if(!(ndc_start.z < -1.f & ndc_end.z < -1.f) &
+					!(ndc_start.z > 1.f & ndc_end.z > 1.f) &
+					!(ndc_start.x > 1.f & ndc_end.x > 1.f) &
+					!(ndc_start.x < -1.f & ndc_end.x < -1.f) &
+					!(ndc_start.y > 1.f & ndc_end.y > 1.f) &
+					!(ndc_start.y < -1.f & ndc_end.y < -1.f))
 				{
-					auto screen_start = view->ndc_to_screen(ndc_start);
-					auto screen_end = view->ndc_to_screen(ndc_end);
-					auto thickness = line.thickness;
-					Bool Steep = false;
-					$if(abs(screen_start.x - screen_end.x) < abs(screen_start.y - screen_end.y))
-					{
-						swap(screen_start.x, screen_start.y);
-						swap(screen_end.x, screen_end.y);
-						Steep = true;
-					};
-					$if(screen_start.x > screen_end.x)
-					{
-						swap(ndc_start, ndc_end);
-						swap(screen_start, screen_end);
-					};
-					Int dx = screen_end.x - screen_start.x;
-					Int dy = screen_end.y - screen_start.y;
-					Int derror2 = abs(dy) * 2;
-					Int error = 0;
-
-					Float t = 0.f;
-					Float2 clip_screen_start = screen_start, clip_screen_end = screen_end;
-					// clip line into screen box
-					$if(Steep)
-					{
-						swap(clip_screen_start.x, clip_screen_start.y);
-						swap(clip_screen_end.x, clip_screen_end.y);
-						std::tie(clip_screen_start, clip_screen_end)
-						= view->clamp_to_screen(clip_screen_start, clip_screen_end);
-						swap(clip_screen_start.x, clip_screen_start.y);
-						swap(clip_screen_end.x, clip_screen_end.y);
-					}
-					$else
-					{
-						std::tie(clip_screen_start, clip_screen_end)
-						= view->clamp_to_screen(screen_start, screen_end);
-					};
-					Int y = clip_screen_start.y;
-					$for(x, Int(clip_screen_start.x), Int(clip_screen_end.x))
-					{
-						t = Float(x - screen_start.x) / Float(dx);
-						auto pixel_pos = make_float3((Float)x, (Float)y, lerp(ndc_start.z, ndc_end.z, t));
-						$if (Steep)
-						{
-							swap(pixel_pos.x, pixel_pos.y);
-						};
-						raster_point(view, pixel_pos, thickness, line.color);
-
-						error += derror2;
-						$if(error > dx)
-						{
-							y += select( -1 , 1, dy > 0);
-							error -= dx * 2;
-						};
-					};
+					raster_line(view, ndc_start, ndc_end, line.thickness, line.color);
 				};
 			}));
 	}

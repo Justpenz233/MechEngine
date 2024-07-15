@@ -4,6 +4,7 @@
 
 #pragma once
 #include <luisa/luisa-compute.h>
+#include "math_function.h"
 
 namespace MechEngine::Rendering
 {
@@ -77,7 +78,7 @@ LUISA_STRUCT(MechEngine::Rendering::view_data,
     }
 
 	/**
-	* Calc the range of the clipping window to determine the intersections between the line and the clip window.
+	* Calculate the intersections between the line and the screen window.
 	* With these intersections it knows which portion of the line should be drawn. Matthes¨CDrakopoulos Line Clipping
 	* @see https://arxiv.org/abs/1908.01350
 	* @see https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9605407/pdf/jimaging-08-00286.pdf
@@ -119,5 +120,20 @@ LUISA_STRUCT(MechEngine::Rendering::view_data,
     		};
 		};
     	return std::make_pair(make_float2(x[0], y[0]), make_float2(x[1], y[1]));
+	}
+
+	/**
+	* Clip the line to the normalized device coordinates.
+	* @see https://www.mdpi.com/1999-4893/16/4/201
+	* @param p0 the ndc position start of the line
+	* @param p1 the ndc position end of the line
+	*/
+	std::pair<luisa::compute::Float3, luisa::compute::Float3> clamp_to_ndc(
+		const luisa::compute::Float3& p0, const luisa::compute::Float3& p1)
+    {
+		return MechEngine::Rendering::clip_segment_within_box_3D(
+				p0, p1,
+				luisa::compute::make_float3(-1.f, -1.f, -1.f),
+				luisa::compute::make_float3(1.f, 1.f, 1.f));
     }
 };

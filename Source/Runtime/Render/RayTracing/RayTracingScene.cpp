@@ -186,11 +186,10 @@ void RayTracingScene::CompileShader()
 				//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
 				$if(material_data->show_wireframe == 1)
 				{
-					auto d = distance_to_triangle(
-						view, pixel,
-						intersection.vertex_ndc[0],
-						intersection.vertex_ndc[1],
-						intersection.vertex_ndc[2]);
+					auto d = distance_to_triangle( pixel,
+						view->ndc_to_screen(intersection.vertex_ndc[0]),
+						view->ndc_to_screen(intersection.vertex_ndc[1]),
+						view->ndc_to_screen(intersection.vertex_ndc[2]));
 
 					//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
 					auto wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
