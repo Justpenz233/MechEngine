@@ -15,7 +15,7 @@ public:
 	{
 		DisplayMesh = InDisplayMesh;
 		PMesh = InPMesh;
-		MeshData = DisplayMesh;
+		SetMeshData(DisplayMesh);
 	}
 
 	struct UVMappingSampleResult
