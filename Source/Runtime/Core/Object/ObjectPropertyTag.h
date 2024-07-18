@@ -58,7 +58,7 @@ struct ENGINE_API Category_ : public ObjectPropertyTag
 {
 public:
 	Category_() = delete;
-	explicit constexpr Category_(const String& InCategory) : CategoryString(InCategory) {}
+	explicit Category_(const String& InCategory) : CategoryString(InCategory) {}
 	/**
 	 * Parse category by splitting the string with '|'
 	 * @return Array of category from root to leaf

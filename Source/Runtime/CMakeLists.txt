@@ -22,10 +22,12 @@ add_library(MechEngineRuntime SHARED ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILE
 target_compile_features(MechEngineRuntime PUBLIC cxx_std_20)
 target_compile_definitions(MechEngineRuntime PUBLIC _USE_MATH_DEFINES)
 target_compile_definitions(MechEngineRuntime PRIVATE ENGINE_API_EXPORT)
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
     # Set debug-specific options
     set(SANITIZE_FLAGS "-fsanitize=undefined,return")
     target_compile_options(MechEngineRuntime PUBLIC -w)
+    target_compile_options(MechEngineRuntime PUBLIC -Wno-shadow)
+    target_compile_options(MechEngineRuntime PUBLIC -fms-extensions)
 
     target_compile_options(MechEngineRuntime PUBLIC
             $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
