@@ -103,6 +103,7 @@ public://----------------- CPU CODE -----------------
 	uint TransformIdToMeshIndex(uint InTransformID)
 	{
 		if (!TransformMeshMap.count(InTransformID)) return ~0u;
+		if(!IdToIndex.count(MeshIdMap[TransformMeshMap[InTransformID]])) return ~0u;
 		return IdToIndex[MeshIdMap[TransformMeshMap[InTransformID]]];
 	}
 

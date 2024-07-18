@@ -14,7 +14,7 @@
 #include "TimerManager.h"
 #include "Components/ConstPointLightComponent.h"
 #include "Components/LinesComponent.h"
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 ENGINE_API World* GWorld = nullptr;
 
@@ -190,11 +190,11 @@ void World::ExportSceneToObj(const Path& FolderPath)
 				}
 			}
 		}
-		ImGui::NotifySuccess(std::format("Export scene successfully, path: {} ", FolderPath.string()), "Export success", 1e4);
+		ImGui::NotifySuccess(fmt::format("Export scene successfully, path: {} ", FolderPath.string()), "Export success", 1e4);
 	}
 	else
 	{
-		ImGui::NotifyError(std::format("Export scene to obj failed, folder path {} is invalid", FolderPath.string()), "Export failed", 1e4);
+		ImGui::NotifyError(fmt::format("Export scene to obj failed, folder path {} is invalid", FolderPath.string()), "Export failed", 1e4);
 	}
 }
 
