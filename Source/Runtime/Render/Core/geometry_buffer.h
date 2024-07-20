@@ -8,7 +8,7 @@
 
 namespace MechEngine::Rendering
 {
-struct gbuffer
+struct geometry_buffer
 {
     Image<float> base_color;
     Image<float> normal;

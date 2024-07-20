@@ -85,9 +85,9 @@ namespace MechEngine::Rendering
     		pixel_max_int = min(pixel_max_int, make_uint2(view->viewport_size.x, view->viewport_size.y));
 
     		auto radius_square = square(radius);
-    		$for(x, pixel_min_int.x, pixel_max_int.x + 1)
+    		$for(x, pixel_min_int.x, pixel_max_int.x)
     		{
-    			$for(y, pixel_min_int.y, pixel_max_int.y + 1)
+    			$for(y, pixel_min_int.y, pixel_max_int.y)
     			{
     				auto pixel = make_uint2(x, y);
     				auto distance = square(x - screen_position.x) + square(y - screen_position.y);

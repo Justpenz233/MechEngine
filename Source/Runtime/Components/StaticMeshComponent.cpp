@@ -18,7 +18,10 @@ StaticMeshComponent::StaticMeshComponent()
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-	GetScene()->GetStaticMeshProxy()->RemoveStaticMesh(this);
+	if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
+	{
+		SceneProxy->RemoveStaticMesh(this);
+	}
 }
 
 void StaticMeshComponent::TickComponent(double DeltaTime)

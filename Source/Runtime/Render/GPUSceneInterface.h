@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "Core/gbuffer.h"
+#include "Core/geometry_buffer.h"
 #include "Core/VertexData.h"
 #include "Core/ViewMode.h"
 #include "Core/view_data.h"
@@ -75,7 +75,7 @@ namespace MechEngine::Rendering
 		ViewMode ViewMode = FrameBuffer;
 		Accel rtAccel;
 		BindlessArray bindlessArray;
-		gbuffer g_buffer;
+		geometry_buffer g_buffer;
 
 		size_t _bindless_buffer_count{0u};
 		size_t _bindless_tex2d_count{0u};
@@ -181,7 +181,7 @@ namespace MechEngine::Rendering
 		*	            				Provide basic query throughout each proxys				       *
 		***********************************************************************************************/
 
-		gbuffer& get_gbuffer() { return g_buffer; }
+		geometry_buffer& get_gbuffer() { return g_buffer; }
 
 		/**
 		 * Calculate closest hit information of a ray in the scene.
