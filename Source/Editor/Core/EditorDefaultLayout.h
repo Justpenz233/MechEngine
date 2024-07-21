@@ -9,6 +9,7 @@
 #include "Widgets/WorldEditor/ActorOutliner.h"
 #include "Widgets/WorldEditor/ObjectPanel.h"
 #include "Widgets/WorldEditor/ViewGizmo.h"
+#include "Widgets/WorldEditor/WorldSettingWidget.h"
 
 inline void LoadDefaultEditorLayout(World* CurrentWorld)
 {
@@ -40,6 +41,7 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 	MainMenuBar->AddItem<SaveSceneMenuBar>("File/Export Scene", "");
 
 	CurrentWorld->AddWidget<WorldOutliner>();
+	CurrentWorld->AddWidget<WorldSettingWidget>();
 
 	// [BETA] ActorOutliner and ObjectPanel will start to use when property become more complex
 	// CurrentWorld->AddWidget<ActorOutliner>();

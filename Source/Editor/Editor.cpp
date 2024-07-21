@@ -12,7 +12,7 @@
 
 #include "EditorDefaultLayout.h"
 #include "Render/RayTracing/RayTracingPipeline.h"
-
+#include "GlobalSymbols.h"
 
 Editor &Editor::Get() {
     static Editor Instance;
@@ -111,6 +111,7 @@ void Editor::Start()
 
 		CurrentWorld->Tick((double) delta.count() * (double) 1e-9);
 		Renderer->RenderFrame();
+		CalculateFPSTimings();
 	}
 
 	LOG_INFO("Closing editor");
