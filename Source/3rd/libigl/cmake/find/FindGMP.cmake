@@ -55,6 +55,7 @@ if(WIN32)
         ${NO_DEFAULT_FLAG}
     )
     list(APPEND GMP_EXTRA_VARS GMP_RUNTIME_LIB)
+    file(COPY ${GMP_RUNTIME_LIB} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 include(FindPackageHandleStandardArgs)

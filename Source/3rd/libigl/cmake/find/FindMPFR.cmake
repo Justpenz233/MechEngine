@@ -55,6 +55,7 @@ if(WIN32)
         ${NO_DEFAULT_FLAG}
     )
     list(APPEND MPFR_EXTRA_VARS MPFR_RUNTIME_LIB)
+    file(COPY ${MPFR_RUNTIME_LIB} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 include(FindPackageHandleStandardArgs)
