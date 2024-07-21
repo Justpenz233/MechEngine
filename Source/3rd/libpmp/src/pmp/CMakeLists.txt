@@ -13,6 +13,13 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(pmp PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
+if (TARGET Eigen3::Eigen)
+  target_link_libraries(pmp PUBLIC Eigen3::Eigen)
+else()
+  find_package(Eigen3 REQUIRED)
+  target_link_libraries(pmp PUBLIC Eigen3::Eigen)
+endif ()
+
 set_target_properties(pmp PROPERTIES VERSION ${PROJECT_VERSION})
 
 if(WITH_CLANG_TIDY)
@@ -24,7 +31,6 @@ if(NOT EMSCRIPTEN AND PMP_INSTALL)
   target_include_directories(
     pmp
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
-           $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
            $<INSTALL_INTERFACE:include/>)
 
   target_compile_features(pmp PUBLIC cxx_std_17)
@@ -40,7 +46,7 @@ if(NOT EMSCRIPTEN AND PMP_INSTALL)
 
   install(FILES ${HEADERS} DESTINATION include/pmp/)
 else()
-  target_include_directories(pmp PUBLIC ${EIGEN3_INCLUDE_DIR}
+  target_include_directories(pmp PUBLIC
                                         ${CMAKE_CURRENT_SOURCE_DIR}/../)
 endif()
 

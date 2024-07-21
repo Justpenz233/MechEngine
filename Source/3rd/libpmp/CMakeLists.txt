@@ -67,7 +67,7 @@ if(PMP_BUILD_VIS)
   add_subdirectory(${IMGUI_SOURCE_DIR})
 endif(PMP_BUILD_VIS)
 
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 QUIET)
 
 include_directories(${PROJECT_SOURCE_DIR}/src/)
 

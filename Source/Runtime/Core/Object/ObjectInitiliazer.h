@@ -16,9 +16,14 @@ public:
 template<class T>
 concept DefaultConstructible = requires { T{}; } || requires {new T;} || std::is_default_constructible_v<T>;
 
+// if not in MSVC
+#ifndef _MSC_VER // The following concept is not supported in MSVC so we skip it for now
 #define CheckDefaultConstructible(class_name)\
 	static_assert(DefaultConstructible<class_name>, "\n \t MCLASS must be default constructible, add "#class_name"() = default \n");
-
+#else
+	#define CheckDefaultConstructible(class_name)\
+	static_assert(true, "\n \t MCLASS must be default constructible, add "#class_name"() = default \n");
+#endif
 template<class T, bool>
 class _ObjectDefaultConstructor
 {
