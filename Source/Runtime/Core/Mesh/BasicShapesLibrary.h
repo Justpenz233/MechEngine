@@ -74,4 +74,26 @@ public:
 	 */
 	static ObjectPtr<StaticMesh> GenerateFan(double Radius, double Height, double StartAngle, double EndAngle, int Sample = 32);
 
+
+    /**
+     * Triangular a surface by providing a sample function.
+     * @param NumU How many samples in U direction
+     * @param NumV How many samples in V direction
+     * @param SampleFunc Sample function, return a 3D point by a 2D parameter
+     * @param ReverseNormal If the normal is head to inside, this is useful when creating a inner surface
+     * @param ClosedSurface If the surface is a closed
+     * @return Surface mesh
+     */
+    static ObjectPtr<StaticMesh> TriangularSurface(int NumU, int NumV, std::function<FVector(double, double)> SampleFunc, bool ReverseNormal, bool ClosedSurface = false);
+
+    /**
+     * Generate a cone mesh
+     * @param Radius Radius of the cone
+     * @param Height Height of the cone
+     * @param SealBottom If the bottom of the cone is sealed
+     * @param SampleRing Sample number of the ring
+     * @param SampleHeight Sample number of the height
+     * @return Cone mesh
+     */
+    static ObjectPtr<StaticMesh> GenerateCone(double Radius, double Height, bool SealBottom, int SampleRing = 32, int SampleHeight = 32);
 };

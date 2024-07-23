@@ -816,3 +816,90 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateHollowCylinder(double OuterRad
 
     return NewObject<StaticMesh>(vertices, indices);
 }
+
+ObjectPtr<StaticMesh>
+BasicShapesLibrary::TriangularSurface(int NumU, int NumV, std::function<FVector(double, double)> SampleFunc,
+                                      bool ReverseNormal, bool ClosedSurface)
+{
+    assert(NumU >= 3 && NumV >= 2);
+
+    bool IsClosedPolygon    = ((SampleFunc(1., 0.) - SampleFunc(0., 0.)).norm() < 0.00001) | ClosedSurface;
+    // When closed, NumU gap with NumU lines, when open minus 1
+    int  InnerTriangleNum   = IsClosedPolygon? NumU * (NumV - 1) * 2 : (NumU - 1) * (NumV - 1) * 2;
+    int  VertexNum          = NumU * NumV;
+    MatrixX3d VerM;
+    MatrixX3i TriM;
+    VerM.resize(VertexNum, 3);
+    TriM.resize(InnerTriangleNum, 3);
+
+    int    VertexIndex = 0;
+    double StepU        = IsClosedPolygon ? 1. / (double)NumU : 1. / (double) (NumU - 1);
+    double StepV        = 1. / (double)(NumV - 1);
+
+
+    for (int VIndex = 0; VIndex < NumV; VIndex++) {
+        for (int UIndex = 0; UIndex < NumU; UIndex++) {
+            double u = (double)UIndex * StepU;
+            double v = (double)VIndex * StepV;
+            if(VIndex == NumV - 1) v = 1.;
+            VerM.row(VertexIndex++) = SampleFunc(u, v);
+        }
+    }
+    int TriangleIndex = 0;
+
+    for (int VIndex = 0; VIndex < NumV - 1; VIndex++) {
+        for (int UIndex = 0; UIndex < NumU; UIndex++) {
+            int This    = UIndex + VIndex * NumU;
+            int Right   = (UIndex == NumU - 1)? This - NumU + 1 : This + 1;
+            int Top     = This + NumU;
+            int TopLeft = (UIndex == 0)? This + NumU + NumU - 1 : This + NumU - 1;
+
+            assert(This < VertexNum && Right < VertexNum && Top < VertexNum && TopLeft < VertexNum);
+            assert(This >= 0 && Right >= 0 && Top >= 0 && TopLeft >= 0);
+
+            if (IsClosedPolygon || UIndex != 0)
+                if(ReverseNormal)
+                    TriM.row(TriangleIndex++) = Vector3i{This, TopLeft,Top};
+                else
+                    TriM.row(TriangleIndex++) = Vector3i{Top, TopLeft,This};
+            if (IsClosedPolygon || UIndex != NumU - 1)
+                if(ReverseNormal)
+                    TriM.row(TriangleIndex++) = Vector3i{Top, Right, This};
+                else
+                    TriM.row(TriangleIndex++) = Vector3i{This, Right, Top};
+
+        }
+    }
+
+    assert(InnerTriangleNum == TriangleIndex);
+    return NewObject<StaticMesh>(std::move(VerM), std::move(TriM));
+}
+
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCone(double Radius, double Height, bool SealBottom, int SampleRing, int SampleHeight)
+{
+    auto SampleFunction = [&](double u, double v)
+    {
+        if(u < 0) u += 1.;
+        if(u > 1.) u -= 1.;
+        v = 1. - v;
+        return FVector{Radius * cos(u * M_PI * 2.0) * v, Radius * sin(u * M_PI * 2.0) * v, (1. - v) * Height};
+    };
+
+    auto Mesh = TriangularSurface(SampleRing, SampleHeight, SampleFunction, false, true);
+    if(SealBottom)
+    {
+        int VertexNum = Mesh->GetVertexNum();
+        auto VerM = Mesh->GetVertices();
+        auto TriM = Mesh->GetTriangles();
+        VerM.conservativeResize(VertexNum + 1, 3);
+        VerM.row(VertexNum) = FVector{0, 0, 0};
+        TriM.conservativeResize(TriM.rows() + SampleRing, 3);
+        for(int i = 0; i < SampleRing; i ++)
+        {
+            int next = (i + 1) % SampleRing;
+            TriM.row(TriM.rows() - SampleRing + i) = Vector3i{i, VertexNum, next};
+        }
+        Mesh->SetGeometry(VerM, TriM);
+    }
+    return Mesh;
+}

@@ -39,13 +39,11 @@ void StaticMeshSceneProxy::AddStaticMesh(StaticMeshComponent* InMesh, uint InTra
 
 void StaticMeshSceneProxy::UpdateStaticMesh(StaticMeshComponent* InMesh)
 {
-	ASSERTMSG(MeshIdMap.count(InMesh), "StaticMeshComponent not exist in scene!");
 	DirtyMeshes.insert(InMesh);
 }
 
 void StaticMeshSceneProxy::UpdateStaticMeshGeometry(StaticMeshComponent* InMesh)
 {
-	ASSERTMSG(MeshIdMap.count(InMesh), "StaticMeshComponent not exist in scene!");
 	if (NewMeshes.count(InMesh))
 		return;
 	DirtyGeometryMeshes.insert(InMesh);
@@ -172,7 +170,13 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	// Update mesh geometry
 	for (auto MeshComponent : DirtyGeometryMeshes)
 	{
-		auto MeshData = MeshComponent->MeshData;
+        if(MeshIdMap.count(MeshComponent))
+        {
+            LOG_WARNING("Trying to update a mesh geometry that not exist in scene: {}", MeshComponent->GetOwnerName());
+            continue;
+        }
+
+        auto MeshData = MeshComponent->MeshData;
 		if(!MeshData || MeshData->IsEmpty())
 			continue;
 		bFrameUpdated = true;
@@ -211,13 +215,16 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	// Update mesh visibility
 	for (auto MeshComponent: DirtyMeshes)
 	{
-		ASSERTMSG(MeshIdMap[MeshComponent] != ~0u, "StaticMeshComponent not exist in scene!");
-		accel.set_visibility_on_update(IdToIndex[MeshIdMap[MeshComponent]], MeshComponent->IsVisible());
+        if(!MeshIdMap.count(MeshComponent))
+        {
+            LOG_WARNING("Trying to update a mesh visibility that not exist in scene: {}", MeshComponent->GetOwnerName());
+            continue;
+        }
+        accel.set_visibility_on_update(IdToIndex[MeshIdMap[MeshComponent]], MeshComponent->IsVisible());
 		// auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshComponent->GetMeshData()->GetMaterial());
 		// StaticMeshDatas[MeshIndexMap[MeshComponent]].material_id = MaterialID;
 	}
 	DirtyMeshes.clear();
 	if(accel.dirty()) stream << accel.build();
 }
-
 }
