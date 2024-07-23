@@ -31,17 +31,17 @@ void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
 	//----- Init config file -----
 	{
 		// Load all the ini file in the engine config directory
-		for(const auto& EngineConfigFile : Path::DirectoryIterator(Path::EngineConfigDir()))
+		for (const auto& EngineConfigFile : Path::DirectoryIterator(Path::EngineConfigDir()))
 		{
-			if(EngineConfigFile.is_regular_file() && EngineConfigFile.path().extension() == ".ini")
+			if (EngineConfigFile.is_regular_file() && EngineConfigFile.path().extension() == ".ini")
 			{
 				GConfig.LoadFile(EngineConfigFile.path().string());
 			}
 		}
 		// Load all the ini file in the project config directory
-		for(const auto& ProjectConfigFile : Path::DirectoryIterator(Path::ProjectConfigDir()))
+		for (const auto& ProjectConfigFile : Path::DirectoryIterator(Path::ProjectConfigDir()))
 		{
-			if(ProjectConfigFile.is_regular_file() && ProjectConfigFile.path().extension() == ".ini")
+			if (ProjectConfigFile.is_regular_file() && ProjectConfigFile.path().extension() == ".ini")
 			{
 				GConfig.LoadFile(ProjectConfigFile.path().string());
 			}
@@ -54,12 +54,14 @@ void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
 	auto WindowName = GConfig.Get<String>("Basic", "WindowName");
 	auto Width = GConfig.Get<int>("Render", "ResolutionX");
 	auto Height = GConfig.Get<int>("Render", "ResolutionY");
+	MaxFPS = GConfig.Get<float>("Render", "MaxFPS");
 
-	if(PipelineType == RenderPipelineType::RAYTRACING)
+	if (PipelineType == RenderPipelineType::RAYTRACING)
 	{
 		Renderer = MakeUnique<RayTracingPipeline>(Width, Height, WindowName);
 	}
-	else {
+	else
+	{
 		LOG_ERROR("Not support render pipeline type");
 	}
 
@@ -106,6 +108,16 @@ void Editor::Start()
 	while (!Renderer->ShouldClose())
 	{
 		NowFrame = std::chrono::high_resolution_clock::now();
+
+		// Sleep for a while if the frame rate is too high
+		if(
+			MaxFPS > 0 &&
+			NowFrame - LastFrame < std::chrono::nanoseconds(int(1.0 / MaxFPS * 1e9)))
+		{
+			std::this_thread::sleep_for(std::chrono::nanoseconds(int(1.0 / MaxFPS * 1e9)) - (NowFrame - LastFrame));
+			NowFrame = std::chrono::high_resolution_clock::now();
+		}
+
 		auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(NowFrame - LastFrame);
 		LastFrame = NowFrame;
 

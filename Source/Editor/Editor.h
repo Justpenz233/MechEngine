@@ -26,11 +26,21 @@ public:
 
 	void Start();
 
-	FORCEINLINE World* GetWorld() const;
+	[[nodiscard]] FORCEINLINE World* GetWorld() const;
+
+	/**
+	 * Set the max FPS for Engine
+	 * @param InMaxFPS -1 means no limit
+	 */
+	FORCEINLINE void SetMaxFPS(float InMaxFPS);
+
+	FORCEINLINE float GetMaxFPS() const;
 
 	void LoadWorld(TFunction<void(class World&)>&& InitScript);
 
 private:
+	float MaxFPS = -1;
+
 	RenderPipelineType PipelineType;
 
 	UniquePtr<RenderPipeline> Renderer = nullptr;
@@ -43,4 +53,14 @@ private:
 FORCEINLINE World* Editor::GetWorld() const
 {
 	return CurrentWorld.get();
+}
+
+FORCEINLINE void Editor::SetMaxFPS(float InMaxFPS)
+{
+	MaxFPS = InMaxFPS;
+}
+
+FORCEINLINE float Editor::GetMaxFPS() const
+{
+	return MaxFPS;
 }
