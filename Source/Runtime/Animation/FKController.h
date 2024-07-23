@@ -28,4 +28,16 @@ public:
 
 	void AddJoints(std::vector<ObjectPtr<JointComponent>>&& InJoints);
 	void AddJoints(std::vector<ObjectPtr<Actor>>&& InJoints);
+
+	template <class T> requires std::is_base_of_v<Actor, T>
+	void AddJoints(const std::vector<ObjectPtr<T>>& InJoints)
+	{
+		for(auto i : InJoints)
+		{
+			if(auto JointC = i->template GetComponent<JointComponent>())
+			{
+				Joints.push_back(JointC);
+			}
+		}
+	}
 };
