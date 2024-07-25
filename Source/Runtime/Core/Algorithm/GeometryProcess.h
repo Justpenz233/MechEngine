@@ -61,5 +61,7 @@ namespace MechEngine::Algorithm::GeometryProcess
 	 * @return The solidified mesh
 	 */
 	ENGINE_API ObjectPtr<StaticMesh> SolidifyMesh(const ObjectPtr<StaticMesh>& Mesh, double Thickness);
+	ENGINE_API ObjectPtr<StaticMesh> SolidifyMeshEven(const ObjectPtr<StaticMesh>& Mesh, double Thickness); // Solidfy with half thickness on both side
+
 
 };

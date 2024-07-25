@@ -242,22 +242,59 @@ namespace MechEngine::Algorithm::GeometryProcess
 		Inner->ReverseNormal();
 		auto Result = MeshBoolean::MeshConnect(Mesh, Inner);
 		// No boundary
-		if(Boundarys.empty()) return Result;
+		if (Boundarys.empty())
+			return Result;
 
 		// With boundary need to seal the boundary
-		int IndexBias = Mesh->GetVertexNum();
+		int		  IndexBias = Mesh->GetVertexNum();
 		MatrixX3i TriM = Result->GetTriangles();
-		//Seal the boundary
+		// Seal the boundary
 		for (const auto& Bound : Boundarys)
 		{
 			MatrixX3i NewTri(Bound.size() * 2, 3);
-			for(int j = 0;j < Bound.size(); j ++)
+			for (int j = 0; j < Bound.size(); j++)
 			{
-				int Next = (j + 1) % Bound.size();
+				int		 Next = (j + 1) % Bound.size();
 				Vector3i Tri;
 				Tri << Bound[j], Bound[Next] + IndexBias, Bound[Next];
 				NewTri.row(j * 2) = Tri;
-				Tri = {Bound[j], Bound[j] + IndexBias, Bound[Next] + IndexBias};
+				Tri = { Bound[j], Bound[j] + IndexBias, Bound[Next] + IndexBias };
+				NewTri.row(j * 2 + 1) = Tri;
+			}
+			TriM.conservativeResize(TriM.rows() + NewTri.rows(), 3);
+			TriM.bottomRows(NewTri.rows()) = NewTri;
+		}
+		Result->SetGeometry(TriM);
+		return Result;
+	}
+	ObjectPtr<StaticMesh> SolidifyMeshEven(const ObjectPtr<StaticMesh>& Mesh, double Thickness)
+	{
+		std::vector<std::vector<int>> Boundarys;
+		igl::boundary_loop(Mesh->triM, Boundarys);
+		auto Outter = NewObject<StaticMesh>(*Mesh);
+		Outter->OffsetVertex(0.5 * Thickness);
+		auto Inner = NewObject<StaticMesh>(*Mesh);
+		Inner->OffsetVertex(-0.5 * Thickness);
+		Inner->ReverseNormal();
+		auto Result = MeshBoolean::MeshConnect(Outter, Inner);
+		// No boundary
+		if (Boundarys.empty())
+			return Result;
+
+		// With boundary need to seal the boundary
+		int		  IndexBias = Mesh->GetVertexNum();
+		MatrixX3i TriM = Result->GetTriangles();
+		// Seal the boundary
+		for (const auto& Bound : Boundarys)
+		{
+			MatrixX3i NewTri(Bound.size() * 2, 3);
+			for (int j = 0; j < Bound.size(); j++)
+			{
+				int		 Next = (j + 1) % Bound.size();
+				Vector3i Tri;
+				Tri << Bound[j], Bound[Next] + IndexBias, Bound[Next];
+				NewTri.row(j * 2) = Tri;
+				Tri = { Bound[j], Bound[j] + IndexBias, Bound[Next] + IndexBias };
 				NewTri.row(j * 2 + 1) = Tri;
 			}
 			TriM.conservativeResize(TriM.rows() + NewTri.rows(), 3);

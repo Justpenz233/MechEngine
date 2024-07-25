@@ -67,7 +67,7 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 	// The UV property map that holds the parameterized values
 	typedef SurfaceMesh::Property_map<vertex_descriptor, Point_2>														   UV_pmap;
 	UV_pmap																												   uv_map = sm.add_property_map<vertex_descriptor, Point_2>("h:uv").first;
-	typedef CGAL::Surface_mesh_parameterization::Circular_border_arc_length_parameterizer_3<SurfaceMesh>				   Border_parameterizer;
+	typedef CGAL::Surface_mesh_parameterization::Square_border_arc_length_parameterizer_3<SurfaceMesh>					   Border_parameterizer;
 	typedef CGAL::Surface_mesh_parameterization::Discrete_conformal_map_parameterizer_3<SurfaceMesh, Border_parameterizer> Parameterizer;
 	CGAL::Surface_mesh_parameterization::Error_code																		   err = CGAL::Surface_mesh_parameterization::parameterize(sm, Parameterizer(), bhd, uv_map);
 	ASSERTMSG(err == CGAL::Surface_mesh_parameterization::OK, "Parameterization failed");

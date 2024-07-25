@@ -18,9 +18,12 @@ StaticMeshComponent::StaticMeshComponent()
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-	if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
+	if(GetWorld())
 	{
-		SceneProxy->RemoveStaticMesh(this);
+		if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
+		{
+			SceneProxy->RemoveStaticMesh(this);
+		}
 	}
 }
 

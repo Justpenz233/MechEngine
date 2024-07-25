@@ -62,7 +62,7 @@ public:
 	virtual void Remesh() override
 	{
 		ParametricMeshComponent::Remesh();
-		SetMeshData(Algorithm::GeometryProcess::SolidifyMesh(DisplayMesh, MeshThickness));
+		SetMeshData(Algorithm::GeometryProcess::SolidifyMeshEven(DisplayMesh, MeshThickness));
 	}
 
 protected:
