@@ -170,7 +170,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	// Update mesh geometry
 	for (auto MeshComponent : DirtyGeometryMeshes)
 	{
-        if(MeshIdMap.count(MeshComponent))
+        if(!MeshIdMap.count(MeshComponent))
         {
             LOG_WARNING("Trying to update a mesh geometry that not exist in scene: {}", MeshComponent->GetOwnerName());
             continue;
