@@ -173,7 +173,7 @@ void World::DebugDrawCube(const FVector& Center, const FVector& Size, const FCol
 	DebugDrawComponent->AddCube(Center, Size, Color, Thickness, LifeTime);
 }
 
-void World::ExportSceneToObj(const Path& FolderPath)
+void World::ExportSceneToObj(const Path& FolderPath, bool bExportGlobal)
 {
 	if(FolderPath.Existing() && FolderPath.IsDirectory())
 	{
@@ -183,10 +183,15 @@ void World::ExportSceneToObj(const Path& FolderPath)
 			{
 				if(auto Mesh = MeshComponent->GetMeshData())
 				{
-					auto Transform = Actor->GetTransformMatrix();
-					StaticMesh CopyMesh = *Mesh;
-					CopyMesh.TransformMesh(Transform);
-					CopyMesh.SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
+					if(!bExportGlobal)
+						Mesh->SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
+					else
+					{
+						auto Transform = Actor->GetTransformMatrix();
+						StaticMesh CopyMesh = *Mesh;
+						CopyMesh.TransformMesh(Transform);
+						CopyMesh.SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
+					}
 				}
 			}
 		}

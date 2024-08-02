@@ -9,12 +9,16 @@
  * functions with std stl
  * Notify widget
  * Input handling
+ * Save file dialog
  ***************************************************************************/
 
 #pragma once
 #include "ImguiNotify/ImGuiNotify.hpp"
 #include "Math/MathType.h"
 #include "Misc/Platform.h"
+
+#include <filesystem>
+#include "OsDialogs.h"
 
 namespace ImGui
 {

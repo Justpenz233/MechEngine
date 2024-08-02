@@ -6,7 +6,7 @@
 
 #include "Editor.h"
 #include "MenuBarItem.h"
-#include "Widgets/OsDialogs.h"
+#include "OsDialogs.h"
 #include "Components/StaticMeshComponent.h"
 #include "Game/Actor.h"
 

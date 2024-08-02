@@ -123,9 +123,10 @@ public:
 
 	/**
 	 * Export the scene to a obj file, the obj file will be saved in the folder
-	 * @param FolderPath
+	 * @param FolderPath Folder path to save the obj file
+	 * @param bExportGlobal Export to global space if true, otherwise export to local space
 	 */
-	void ExportSceneToObj(const Path& FolderPath);
+	void ExportSceneToObj(const Path& FolderPath, bool bExportGlobal = true);
 
 
 private:

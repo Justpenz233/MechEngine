@@ -15,21 +15,19 @@ public:
 
     virtual void SortJoints();
 
-    template<class T>
+    template<class T> requires std::is_base_of_v<Joint, T>
     void AddJoint(ObjectPtr<T> InJoint)
     {
-        if(InJoint->template IsSubclassOf<Joint>())
-            JointsSet.insert(Cast<Joint>(InJoint));
+    	JointsSet.insert(Cast<Joint>(InJoint));
     }
 
     void AddJoints(TArray<ObjectPtr<Joint>> InJoint);
 
-	template<class T>
+	template<class T> requires std::is_base_of_v<Joint, T>
 	void AddJoints(TArray<ObjectPtr<T>> InJoint)
 	{
 		for (auto i : InJoint)
-			if(auto JointA = Cast<Joint>(i))
-				JointsSet.insert(JointA);
+			JointsSet.insert(Cast<Joint>(i));
 	}
 
     template<class T, typename... Args>

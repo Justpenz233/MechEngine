@@ -1,7 +1,7 @@
 //
 //  Portable File Dialogs
 //
-//  Copyright ? 2018¨C2022 Sam Hocevar <sam@hocevar.net>
+//  Copyright ? 2018?C2022 Sam Hocevar <sam@hocevar.net>
 //
 //  This library is free software. It comes without any warranty, to
 //  the extent permitted by applicable law. You can redistribute it
@@ -117,7 +117,7 @@ inline opt operator |(opt a, opt b) { return opt(uint8_t(a) | uint8_t(b)); }
 inline bool operator &(opt a, opt b) { return bool(uint8_t(a) & uint8_t(b)); }
 
 // The settings class, only exposing to the user a way to set verbose mode
-// and to force a rescan of installed desktop helpers (zenity, kdialog¡­).
+// and to force a rescan of installed desktop helpers (zenity, kdialog??).
 class settings
 {
 public:
@@ -586,7 +586,7 @@ inline void settings::rescan()
     settings(/* resync = */ true);
 }
 
-// Check whether a program is present using ¡°which¡±.
+// Check whether a program is present using ??which??.
 inline bool settings::check_program(std::string const &program)
 {
 #if _WIN32
@@ -703,7 +703,7 @@ inline bool internal::executor::kill()
 #if _WIN32
     if (m_future.valid())
     {
-        // Close all windows that weren¡¯t open when we started the future
+        // Close all windows that weren??t open when we started the future
         auto previous_windows = m_windows;
         EnumWindows(&enum_windows_callback, (LPARAM)this);
         for (auto hwnd : m_windows)
@@ -786,7 +786,7 @@ inline void internal::executor::start_process(std::vector<std::string> const &co
         dup2(in[0], STDIN_FILENO);
         dup2(out[1], STDOUT_FILENO);
 
-        // Ignore stderr so that it doesn¡¯t pollute the console (e.g. GTK+ errors from zenity)
+        // Ignore stderr so that it doesn??t pollute the console (e.g. GTK+ errors from zenity)
         int fd = open("/dev/null", O_WRONLY);
         dup2(fd, STDERR_FILENO);
         close(fd);
@@ -936,9 +936,9 @@ inline internal::platform::new_style_context::~new_style_context()
 
 inline HANDLE internal::platform::new_style_context::create()
 {
-    // This ¡°hack¡± seems to be necessary for this code to work on windows XP.
+    // This ??hack?? seems to be necessary for this code to work on windows XP.
     // Without it, dialogs do not show and close immediately. GetError()
-    // returns 0 so I don¡¯t know what causes this. I was not able to reproduce
+    // returns 0 so I don??t know what causes this. I was not able to reproduce
     // this behavior on Windows 7 and 10 but just in case, let it be here for
     // those versions too.
     // This hack is not required if other dialogs are used (they load comdlg32
@@ -953,7 +953,7 @@ inline HANDLE internal::platform::new_style_context::create()
     ACTCTXA act_ctx =
     {
         // Do not set flag ACTCTX_FLAG_SET_PROCESS_DEFAULT, since it causes a
-        // crash with error ¡°default context is already set¡±.
+        // crash with error ??default context is already set??.
         sizeof(act_ctx),
         ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID,
         "shell32.dll", 0, 0, sys_dir.c_str(), (LPCSTR)124, nullptr, 0,
@@ -1431,8 +1431,8 @@ inline std::string internal::file_dialog::select_folder_vista(IFileDialog *ifd, 
     // Set default folder if found. This only sets the default folder. If
     // Windows has any info about the most recently selected folder, it
     // will display it instead. Generally, calling SetFolder() to set the
-    // current directory ¡°is not a good or expected user experience and
-    // should therefore be avoided¡±:
+    // current directory ??is not a good or expected user experience and
+    // should therefore be avoided??:
     // https://docs.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-ifiledialog-setfolder
     if (SUCCEEDED(hr))
     {
@@ -1730,8 +1730,8 @@ inline message::message(std::string const &title,
             case choice::ok_cancel:
                 command.insert(command.end(), { "--question", "--cancel-label=Cancel", "--ok-label=OK" }); break;
             case choice::yes_no:
-                // Do not use standard --question because it causes ¡°No¡± to return -1,
-                // which is inconsistent with the ¡°Yes/No/Cancel¡± mode below.
+                // Do not use standard --question because it causes ??No?? to return -1,
+                // which is inconsistent with the ??Yes/No/Cancel?? mode below.
                 command.insert(command.end(), { "--question", "--switch", "--extra-button=No", "--extra-button=Yes" }); break;
             case choice::yes_no_cancel:
                 command.insert(command.end(), { "--question", "--switch", "--extra-button=Cancel", "--extra-button=No", "--extra-button=Yes" }); break;

@@ -36,7 +36,7 @@ public:
     virtual ~Object();
 
 	// Set object name
-    FORCEINLINE void SetName(const String& InName)
+    FORCEINLINE virtual void SetName(const String& InName)
     {
     	ObjectName = InName;
     }
