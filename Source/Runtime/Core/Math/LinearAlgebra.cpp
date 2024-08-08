@@ -75,16 +75,14 @@ FVector VectorMultiply(const FVector& A, const FVector& B)
 Matrix4d MakeTranslationMatrix(const FVector& Translation)
 {
 	Matrix4d Result = Matrix4d::Identity();
-	for (int i = 0; i < 3; i++)
-		Result(i, 3) = Translation[i];
+	Result.col(3).head(3) = Translation;
 	return Result;
 }
 
 Matrix4d MakeScaleMatrix(const FVector& Scale)
 {
 	Matrix4d Result = Matrix4d::Identity();
-	for (int i = 0; i < 3; i++)
-		Result(i, i) = Scale[i];
+	Result.diagonal().head(3) = Scale;
 	return Result;
 }
 

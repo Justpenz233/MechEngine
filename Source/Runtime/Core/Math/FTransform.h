@@ -49,6 +49,12 @@ public:
 	FORCEINLINE void SetScale(const Vector3d& InScale) { Scale = InScale; }
 	FTransform LerpTo(const FTransform& Other, double Alpha) const;
 
+	/**
+	 * Get local location relative to this transform
+	 * Inverse itself can't concatenate with VQS format(since VQS always transform from S->Q->T, where inverse happens from T(-1)->Q(-1)->S(-1))
+	 * @param WolrdLocation Location in world space
+	 * @return Location in local space
+	 */
 	FVector		ToLocalSpace(const FVector& WolrdLocation) const;
 	FTransform	Inverse() const;
 	FTransform& operator=(const FTransform& Other);
