@@ -38,8 +38,8 @@ public:
 	virtual void EndPlay() {};
 
 protected:
-	class Actor* Owner;
-	class World* World;
+	class Actor* Owner = nullptr;
+	class World* World = nullptr;
 	friend class Actor;
 	friend class World;
 };

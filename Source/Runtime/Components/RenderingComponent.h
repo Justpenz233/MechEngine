@@ -25,7 +25,10 @@ class ENGINE_API RenderingComponent : public ActorComponent
 public:
 	RenderingComponent() = default;
 
-	FORCEINLINE Rendering::GPUSceneInterface* GetScene() const { return World->GetScene(); }
+	FORCEINLINE Rendering::GPUSceneInterface* GetScene() const
+	{
+		return World == nullptr ? nullptr :  World->GetScene();
+	}
 
 	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 

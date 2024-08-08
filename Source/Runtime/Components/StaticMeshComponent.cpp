@@ -18,7 +18,7 @@ StaticMeshComponent::StaticMeshComponent()
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-	if(GetWorld())
+	if(GetWorld() != nullptr)
 	{
 		if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
 		{
