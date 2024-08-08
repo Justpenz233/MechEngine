@@ -199,14 +199,13 @@ namespace MechEngine::Algorithm::GeometryProcess
 		}
 	};
 
-	FVector2 Projection(const FVector& Pos, TFunction<FVector(const FVector2&)> SampleFunction)
+	FVector2 Projection(const FVector& Pos, const TFunction<FVector(const FVector2&)>& SampleFunction)
 	{
 		SurfaceProjectFunctor fucnctor([&](double u, double v) {
 			return SampleFunction(FVector2(u, v));
-		},
-			Pos);
-		double				  BestEnergy = 1e6;
-		Vector2d			  Best;
+		}, Pos);
+		double BestEnergy = 1e6;
+		Vector2d Best;
 		for (double u = 0.; u <= 1.; u += 0.1)
 		{
 			for (double v = 0.; v <= 1.; v += 0.1)
@@ -232,6 +231,19 @@ namespace MechEngine::Algorithm::GeometryProcess
 			}
 		}
 		return Best;
+	}
+
+	FVector2 Projection(const FVector& Pos, const TFunction<FVector(const FVector2&)>& SampleFunction, const FVector2& InitialGuess)
+	{
+		SurfaceProjectFunctor fucnctor([&](double u, double v) {
+			return SampleFunction(FVector2(u, v));
+		}, Pos);
+		VectorXd UV(2);
+		UV << InitialGuess.x(), InitialGuess.y();
+		Eigen::NumericalDiff<SurfaceProjectFunctor>									   numDiff(fucnctor);
+		Eigen::LevenbergMarquardt<Eigen::NumericalDiff<SurfaceProjectFunctor>, double> lm(numDiff);
+		int																			   t = lm.minimize(UV);
+		return {UV[0], UV[1]};
 	}
 	ObjectPtr<StaticMesh> SolidifyMesh(const ObjectPtr<StaticMesh>& Mesh, double Thickness)
 	{

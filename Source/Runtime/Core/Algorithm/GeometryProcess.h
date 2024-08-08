@@ -49,7 +49,10 @@ namespace MechEngine::Algorithm::GeometryProcess
 	 * @param SampleFunction SampleUV function
 	 * @return 2D UV position
 	 */
-	ENGINE_API FVector2 Projection(const FVector& Pos, TFunction<FVector(const FVector2&)> SampleFunction);
+	ENGINE_API FVector2 Projection(const FVector& Pos, const TFunction<FVector(const FVector2&)>& SampleFunction);
+	// Given a initial guess, runing a LevenbergMarquardt to optimize the UV position, will be much faster than Projection
+	ENGINE_API FVector2 Projection(const FVector& Pos, const TFunction<FVector(const FVector2&)>& SampleFunction, const FVector2& InitialGuess);
+
 
 	/**
 	 * Given a mesh, and a thickness, return a new mesh which is the solidified version of the input mesh

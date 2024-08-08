@@ -122,15 +122,27 @@ public:
     {
         return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point));
     }
+	FORCEINLINE Vector2d Projection(const FVector& Point, const FVector2& InitialGuess) const
+	{
+		return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point), InitialGuess);
+	}
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point) const
 	{
 		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessToSample);
 	}
+	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, const FVector2& InitialGuess) const
+	{
+		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessToSample);
+	}
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const
 	{
 		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessSample);
+	}
+	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, const FVector2& InitialGuess, double ThicknessSample) const
+	{
+		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessSample);
 	}
 
 	FORCEINLINE bool IsClosed()

@@ -95,6 +95,12 @@ public:
 			return Sample(UV.x(), UV.y());
 		});
 	}
+	virtual FVector2 Projection(const FVector& Point, const FVector2& InitialGuess) const
+	{
+		return Algorithm::GeometryProcess::Projection(Point, [&](const FVector2& UV) {
+			return Sample(UV.x(), UV.y());
+		}, InitialGuess);
+	}
 
 	/***
 	 * Project a point to the surface at given thickness
@@ -106,6 +112,12 @@ public:
 	virtual FVector2 ProjectionThickness(const FVector& Point, double Thickness) const
 	{
 		if(Thickness == 0.) return Projection(Point);
+		ASSERTMSG(false, "Not implemented");
+		return {};
+	}
+	virtual FVector2 ProjectionThickness(const FVector& Point, const FVector2& InitialGuess, double Thickness) const
+	{
+		if(Thickness == 0.) return Projection(Point, InitialGuess);
 		ASSERTMSG(false, "Not implemented");
 		return {};
 	}
