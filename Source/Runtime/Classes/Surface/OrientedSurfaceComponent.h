@@ -5,8 +5,13 @@
 #pragma once
 #include "Components/ActorComponent.h"
 #include "Mesh/StaticMesh.h"
+#include "igl/AABB.h"
 #include "igl/fast_winding_number.h"
 
+/**
+ * OrientedSurfaceComponent is a component that represents an oriented surface
+ * Provides functions to check inside, outside, distance, and signed distance to the surface
+ */
 MCLASS(OrientedSurfaceComponent)
 class OrientedSurfaceComponent : public ActorComponent
 {
@@ -38,16 +43,37 @@ public:
 		return !Inside(Point);
 	}
 
+	/**
+	 * Calculate the distance from the point to the surface
+	 * @param Point The point to calculate
+	 * @return The distance from the point to the surface
+	 */
+	double Distance(const FVector& Point) const;
+
+	/**
+	 * Calculate the signed distance from the point to the surface
+	 * @param Point The point to calculate
+	 * @return The signed distance from the point to the surface, if the point is inside the surface, the distance will be negative
+	 */
+	FORCEINLINE double SignedDistance(const FVector& Point) const
+	{
+		return Inside(Point) ? -Distance(Point) : Distance(Point);
+	}
+
 protected:
 	OrientedSurfaceComponent() = default;
 
+	Eigen::MatrixXd V;
+	Eigen::MatrixXi F;
 	void Build(const ObjectPtr<StaticMesh>& OrientedMesh, bool bUseWindingNumber = true, bool bInverse = false);
 
-	bool bWindingNumber;
+	bool bWindingNumber = true;
 
 	// Will be -1 when using inverse
 	double Sign = 1.;
 
 	// Used for winding number
 	igl::FastWindingNumberBVH fwn_bvh;
+
+	igl::AABB<MatrixXd, 3> AABB;
 };

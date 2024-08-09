@@ -16,11 +16,20 @@ bool OrientedSurfaceComponent::Inside(const FVector& Point) const
 	double s = 1. - 2. * std::abs(w);
 	return s * Sign < 0.;
 }
+
+double OrientedSurfaceComponent::Distance(const FVector& Point) const
+{
+	int i; Eigen::RowVector3d c;
+	return sqrt(AABB.squared_distance(V, F, Point.transpose(), i, c));
+}
+
 void OrientedSurfaceComponent::Build(const ObjectPtr<StaticMesh>& OrientedMesh, bool bUseWindingNumber, bool bInverse)
 {
 	bWindingNumber = bUseWindingNumber;
 	Sign = bInverse ? -1. : 1.;
-
+	V = OrientedMesh->GetVertices();
+	F = OrientedMesh->GetTriangles();
+	AABB.init(V, F);
 	if (bUseWindingNumber)
 	{
 		// Use winding number from libigl
