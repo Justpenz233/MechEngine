@@ -40,8 +40,8 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Export Selected Mesh", "");
 	MainMenuBar->AddItem<SaveSceneMenuBar>("File/Export Scene", "");
 
-	CurrentWorld->AddWidget<WorldOutliner>();
 	CurrentWorld->AddWidget<WorldSettingWidget>();
+	CurrentWorld->AddWidget<WorldOutliner>();
 
 	// [BETA] ActorOutliner and ObjectPanel will start to use when property become more complex
 	// CurrentWorld->AddWidget<ActorOutliner>();
