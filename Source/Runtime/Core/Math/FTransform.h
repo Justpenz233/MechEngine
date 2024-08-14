@@ -23,31 +23,31 @@ public:
 
 	static FTransform Identity();
 
-	Matrix4d GetTranslationMatrix() const;
-	Matrix4d GetRotationMatrix() const;
-	Matrix4d GetScaleMatrix() const;
-	Matrix4d GetMatrix() const;
+	[[nodiscard]] Matrix4d GetTranslationMatrix() const;
+	[[nodiscard]] Matrix4d GetRotationMatrix() const;
+	[[nodiscard]] Matrix4d GetScaleMatrix() const;
+	[[nodiscard]] Matrix4d GetMatrix() const;
 
-	FORCEINLINE const FVector& GetTranslation() const { return Translation; }
-	FORCEINLINE const FVector& GetLocation() const { return Translation; }
-	FORCEINLINE const FQuat&   GetRotation() const { return Rotation; }
-	FVector		   GetRotationEuler() const;
-	FORCEINLINE const FVector& GetScale() const { return Scale; }
+	[[nodiscard]] FORCEINLINE const FVector& GetTranslation() const { return Translation; }
+	[[nodiscard]] FORCEINLINE const FVector& GetLocation() const { return Translation; }
+	[[nodiscard]] FORCEINLINE const FQuat&   GetRotation() const { return Rotation; }
+	[[nodiscard]] FVector GetRotationEuler() const;
+	[[nodiscard]] FORCEINLINE const FVector& GetScale() const { return Scale; }
 
-	FORCEINLINE void AddTranslationGlobal(const FVector& InTranslation) { Translation += InTranslation; }
-	FORCEINLINE void AddTranslationLocal(const FVector& InTranslation) { Translation += Rotation * InTranslation; }
-	FORCEINLINE void AddRotationGlobal(const FQuat& InRotation) { Rotation = InRotation * Rotation; }
-	FORCEINLINE void AddRotationLocal(const FQuat& InRotation) { Rotation = Rotation * InRotation; }
-	FORCEINLINE void AddScale(const FVector& InScale) { Scale += InScale; }
-	FORCEINLINE void AddScale(double InScale) { Scale *= InScale; }
+	FORCEINLINE FTransform& AddTranslationGlobal(const FVector& InTranslation) { Translation += InTranslation; return *this; }
+	FORCEINLINE FTransform& AddTranslationLocal(const FVector& InTranslation) { Translation += Rotation * InTranslation; return *this; }
+	FORCEINLINE FTransform& AddRotationGlobal(const FQuat& InRotation) { Rotation = InRotation * Rotation; return *this; }
+	FORCEINLINE FTransform& AddRotationLocal(const FQuat& InRotation) { Rotation = Rotation * InRotation; return *this; }
+	FORCEINLINE FTransform& AddScale(const FVector& InScale) { Scale += InScale; }
+	FORCEINLINE FTransform& AddScale(double InScale) { Scale *= InScale; }
 
 	/// \brief Random a transform, location in [0,1] , scale is 1.
 	static FTransform Random();
 
-	FORCEINLINE void SetTranslation(const Vector3d& InTranslation) { Translation = InTranslation; }
-	FORCEINLINE void SetRotation(const Quaterniond& InRotation) { Rotation = InRotation; }
-	FORCEINLINE void SetScale(const Vector3d& InScale) { Scale = InScale; }
-	FTransform LerpTo(const FTransform& Other, double Alpha) const;
+	FORCEINLINE FTransform& SetTranslation(const Vector3d& InTranslation) { Translation = InTranslation; return *this; }
+	FORCEINLINE FTransform& SetRotation(const Quaterniond& InRotation) { Rotation = InRotation; return *this; }
+	FORCEINLINE FTransform& SetScale(const Vector3d& InScale) { Scale = InScale; return *this; }
+	[[nodiscard]] FTransform LerpTo(const FTransform& Other, double Alpha) const;
 
 	/**
 	 * Get local location relative to this transform
@@ -55,8 +55,8 @@ public:
 	 * @param WolrdLocation Location in world space
 	 * @return Location in local space
 	 */
-	FVector		ToLocalSpace(const FVector& WolrdLocation) const;
-	FTransform	Inverse() const;
+	[[nodiscard]] FVector		ToLocalSpace(const FVector& WolrdLocation) const;
+	[[nodiscard]] FTransform	Inverse() const;
 	FTransform& operator=(const FTransform& Other);
 	FTransform& operator=(const Eigen::Affine3d& Other);
 

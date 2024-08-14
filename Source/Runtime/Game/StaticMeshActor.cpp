@@ -24,6 +24,20 @@ Math::FBox StaticMeshActor::GetBoundingBox() const
 	return MeshComponent->GetMeshData()->GetBoundingBox().Translate(GetTranslation());
 }
 
+void StaticMeshActor::SetMaterial(const ObjectPtr<Material>& InMaterial)
+{
+	ASSERT(MeshComponent != nullptr);
+	if (MeshComponent)
+		MeshComponent->SetMaterial(InMaterial);
+}
+
+ObjectPtr<StaticMesh> StaticMeshActor::GetWorldMesh() const
+{
+	auto Result = NewObject<StaticMesh>(*MeshComponent->GetMeshData());
+	Result->TransformMesh(GetFTransform());
+	return Result;
+}
+
 StaticMeshComponent* StaticMeshActor::GetStaticMeshComponent()
 {
 	return MeshComponent;

@@ -24,9 +24,9 @@ public:
 	double ThicknessToSample = 0.;
 
 	// Construct with a parametric surface
-    ParametricMeshActor(const ObjectPtr<ParametricSurface>& SurfaceData, double Thickness = 0.05)
+    explicit ParametricMeshActor(const ObjectPtr<ParametricSurface>& SurfaceData, double Thickness = 0.05)
     {
-        SurfaceComponent = AddComponent<ParametricSurfaceComponent>(SurfaceData, 0.05);
+        SurfaceComponent = AddComponent<ParametricSurfaceComponent>(SurfaceData, Thickness);
     }
 
 	// Construct with a SARFParametricMeshComponent
