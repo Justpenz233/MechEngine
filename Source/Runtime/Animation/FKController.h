@@ -15,7 +15,14 @@ protected:
 	bool	 IsPause = true;
 	double	 Speed = 1.0;
 	std::vector<ObjectPtr<JointComponent>> Joints;
+
 public:
+	FKController() = default;
+
+	template <class T> requires std::is_base_of_v<FKSolver, T>
+	explicit FKController(const ObjectPtr<T>& InSolver)
+		: Solver(Cast<FKSolver>(InSolver)) {}
+
 	void SetSpeed(double NewSpeed);
 	void Pause();
 	void Run();
@@ -28,6 +35,13 @@ public:
 
 	void AddJoints(std::vector<ObjectPtr<JointComponent>>&& InJoints);
 	void AddJoints(std::vector<ObjectPtr<Actor>>&& InJoints);
+
+	template <class T> requires std::is_base_of_v<FKSolver, T>
+	void SetSolver(const ObjectPtr<T>& InSolver)
+	{
+		Solver = Cast<FKSolver>(InSolver);
+	}
+
 
 	template <class T> requires std::is_base_of_v<Actor, T>
 	void AddJoints(const std::vector<ObjectPtr<T>>& InJoints)

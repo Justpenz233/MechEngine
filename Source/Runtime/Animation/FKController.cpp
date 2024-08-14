@@ -22,7 +22,8 @@ void FKController::Run()
 void FKController::Init()
 {
 	Actor::Init();
-	Solver = NewObject<FKSolver>();
+	if(!Solver)
+		Solver = NewObject<FKSolver>();
 
 	for (auto i : Joints)
 		Solver->AddJoint(i->GetJoint());
