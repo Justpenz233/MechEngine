@@ -187,13 +187,14 @@ public:
 		v = 1. - v;
 		return {(Radius + Thickness) * cos(u * M_PI * 2.0) * v, (Radius + Thickness) * sin(u * M_PI * 2.0) * v, (1. - v) * (Height + Thickness)};
 	}
-	// Vector2d Projection(const FVector& Pos) const override
-	// {
- //    	Vector2d UV;
- //    	UV.y() = Pos.z() / Height;
- //    	UV.x() = atan2(Pos.y(), Pos.x()) / (2. * M_PI);
- //    	return UV;
-	// }
+	Vector2d Projection(const FVector& Pos) const override
+	{
+    	Vector2d UV;
+    	UV.y() = std::clamp(Pos.z() / Height, 0., 1.);
+    	UV.x() = atan2(Pos.y(), Pos.x()) / (2. * M_PI);
+    	if (UV.x() < 0) UV.x() += 1.;
+    	return UV;
+	}
 };
 
 class ENGINE_API MobiusStripSurface : public ParametricSurface

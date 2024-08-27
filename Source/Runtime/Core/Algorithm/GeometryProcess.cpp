@@ -214,6 +214,7 @@ namespace MechEngine::Algorithm::GeometryProcess
 				UV << u, v;
 				Eigen::NumericalDiff<SurfaceProjectFunctor>									   numDiff(fucnctor);
 				Eigen::LevenbergMarquardt<Eigen::NumericalDiff<SurfaceProjectFunctor>, double> lm(numDiff);
+				lm.parameters.xtol = 1e-5; lm.parameters.ftol = 1e-5;
 				int																			   t = lm.minimize(UV);
 
 				double Energy = (SampleFunction(FVector2(u, v)) - Pos).norm();
@@ -242,6 +243,7 @@ namespace MechEngine::Algorithm::GeometryProcess
 		UV << InitialGuess.x(), InitialGuess.y();
 		Eigen::NumericalDiff<SurfaceProjectFunctor>									   numDiff(fucnctor);
 		Eigen::LevenbergMarquardt<Eigen::NumericalDiff<SurfaceProjectFunctor>, double> lm(numDiff);
+		lm.parameters.xtol = 1e-5; lm.parameters.ftol = 1e-5;
 		int																			   t = lm.minimize(UV);
 		return {UV[0], UV[1]};
 	}
