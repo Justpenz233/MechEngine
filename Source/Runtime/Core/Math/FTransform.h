@@ -38,8 +38,8 @@ public:
 	FORCEINLINE FTransform& AddTranslationLocal(const FVector& InTranslation) { Translation += Rotation * InTranslation; return *this; }
 	FORCEINLINE FTransform& AddRotationGlobal(const FQuat& InRotation) { Rotation = InRotation * Rotation; return *this; }
 	FORCEINLINE FTransform& AddRotationLocal(const FQuat& InRotation) { Rotation = Rotation * InRotation; return *this; }
-	FORCEINLINE FTransform& AddScale(const FVector& InScale) { Scale += InScale; }
-	FORCEINLINE FTransform& AddScale(double InScale) { Scale *= InScale; }
+	FORCEINLINE FTransform& AddScale(const FVector& InScale) { Scale += InScale; return *this;}
+	FORCEINLINE FTransform& AddScale(double InScale) { Scale *= InScale; return *this;}
 
 	/// \brief Random a transform, location in [0,1] , scale is 1.
 	static FTransform Random();

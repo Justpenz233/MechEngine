@@ -13,7 +13,7 @@
  * Provides functions to check inside, outside, distance, and signed distance to the surface
  */
 MCLASS(OrientedSurfaceComponent)
-class OrientedSurfaceComponent : public ActorComponent
+class ENGINE_API OrientedSurfaceComponent : public ActorComponent
 {
 	REFLECTION_BODY(OrientedSurfaceComponent)
 

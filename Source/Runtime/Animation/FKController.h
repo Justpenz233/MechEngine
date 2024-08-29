@@ -7,7 +7,7 @@
 #include "JointComponent.h"
 #include "Game/Actor.h"
 
-class FKController : public Actor
+class ENGINE_API FKController : public Actor
 {
 protected:
 	ObjectPtr<FKSolver> Solver;

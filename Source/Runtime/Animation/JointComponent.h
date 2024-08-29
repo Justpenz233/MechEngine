@@ -33,7 +33,7 @@ public:
 };
 
 MCLASS(IKJointComponent)
-class IKJointComponent : public JointComponent
+class ENGINE_API IKJointComponent : public JointComponent
 {
 	REFLECTION_BODY(IKJointComponent)
 public:

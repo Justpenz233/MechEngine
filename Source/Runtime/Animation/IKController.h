@@ -7,7 +7,7 @@
 #include "IKSolver.h"
 #include "Math/LinearAlgebra.h"
 
-class IKController : public FKController
+class ENGINE_API IKController : public FKController
 {
 public:
 
