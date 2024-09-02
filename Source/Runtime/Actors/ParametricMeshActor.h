@@ -129,20 +129,32 @@ public:
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point) const
 	{
+		if(ThicknessToSample == 0.)
+			return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point));
+		else
 		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessToSample);
 	}
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, const FVector2& InitialGuess) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessToSample);
+		if (ThicknessToSample == 0.)
+			return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point), InitialGuess);
+		else
+			return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessToSample);
 	}
 
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, double ThicknessSample) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessSample);
+		if (ThicknessToSample == 0.)
+			return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point));
+		else
+			return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), ThicknessSample);
 	}
 	FORCEINLINE FVector2 ProjectionThickness(const FVector& Point, const FVector2& InitialGuess, double ThicknessSample) const
 	{
-		return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessSample);
+		if (ThicknessToSample == 0.)
+			return SurfaceComponent->Projection(GetFTransform().ToLocalSpace(Point), InitialGuess);
+		else
+			return SurfaceComponent->ProjectionThickness(GetFTransform().ToLocalSpace(Point), InitialGuess, ThicknessSample);
 	}
 
 	FORCEINLINE bool IsClosed()

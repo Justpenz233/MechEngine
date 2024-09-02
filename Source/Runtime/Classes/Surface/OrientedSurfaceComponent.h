@@ -7,6 +7,7 @@
 #include "Mesh/StaticMesh.h"
 #include "igl/AABB.h"
 #include "igl/fast_winding_number.h"
+#include "sdf/sdf.hpp"
 
 /**
  * OrientedSurfaceComponent is a component that represents an oriented surface
@@ -24,7 +25,7 @@ public:
 	 * @param bUseWindingNumber if true, use winding number to determine if a point is inside the surface, otherwise use a ray casting method
 	 * @param bInverse if true, the inside and outside will be inversed
 	 */
-	explicit OrientedSurfaceComponent(const ObjectPtr<StaticMesh>& OrientedMesh, bool bUseWindingNumber = true, bool bInverse = false)
+	explicit OrientedSurfaceComponent(const ObjectPtr<StaticMesh>& OrientedMesh, bool bUseWindingNumber = false, bool bInverse = false)
 		: bWindingNumber(bUseWindingNumber), Sign(bInverse ? -1. : 1.)
 	{
 		Build(OrientedMesh, bUseWindingNumber, bInverse);
@@ -57,7 +58,10 @@ public:
 	 */
 	FORCEINLINE double SignedDistance(const FVector& Point) const
 	{
-		return Inside(Point) ? -Distance(Point) : Distance(Point);
+		if(bWindingNumber)
+			return Inside(Point) ? -Distance(Point) : Distance(Point);
+		// else
+			return -sdf->operator()(Point.cast<float>().transpose(), false, 1)[0];
 	}
 
 protected:
@@ -76,4 +80,6 @@ protected:
 	igl::FastWindingNumberBVH fwn_bvh;
 
 	igl::AABB<MatrixXd, 3> AABB;
+
+	UniquePtr<sdf::SDF> sdf = nullptr;
 };

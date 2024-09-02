@@ -52,6 +52,10 @@ if (NOT TARGET pmp)
     add_subdirectory(libpmp)
 endif ()
 
+if (NOT TARGET sdf)
+    add_subdirectory(sdf)
+endif ()
+
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
@@ -63,4 +67,5 @@ target_link_libraries(ThirdParty INTERFACE
         luisa::compute
         bvh
         pmp
+        sdf
 )
