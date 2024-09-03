@@ -1,7 +1,7 @@
 #pragma once
 #include "Algorithm/CurveDistance.h"
 #include "Core/CoreMinimal.h"
-#include "Components/StaticCurveComponent.h"
+#include "Components/CurveComponent.h"
 #include "Game/Actor.h"
 
 MCLASS(CurveActor)
@@ -9,21 +9,18 @@ class ENGINE_API CurveActor : public Actor
 {
     REFLECTION_BODY(CurveActor)
 protected:
-    ObjectPtr<StaticCurveComponent> CurveComponent;
+    ObjectPtr<CurveComponent> CComponent;
 
 public:
 	CurveActor() = default;
-    CurveActor(ObjectPtr<Curve> CurveData);
-	CurveActor(TArray<FVector> CurveData);
-    CurveActor(TArray<FVector> CurveData, bool bClosed);
-
-    ~CurveActor();
-
-    ObjectPtr<StaticCurveComponent> GetCurveComponent();
-
+    CurveActor(const ObjectPtr<Curve>& CurveData);
+	CurveActor(const TArray<FVector>& CurveData);
+    CurveActor(const TArray<FVector>& CurveData, bool bClosed);
+    ObjectPtr<CurveComponent> GetCurveComponent();
+	TArray<FVector> SampleWithEqualChordLength(int Samples = 100) const;
     FVector Sample(double u) const;
     FVector SampleIndex(int Index) const;
-	int GetPointsNum() const { return CurveComponent->GetPointsNum(); }
+	int GetPointsNum() const { return CComponent->GetPointsNum(); }
 
     double CalcSimilarity(const ObjectPtr<CurveActor>& Others) const
 	{

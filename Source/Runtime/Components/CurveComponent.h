@@ -13,11 +13,11 @@ enum CurveDrawMode
 };
 
 MCLASS(StaticCurveComponent)
-class ENGINE_API StaticCurveComponent : public StaticMeshComponent
+class ENGINE_API CurveComponent : public StaticMeshComponent
 {
     REFLECTION_BODY(StaticCurveComponent)
 public:
-    explicit StaticCurveComponent(ObjectPtr<Curve>);
+    explicit CurveComponent(ObjectPtr<Curve>);
 
 	virtual void Init() override;
 	virtual void Remesh() override;
@@ -26,17 +26,18 @@ public:
     void SetDrawMode(CurveDrawMode InDrawMode, int InSampleNum = -1);
     void LoadFromFile(String FilePath);
     void SetRadius(double NewRadius);
-    int GetPointsNum() const { return CurveData->GetPointsNum(); }
-    int GetEdgeNum() const { return CurveData->GetEdgeNum(); }
-    FVector Sample(double u) const { return CurveData->Sample(u); }
-    FVector SampleIndex(int Index) const { return CurveData->SampleIndex(Index); }
-    FVector& operator [] (int Index) { return CurveData->operator[](Index); }
+    FORCEINLINE int GetPointsNum() const { return CurveData->GetPointsNum(); }
+    FORCEINLINE int GetEdgeNum() const { return CurveData->GetEdgeNum(); }
+    FORCEINLINE FVector Sample(double u) const { return CurveData->Sample(u); }
+    FORCEINLINE FVector SampleIndex(int Index) const { return CurveData->SampleIndex(Index); }
+    FVector& operator [] (int Index) const { return CurveData->operator[](Index); }
+	FORCEINLINE auto GetCurveData() const { return CurveData; }
 
     template<class T>
     double CalcSimilarity(ObjectPtr<T> Others);
 
 protected:
-    StaticCurveComponent() = default;
+    CurveComponent() = default;
 
     ObjectPtr<Curve> CurveData;
 

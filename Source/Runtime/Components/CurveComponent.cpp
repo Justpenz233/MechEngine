@@ -2,18 +2,18 @@
 // Created by Mavel Li on 12/9/23.
 //
 
-#include "StaticCurveComponent.h"
+#include "CurveComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Curve/Curve.h"
 #include "CoreMinimal.h"
 #include "Game/Actor.h"
 #include "Mesh/BasicShapesLibrary.h"
 
-StaticCurveComponent::StaticCurveComponent(ObjectPtr<Curve> NewCurve)
+CurveComponent::CurveComponent(ObjectPtr<Curve> NewCurve)
 {
 	CurveData = std::move(NewCurve);
 }
-void StaticCurveComponent::Init()
+void CurveComponent::Init()
 {
 	StaticMeshComponent::Init();
 	if (DrawMode == AsMesh)
@@ -24,7 +24,7 @@ void StaticCurveComponent::Init()
 	}
 }
 
-void StaticCurveComponent::Remesh()
+void CurveComponent::Remesh()
 {
 	StaticMeshComponent::Remesh();
 	if (DrawMode == AsMesh)
@@ -36,14 +36,14 @@ void StaticCurveComponent::Remesh()
 			MeshData->SetMaterial(PreMesh->GetMaterialAsset());
 	}
 }
-void StaticCurveComponent::PostEdit(Reflection::FieldAccessor& Field)
+void CurveComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
 	StaticMeshComponent::PostEdit(Field);
 	Remesh();
 	UploadRenderingData();
 }
 
-void StaticCurveComponent::SetDrawMode(CurveDrawMode InDrawMode, int InSampleNum)
+void CurveComponent::SetDrawMode(CurveDrawMode InDrawMode, int InSampleNum)
 {
     DrawMode = InDrawMode;
     if(InSampleNum == -1)
@@ -55,7 +55,7 @@ void StaticCurveComponent::SetDrawMode(CurveDrawMode InDrawMode, int InSampleNum
     MarkAsDirty(DIRTY_REMESH);
 }
 
-void StaticCurveComponent::LoadFromFile(String FilePath)
+void CurveComponent::LoadFromFile(String FilePath)
 {
     if(CurveData->ReadFromPath(FilePath))
     {
@@ -67,14 +67,14 @@ void StaticCurveComponent::LoadFromFile(String FilePath)
     }
 }
 
-void StaticCurveComponent::SetRadius(double NewRadius)
+void CurveComponent::SetRadius(double NewRadius)
 {
 	Radius = NewRadius;
 	Remesh();
 }
 
 template<class T>
-double StaticCurveComponent::CalcSimilarity(ObjectPtr<T> Others)
+double CurveComponent::CalcSimilarity(ObjectPtr<T> Others)
 {
 	double Result = std::numeric_limits<double>::max();
 	for (double delta = 0.; delta < 1.; delta += 0.001)
@@ -90,7 +90,7 @@ double StaticCurveComponent::CalcSimilarity(ObjectPtr<T> Others)
 }
 
 
-ObjectPtr<StaticMesh> StaticCurveComponent::GenerateCurveMesh()
+ObjectPtr<StaticMesh> CurveComponent::GenerateCurveMesh()
 {
     auto CurveMeshData = BasicShapesLibrary::GenerateCurveMesh(CurveData, Radius, CurveData->IsClosed(), CSG_NUM_N, SampleNum);
     return CurveMeshData;

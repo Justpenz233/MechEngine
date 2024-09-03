@@ -22,21 +22,22 @@ void Curve::SetCurveData(const TArray<FVector>& InLines)
 	bClosed = ((Lines[0] - Lines[Lines.size() - 1]).norm() < 1e-6);
 }
 
-bool Curve::ReadFromPath(const Path& InFilePath)
+TArray<FVector> Curve::ReadCurveDataFile(const Path& InFilePath)
 {
 	if (!InFilePath.Existing())
 	{
 		LOG_ERROR("Curve file: {0} not exist", InFilePath.string());
-		return false;
+		return {};
 	}
 	std::ifstream File(InFilePath);
 	if (!File.good())
 	{
 		LOG_ERROR("Open curve file: {0} failed", InFilePath.string());
-		return false;
+		return {};
 	}
 	else
 	{
+		TArray<FVector> Result;
 		int Num;
 		File >> Num;
 		for (int i = 1; i <= Num; i++)
@@ -46,13 +47,18 @@ bool Curve::ReadFromPath(const Path& InFilePath)
 			if (i != Num && File.eof())
 			{
 				LOG_ERROR("Curve file {0} format error, reach EOF early.", InFilePath.string());
-				Lines.clear();
-				return false;
+				return {};
 			}
-			Lines.push_back(NewPoint);
+			Result.push_back(NewPoint);
 		}
 		File.close();
+		return Result;
 	}
+}
+
+bool Curve::ReadFromPath(const Path& InFilePath)
+{
+	Lines = ReadCurveDataFile(InFilePath);
 	return true;
 }
 

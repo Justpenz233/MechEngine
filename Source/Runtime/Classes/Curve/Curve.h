@@ -31,6 +31,7 @@ public:
 	virtual void SetCurveData(const TArray<FVector>& InLines);
 	TArray<FVector> GetCurveData() const { return Lines; }
 
+	static TArray<FVector> ReadCurveDataFile(const Path& InFilePath);
     [[deprecated]] bool ReadFromPath(const Path& InFilePath);
 
 	/**
@@ -40,6 +41,11 @@ public:
 	 * @return the sampled curve data
 	 */
 	static TArray<FVector> SampleWithEqualChordLength(const TArray<FVector>& CurveData, int Samples = 100);
+
+	TArray<FVector> SampleWithEqualChordLength(int Samples = 100) const
+	{
+		return SampleWithEqualChordLength(Lines, Samples);
+	}
 
 	virtual FVector Sample(double u) const
     {

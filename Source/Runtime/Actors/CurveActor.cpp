@@ -1,41 +1,44 @@
 #include "CurveActor.h"
-#include "Components/StaticCurveComponent.h"
+#include "Components/CurveComponent.h"
 #include "Object/Object.h"
 
 
-CurveActor::CurveActor(ObjectPtr<Curve> CurveData)
+CurveActor::CurveActor(const ObjectPtr<Curve>& CurveData)
 {
-    CurveComponent = AddComponent<StaticCurveComponent>(CurveData);
+    CComponent = AddComponent<CurveComponent>(CurveData);
 }
 
-CurveActor::CurveActor(TArray<FVector> CurveData)
+CurveActor::CurveActor(const TArray<FVector>& CurveData)
 {
 	auto CurveObject = NewObject<Curve>(CurveData);
-	CurveComponent = AddComponent<StaticCurveComponent>(CurveObject);
+	CComponent = AddComponent<CurveComponent>(CurveObject);
 }
 
-CurveActor::CurveActor(TArray<FVector> CurveData, bool bClosed)
+CurveActor::CurveActor(const TArray<FVector>& CurveData, bool bClosed)
 {
 	auto CurveObject = NewObject<Curve>(CurveData, bClosed);
-	CurveComponent = AddComponent<StaticCurveComponent>(CurveObject);
+	CComponent = AddComponent<CurveComponent>(CurveObject);
 }
 
-CurveActor::~CurveActor()
+ObjectPtr<CurveComponent> CurveActor::GetCurveComponent()
 {
-
+	return CComponent;
 }
 
-ObjectPtr<StaticCurveComponent> CurveActor::GetCurveComponent()
+TArray<FVector> CurveActor::SampleWithEqualChordLength(int Samples) const
 {
-    return CurveComponent; 
+	auto SamplesData = CComponent->GetCurveData()->SampleWithEqualChordLength(Samples);
+	auto Transform = GetTransform();
+	std::ranges::for_each(SamplesData, [&Transform](FVector& Sample) { Sample = Transform * Sample; });
+	return SamplesData;
 }
 
 FVector CurveActor::Sample(double u) const
 {
-    return GetTransform() * CurveComponent->Sample(u);
+    return GetTransform() * CComponent->Sample(u);
 }
 
 FVector CurveActor::SampleIndex(int Index) const
 {
-    return GetTransform() * CurveComponent->SampleIndex(Index);
+    return GetTransform() * CComponent->SampleIndex(Index);
 }

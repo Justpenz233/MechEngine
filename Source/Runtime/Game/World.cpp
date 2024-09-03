@@ -5,7 +5,7 @@
 #include "Core/CoreMinimal.h"
 #include "World.h"
 #include "ImguiPlus.h"
-#include "Components/StaticCurveComponent.h"
+#include "Components/CurveComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/CameraComponent.h"
 #include "Actors/CameraActor.h"

@@ -143,7 +143,7 @@ private:
 	OnActorSelectedDelegate OnActorSelectedEvent;
 	bool OnKeyPressed(int Key);
 
-	TArray<ObjectPtr<class StaticCurveComponent>> DebugCurves;
+	TArray<ObjectPtr<class CurveComponent>> DebugCurves;
 
 	UniquePtr<TimerManager> TimerManager;
 
