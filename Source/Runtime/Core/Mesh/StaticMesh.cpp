@@ -14,6 +14,7 @@
 #include "Algorithm/GeometryProcess.h"
 #include "Materials/Material.h"
 #include "Misc/Path.h"
+#include "igl/boundary_loop.h"
 
 StaticMesh::StaticMesh()
 {
@@ -236,6 +237,13 @@ bool StaticMesh::IsSelfIntersect() const
 	Eigen::VectorXi EI;
 	igl::fast_find_self_intersections(verM, triM, true, true, IF, EV, EE, EI);
 	return IF.rows() > 0;
+}
+
+TArray<int> StaticMesh::BoundaryVertices() const
+{
+	TArray<int> Result;
+	igl::boundary_loop(triM, Result);
+	return Result;
 }
 
 StaticMesh* StaticMesh::FillHoles()

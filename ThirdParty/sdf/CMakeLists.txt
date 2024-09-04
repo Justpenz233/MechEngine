@@ -52,7 +52,7 @@ else()
     include_directories(${EIGEN_INCLUDE_DIR})
 endif()
 
-add_library( sdf STATIC ${SDF_SOURCES} )
+add_library( sdf SHARED ${SDF_SOURCES} )
 
 target_include_directories(
     sdf PUBLIC

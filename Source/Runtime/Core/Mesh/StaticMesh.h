@@ -186,6 +186,18 @@ public:
 	bool IsSelfIntersect() const;
 
 	/**
+	 * Get the boundary vertices of the mesh
+	 * @return boundary vertices indices, will be empty if the mesh does not have boundary
+	 */
+	TArray<int> BoundaryVertices() const;
+
+	/**
+	 * Check if the mesh is closed, i.e. the mesh is homeomorphic to a sphere
+	 * @return true, if the mesh is closed
+	 */
+	FORCEINLINE bool IsClosed() const;
+
+	/**
 	 * Fille all the holes in the mesh, the process will be slow
 	 * @return false if the mesh does not have holes
 	 */
@@ -330,4 +342,9 @@ FORCEINLINE void StaticMesh::UpdateBoundingBox()
 FORCEINLINE FOnGeometryUpdate StaticMesh::GetOnGeometryUpdateDelegate()
 {
 	return OnGeometryUpdateDelegate;
+}
+
+FORCEINLINE bool StaticMesh::IsClosed() const
+{
+	return BoundaryVertices().empty();
 }

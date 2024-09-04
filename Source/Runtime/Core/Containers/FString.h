@@ -8,9 +8,9 @@ namespace FString
     using std::vector;
     using std::string;
 
-    inline vector<string> SpiltBy(const string& Input, char Delimiter)
+    inline TArray<string> SpiltBy(const string& Input, char Delimiter)
     {
-        std::vector<std::string> result;
+        TArray<std::string> result;
         std::istringstream stream(Input);
         std::string token;
 
