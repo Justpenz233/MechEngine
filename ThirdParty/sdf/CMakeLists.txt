@@ -44,7 +44,7 @@ set( DEPENDENCIES )
 find_package(Threads REQUIRED)
 
 if (SDF_USE_SYSTEM_EIGEN)
-    find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+    find_package(Eigen3 3.3 QUIET NO_MODULE)
     message(STATUS "Using system Eigen")
     set(DEPENDENCIES ${DEPENDENCIES} Eigen3::Eigen)
 else()

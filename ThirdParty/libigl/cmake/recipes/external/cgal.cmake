@@ -44,9 +44,9 @@ function(cgal_import_target)
     set(MPFR_INCLUDE_DIR "")
     set(MPFR_LIBRARIES mpfr::mpfr)
 
-    ignore_package(Boost 1.71.0)
+    ignore_package(Boost 1.84.0)
     set(Boost_INCLUDE_DIRS "")
-    set(Boost_LIBRARIES Boost::thread Boost::system)
+    set(Boost_LIBRARIES Boost::thread Boost::system Boost::any Boost::variant Boost::foreach Boost::math Boost::graph Boost::property_map Boost::multiprecision Boost::heap)
 
     # Prefer Config mode before Module mode to prevent CGAL from loading its own FindXXX.cmake
     set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)

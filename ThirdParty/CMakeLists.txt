@@ -8,6 +8,10 @@ endif()
 find_package(Boost QUIET)
 find_package(Eigen QUIET)
 
+if(NOT Boost_FOUND)
+    add_subdirectory(boost-cmake)
+endif()
+
 if (NOT TARGET luisa::compute)
     option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" OFF)
     option(LUISA_COMPUTE_ENABLE_DSL "Enable C++ DSL" ON)

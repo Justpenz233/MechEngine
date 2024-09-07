@@ -1,6 +1,4 @@
-if(TARGET Boost::boost)
-    return()
-endif()
+return()
 
 message(STATUS "Third-party: creating targets 'Boost::boost'...")
 
