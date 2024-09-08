@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.5)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -45,7 +45,6 @@ find_package(Threads REQUIRED)
 
 if (SDF_USE_SYSTEM_EIGEN)
     find_package(Eigen3 3.3 QUIET NO_MODULE)
-    message(STATUS "Using system Eigen")
     set(DEPENDENCIES ${DEPENDENCIES} Eigen3::Eigen)
 else()
     # Set EIGEN_INCLUDE_DIR manually
@@ -53,6 +52,11 @@ else()
 endif()
 
 add_library( sdf SHARED ${SDF_SOURCES} )
+
+if (MSVC)
+    # export all symbols by default
+    set_target_properties(sdf PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+endif ()
 
 target_include_directories(
     sdf PUBLIC
