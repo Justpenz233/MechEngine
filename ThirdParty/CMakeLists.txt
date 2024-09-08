@@ -9,7 +9,7 @@ find_package(Boost QUIET)
 find_package(Eigen QUIET)
 
 if(NOT Boost_FOUND)
-    add_subdirectory(boost-cmake)
+    include(cmake/boost-cmake.cmake)
 endif()
 
 if (NOT TARGET luisa::compute)

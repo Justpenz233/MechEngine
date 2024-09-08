@@ -4,3 +4,6 @@
 [submodule "Engine/3rd/luisa-compute"]
 	path = ThirdParty/luisa-compute
 	url = https://github.com/LuisaGroup/LuisaCompute.git
+[submodule "ThirdParty/libigl"]
+	path = ThirdParty/libigl
+	url = git@github.com:MechanEngine/libigl.git
