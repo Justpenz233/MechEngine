@@ -6,6 +6,7 @@
 #pragma once
 #include <luisa/core/basic_traits.h>
 #include <luisa/core/basic_types.h>
+#include "triangle_data.h"
 
 namespace MechEngine::Rendering
 {

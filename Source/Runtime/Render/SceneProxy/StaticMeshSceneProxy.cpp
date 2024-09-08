@@ -154,10 +154,10 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		accel.set_instance_user_id_on_update(InstanceId, Id);
 		IdToIndex[Id] = InstanceId;
 		MeshIdMap[MeshComponent] = Id;
-		StaticMeshDatas[Id].vertex_id = VBindlessid;
-		StaticMeshDatas[Id].triangle_id = TBindlessid;
+		StaticMeshDatas[Id].vertex_buffer_id = VBindlessid;
+		StaticMeshDatas[Id].triangle_buffer_id = TBindlessid;
 		StaticMeshDatas[Id].material_id = MaterialID;
-		StaticMeshDatas[Id].corner_normal_id = CNBindlessid;
+		StaticMeshDatas[Id].corner_normal_buffer_id = CNBindlessid;
 		StaticMeshResource[Id] = {AccelMesh, VBuffer, TBuffer, CornerlNormalBuffer};
 	}
 	if(bFrameUpdated)
@@ -195,9 +195,9 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		<< commit()
 		<< AccelMesh->build();
 
-		auto VBindlessid = StaticMeshDatas[Id].vertex_id;
-		auto TBindlessid = StaticMeshDatas[Id].triangle_id;
-		auto CNBindlessid = StaticMeshDatas[Id].corner_normal_id;
+		auto VBindlessid = StaticMeshDatas[Id].vertex_buffer_id;
+		auto TBindlessid = StaticMeshDatas[Id].triangle_buffer_id;
+		auto CNBindlessid = StaticMeshDatas[Id].corner_normal_buffer_id;
 		bindlessArray.emplace_on_update(VBindlessid, VBuffer->view());
 		bindlessArray.emplace_on_update(TBindlessid, TBuffer->view());
 		bindlessArray.emplace_on_update(CNBindlessid, CornerlNormalBuffer->view());

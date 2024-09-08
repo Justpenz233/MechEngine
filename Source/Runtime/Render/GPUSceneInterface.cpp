@@ -76,7 +76,7 @@ namespace MechEngine::Rendering
             auto object_transform = get_instance_transform(instance_index);
             auto Tri = StaticMeshProxy->get_triangle(instance_id, TriangleId);
             auto bary = hit.barycentric;
-            auto v_buffer = StaticMeshProxy->get_static_mesh_data(instance_id).vertex_id;
+            auto v_buffer = StaticMeshProxy->get_static_mesh_data(instance_id).vertex_buffer_id;
             auto v0 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i0);
             auto v1 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i1);
             auto v2 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i2);

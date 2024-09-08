@@ -151,6 +151,24 @@ void RayTracingScene::CompileShader()
 				auto normal = bxdf_parameters.normal;
 				auto reflect_dir = reflect(-w_o, normal);
 
+				// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
+				auto offset_ray = [&]() {
+						auto vps = StaticMeshProxy->get_vertices(intersection.instace_id, intersection.primitive_id);
+						auto tmpu = x - vps[0]->position();
+						auto tmpv = x - vps[1]->position();
+						auto tmpw = x - vps[2]->position();
+
+						auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
+						auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
+						auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
+
+						tmpu -= dotu * vps[0]->normal();
+						tmpv -= dotv * vps[1]->normal();
+						tmpw -= dotw * vps[2]->normal();
+						return x + triangle_interpolate(intersection.uv, tmpu, tmpv, tmpw);
+					};
+				auto shadow_ray_origin = x;
+
 				Float3 pixel_radiance = make_float3(0.f);
 				$for(light_id, LightCount)
 				{
@@ -159,27 +177,37 @@ void RayTracingScene::CompileShader()
 					auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
 					auto light_dir = normalize(light_transform->get_location() - x);
 
-					auto calc_lighting = [&](const Float3& w_i) {
+					auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
 						Float3 light_color = make_float3(0.f);
 						Float3 mesh_color = make_float3(0.f);
+						Float3 light_visibility = make_float3(1.);
 						$if(dot(w_i, normal) >= 0.f)
 						{
 							context.w_i = w_i;
-							// Dispatch light evaluate polymorphically, so that we can have different light type
+							// Dispatch light evaluate polymorphic, so that we can have different light type
+
+							// Shadow ray
+							if (calc_shadow)
+								light_visibility = select(make_float3(1.), make_float3(0.),
+								has_hit(make_ray(shadow_ray_origin, w_i, 0.01f, 1.f)));
+
 							LightProxy->light_virtual_call.dispatch(
 								light_data.light_type, [&](const light_base* light) {
 									light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
 								});
+
 							MaterialProxy->material_virtual_call.dispatch(
 								material_data.material_type, [&](const material_base* material) {
 									mesh_color = material->bxdf(context, bxdf_parameters);
 								});
 						};
-						return mesh_color * light_color * max(dot(w_i, normal), 0.001f);
+						return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
 					};
 
 					// Only two sample, one is light dir, one is reflected dir
-					pixel_radiance += calc_lighting(light_dir) * 0.95f + calc_lighting(reflect_dir) * 0.05f;
+					pixel_radiance += calc_lighting(light_dir, true) * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
+					// pixel_radiance += calc_lighting(light_dir);
+
 				};
 
 				// Draw wireframe pass, blend wireframe with the pixel color as Anti-aliasing
