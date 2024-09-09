@@ -2,6 +2,7 @@
 #include "Log/Logger.h"
 #include <spdlog/fmt/fmt.h>
 
+
 namespace MechEngine {
     template <class... Args>
     void LOG_INFO(Args&&... args)
@@ -39,17 +40,26 @@ namespace MechEngine {
     	return Value;
     }
 
-    template <class... Args>
+
+
+
+	template <class... Args>
+	void LOG_CRITICAL(Args&&... args)
+	{
+		MechEngine::Logger::Get().GetDefaultLogger()->critical(std::forward<Args>(args)...);
+	}
+
+
+
+    /*template <class... Args>
     void LOG_DEBUG(Args&&... args)
     {
         MechEngine::Logger::Get().GetDefaultLogger()->debug(std::forward<Args>(args)...);
-    }
+    }*/
 
-    template <class... Args>
-    void LOG_CRITICAL(Args&&... args)
-    {
-        MechEngine::Logger::Get().GetDefaultLogger()->critical(std::forward<Args>(args)...);
-    }
+
+
+
 
     template <class... Args>
     void LOG_TEMP(Args&&... args)
