@@ -18,7 +18,7 @@ namespace MechEngine::Rendering
 }
 
 DECLARE_MULTICAST_DELEGATE(KeyPressedEvent);
-DECLARE_MULTICAST_DELEGATE_PARMS(OnActorSelectedDelegate, class Actor*)
+DECLARE_MULTICAST_DELEGATE_PARMS(OnActorSelectedDelegate, class Actor*);
 
 
 /// This class will manage Animation and Tick and Signal

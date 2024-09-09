@@ -6,6 +6,7 @@
 #include "Core/ray_tracing_hit.h"
 #include "Core/VertexData.h"
 #include "Core/view_data.h"
+#include "Misc/Config.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
@@ -30,6 +31,8 @@ namespace MechEngine::Rendering
 
     void GPUSceneInterface::CompileShader()
     {
+    	LoadRenderSettings();
+
         ViewModePass = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
         {
             auto pixel_coord = dispatch_id().xy();
@@ -53,7 +56,13 @@ namespace MechEngine::Rendering
     	LineProxy->CompileShader();
     }
 
-    ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
+	void GPUSceneInterface::LoadRenderSettings()
+	{
+    	bRenderShadow = GConfig.Get<bool>("Render", "RenderShadow");
+    	bShadowRayOffset = GConfig.Get<bool>("Render", "ShadowRayOffset");
+	}
+
+	ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
     {
         auto hit = rtAccel->intersect(ray, {});
         return ray_tracing_hit {hit.inst, hit.prim, hit.bary};

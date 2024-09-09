@@ -87,6 +87,9 @@ namespace MechEngine::Rendering
 		static constexpr auto bindless_array_capacity = 500'000u;// limitation of Metal
 		static constexpr auto constant_buffer_size = 256u * 1024u;
 
+		/** Load render settings from config file */
+		virtual void LoadRenderSettings();
+
 	public:
 		/**
 		 * Create a resource and register it to the scene
@@ -258,6 +261,14 @@ namespace MechEngine::Rendering
 		// Line collection
 		unique_ptr<LineSceneProxy> LineProxy;
 
+	protected:
+		// ---------------------Render setting-------------------------------
+
+		/** Whether to render shadow */
+		bool bRenderShadow;
+
+		/** Whether to use shadow ray offset by HACKING THE SHADOW TERMINATOR*/
+		bool bShadowRayOffset;
 	};
 
 template<typename T>

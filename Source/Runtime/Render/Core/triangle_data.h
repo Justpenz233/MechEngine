@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Misc/Platform.h"
 #include <luisa/luisa-compute.h>
 
 namespace MechEngine::Rendering

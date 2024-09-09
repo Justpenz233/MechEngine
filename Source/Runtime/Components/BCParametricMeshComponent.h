@@ -19,6 +19,8 @@ class ENGINE_API BCParametricMeshComponent : public ParametricAlgorithmComponent
 public:
 	explicit BCParametricMeshComponent(ObjectPtr<StaticMesh> InDisplayMesh, ObjectPtr<StaticMesh> InPMesh);
 
+	virtual ObjectPtr<StaticMesh> GetUVMesh() const override;
+
 protected:
 
 	virtual UVMappingSampleResult SampleHit(double U, double V) const override;

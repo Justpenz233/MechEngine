@@ -93,6 +93,7 @@ public:
     {
 	    if(u < 0) u += 1.;
     	if(u > 1.) u -= 1.;
+    	v = v - 0.5;
 	    return {Radius * cos(u * M_PI * 2.0),
         Radius * sin(u * M_PI * 2.0), v * Height};
     }
@@ -100,6 +101,7 @@ public:
     {
     	if(u < 0) u += 1.;
     	if(u > 1.) u -= 1.;
+    	v = v - 0.5;
         return {(Radius + Thickness) * cos(u * M_PI * 2.0), (Radius + Thickness) * sin(u * M_PI * 2.0), v * Height};
     }
     virtual FVector SampleNormal(double u, double v) const override
@@ -110,12 +112,12 @@ public:
         FVector Dv = {0, 0, Height};
         return Du.cross(Dv).normalized();
     }
-	// virtual Vector2d Projection(const FVector& Pos) const override
-	// {
-	// 	double U = atan2(Pos.y(), Pos.x()) / (2. * M_PI);
-	// 	double V = Pos.z() / Height;
-	// 	return {U, V};
-	// }
+	virtual Vector2d Projection(const FVector& Pos) const override
+	{
+		double U = atan2(Pos.y(), Pos.x()) / (2. * M_PI);
+		double V = Pos.z() / Height + 0.5;
+		return {U, V};
+	}
 };
 
 class ENGINE_API HyperbolicCylinderSurface : public ParametricSurface

@@ -65,6 +65,8 @@ public:
 		SetMeshData(Algorithm::GeometryProcess::SolidifyMeshEven(DisplayMesh, MeshThickness));
 	}
 
+	virtual ObjectPtr<StaticMesh> GetUVMesh() const { ASSERT("Not implemented"); return nullptr; }
+
 protected:
 	ObjectPtr<StaticMesh> PMesh;
 	ObjectPtr<StaticMesh> DisplayMesh;

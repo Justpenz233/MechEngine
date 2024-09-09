@@ -9,6 +9,8 @@
 #include <CGAL/Surface_mesh_parameterization/Square_border_parameterizer_3.h>
 #include <CGAL/Surface_mesh_parameterization/Discrete_conformal_map_parameterizer_3.h>
 #include <CGAL/Surface_mesh_parameterization/parameterize.h>
+#include <CGAL/Surface_mesh_parameterization/Discrete_authalic_parameterizer_3.h>
+
 
 #include <bvh/v2/default_builder.h>
 #include <bvh/v2/stack.h>
@@ -52,7 +54,7 @@ CGAL::Surface_mesh<Kernel::Point_3> ToCGALSurfaceMesh(const Eigen::MatrixXd& V, 
 BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDisplayMesh, ObjectPtr<StaticMesh> InPMesh)
 	: ParametricAlgorithmComponent(InDisplayMesh, InPMesh)
 {
-	Eigen::MatrixX3d			V, U;
+	Eigen::MatrixX3d			V;
 	Eigen::MatrixXi				F;
 	Eigen::SparseMatrix<double> L;
 
@@ -72,12 +74,12 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 	CGAL::Surface_mesh_parameterization::Error_code																		   err = CGAL::Surface_mesh_parameterization::parameterize(sm, Parameterizer(), bhd, uv_map);
 	ASSERTMSG(err == CGAL::Surface_mesh_parameterization::OK, "Parameterization failed");
 
-	U.resize(num_vertices(sm), 3);
+	UVMesh.resize(num_vertices(sm), 3);
 	for (auto v : vertices(sm))
 	{
-		U(v.idx(), 0) = uv_map[v].x();
-		U(v.idx(), 1) = uv_map[v].y();
-		U(v.idx(), 2) = 0;
+		UVMesh(v.idx(), 0) = uv_map[v].x();
+		UVMesh(v.idx(), 1) = uv_map[v].y();
+		UVMesh(v.idx(), 2) = 0;
 	}
 
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
@@ -89,15 +91,22 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 	auto		 ToVec3 = [](const FVector& T) { return Vec3(T.x(), T.y(), T.z()); };
 	for (int i = 0; i < F.rows(); i++)
 	{
-		Vec3 V0 = ToVec3(U.row(F(i, 0)));
-		Vec3 V1 = ToVec3(U.row(F(i, 1)));
-		Vec3 V2 = ToVec3(U.row(F(i, 2)));
+		Vec3 V0 = ToVec3(UVMesh.row(F(i, 0)));
+		Vec3 V1 = ToVec3(UVMesh.row(F(i, 1)));
+		Vec3 V2 = ToVec3(UVMesh.row(F(i, 2)));
 		Tri	 T = Tri(V0, V1, V2);
 		Triangles[i] = T;
 		BBoxes[i] = T.get_bbox();
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
+}
+
+ObjectPtr<StaticMesh> BCParametricMeshComponent::GetUVMesh() const
+{
+	auto Result = NewObject<StaticMesh>(UVMesh, Indices);
+	Result->ReverseNormal();
+	return Result;
 }
 
 BCParametricMeshComponent::UVMappingSampleResult BCParametricMeshComponent::SampleHit(double U, double V) const
@@ -107,7 +116,7 @@ BCParametricMeshComponent::UVMappingSampleResult BCParametricMeshComponent::Samp
 		Vec3(U, V, 1.), // Ray direction
 		Vec3(0, 0, -1), // Ray origin
 		0., // Minimum distance
-		2.
+		3.
 	};
 
 	static constexpr size_t invalid_id = std::numeric_limits<size_t>::max();
@@ -130,7 +139,7 @@ BCParametricMeshComponent::UVMappingSampleResult BCParametricMeshComponent::Samp
 					std::tie(u, v) = *hit;
 				}
 			}
-			LOG_WARNING_IF(HitCount > 1,"Multi Hit: {}, not flip free!", HitCount);
+			// LOG_WARNING_IF(HitCount > 1,"Multi Hit: {}, not flip free!", HitCount);
 			return prim_id != invalid_id;
 		});
 

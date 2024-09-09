@@ -167,7 +167,7 @@ void RayTracingScene::CompileShader()
 						tmpw -= dotw * vps[2]->normal();
 						return x + triangle_interpolate(intersection.uv, tmpu, tmpv, tmpw);
 					};
-				auto shadow_ray_origin = x;
+				auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : x;
 
 				Float3 pixel_radiance = make_float3(0.f);
 				$for(light_id, LightCount)
@@ -205,7 +205,7 @@ void RayTracingScene::CompileShader()
 					};
 
 					// Only two sample, one is light dir, one is reflected dir
-					pixel_radiance += calc_lighting(light_dir, true) * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
+					pixel_radiance += calc_lighting(light_dir, bRenderShadow) * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
 					// pixel_radiance += calc_lighting(light_dir);
 
 				};
