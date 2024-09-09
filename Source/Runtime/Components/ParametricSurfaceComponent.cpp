@@ -40,7 +40,7 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
 
     Result->verM.resize(VertexNum, 3);
     Result->triM.resize(InnerTriangleNum, 3);
-
+	Result->SetUV(MatrixX2d::Zero(VertexNum, 2));
     int    VertexIndex = 0;
     double StepU        = IsClosedPolygon ? 1. / (double)NumU : 1. / (double) (NumU - 1);
     double StepV        = 1. / (double)(NumV - 1);
@@ -51,7 +51,8 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
             double u = (double)UIndex * StepU;
             double v = (double)VIndex * StepV;
             if(VIndex == NumV - 1) v = 1.;
-            Result->verM.row(VertexIndex++) = SampleFunc(u, v);
+        	Result->SetUV(VertexIndex, {u, v});
+        	Result->verM.row(VertexIndex++) = SampleFunc(u, v);
         }
     }
     int TriangleIndex = 0;

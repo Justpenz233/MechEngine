@@ -104,6 +104,15 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			Vertices[i].ny = static_cast<float>(VertexNormal[1]);
 			Vertices[i].nz = static_cast<float>(VertexNormal[2]);
 		}
+		if(MeshData->HasValidUV())
+		{
+			auto UVData = MeshData->GetUV();
+			for (int i = 0; i < UVData.rows(); i++)
+			{
+				Vertices[i].u = static_cast<float>(UVData.row(i).x());
+				Vertices[i].v = static_cast<float>(UVData.row(i).y());
+			}
+		}
 		for (int i = 0; i < TriangleNum; i++)
 		{
 			auto FaceData = MeshData->triM.row(i);

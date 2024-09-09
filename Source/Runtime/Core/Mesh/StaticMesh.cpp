@@ -365,14 +365,47 @@ StaticMesh* StaticMesh::SetGeometry(const MatrixX3d& InVerM, const MatrixX3i& In
 	verM = InVerM; triM = InTriM; OnGeometryUpdate();
 	return this;
 }
+
 StaticMesh* StaticMesh::SetGeometry(const MatrixX3d& InVerM)
 {
 	verM = InVerM; OnGeometryUpdate();
 	return this;
 }
+
 StaticMesh* StaticMesh::SetGeometry(const MatrixX3i& InTriM)
 {
-	triM = InTriM; OnGeometryUpdate();
+	triM = InTriM;
+	OnGeometryUpdate();
+	return this;
+}
+
+bool StaticMesh::HasUV() const
+{
+	return UV.rows() != 0;
+}
+
+bool StaticMesh::HasValidUV() const
+{
+	return UV.rows() == verM.rows();
+}
+
+StaticMesh* StaticMesh::SetUV(MatrixX2d&& InUV)
+{
+	UV = std::move(InUV);
+	return this;
+}
+
+StaticMesh* StaticMesh::SetUV(const MatrixX2d& InUV)
+{
+	UV = InUV;
+	return this;
+}
+
+StaticMesh* StaticMesh::SetUV(int VertexIndex, const FVector2& InUV)
+{
+	if(!HasValidUV())
+		UV.resize(verM.rows(), 2);
+	UV.row(VertexIndex) = InUV;
 	return this;
 }
 

@@ -68,6 +68,14 @@ ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPt
     auto NewMesh = NewObject<StaticMesh>(std::move(Vertex), std::move(FC));
 	NewMesh->VertexNormal = VertNorm;
 	NewMesh->CornerNormal = CornerNorm;
+	{
+		MatrixX2d AUV = A->GetUV();
+		MatrixX2d BUV = B->GetUV();
+		MatrixX2d UV(AUV.rows() + BUV.rows(), 2);
+		UV.block(0, 0, AUV.rows(), 2) = AUV;
+		UV.block(AUV.rows(), 0, BUV.rows(), 2) = BUV;
+		NewMesh->SetUV(std::move(UV));
+	}
 	return NewMesh;
 }
 // std::ObjectPtr<StaticMesh> BooleanMcut(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)

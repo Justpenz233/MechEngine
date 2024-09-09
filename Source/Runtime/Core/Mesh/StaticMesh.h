@@ -65,6 +65,34 @@ public:
 	StaticMesh* SetGeometry(const MatrixX3i& InTriM);
 
 	/**
+	 * If the mesh has UV, which is UV != empty
+	 * @return if the mesh has UV
+	 */
+	bool HasUV() const;
+
+	/**
+	 * If the mesh has valid UV, which is UV != empty and UV.rows() == vertex number
+	 * @return if the mesh has valid UV
+	 */
+	bool HasValidUV() const;
+
+	/**
+	 * Set the UV of the mesh
+	 * @param InUV UV matrix
+	 * @return this
+	 */
+	StaticMesh* SetUV(MatrixX2d&& InUV);
+	StaticMesh* SetUV(const MatrixX2d& InUV);
+	StaticMesh* SetUV(int VertexIndex, const FVector2& InUV);
+
+	/**
+	 * Get the UV of the mesh
+	 * @return UV matrix
+	 */
+	FORCEINLINE MatrixX2d GetUV() const { return UV; }
+	FORCEINLINE FVector2 GetUV(int VertexIndex) const { return UV.row(VertexIndex); }
+
+	/**
 	 * https://ieeexplore.ieee.org/document/958278 , to calc signed volume of a tetrahedron with Origin as the fourth vertex
 	 * @return volume of this mesh
 	 */
@@ -252,6 +280,8 @@ public:
 	FORCEINLINE FOnGeometryUpdate GetOnGeometryUpdateDelegate();
 
 protected:
+	MatrixX2d UV; // UV matrix of the mesh, each row is a UV coordinate of a vertex
+
 	MPROPERTY()
 	ObjectPtr<Material> MaterialData; // Material of the mesh
 
