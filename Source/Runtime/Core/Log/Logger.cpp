@@ -1,5 +1,6 @@
 //
 // Created by MarvelLi on 2023/12/14.
+// Edited by Rick Zhang on Sep 05, 2024
 //
 
 #include "Logger.h"
@@ -51,6 +52,9 @@ namespace MechEngine
         AsyncLogger = std::make_shared<spdlog::async_logger>("Log", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::overrun_oldest);
 		AsyncLogger->flush_on(spdlog::level::level_enum::info);
 		AsyncLogger->set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
+
+		AsyncLogger->set_level(spdlog::level::debug); // Set the log level to debug
+
         AsyncLogger->info("Set default logger, {}", FileName.string());
 
 
