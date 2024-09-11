@@ -5,13 +5,20 @@
 #include "Material.h"
 #include "Render/GPUSceneInterface.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
+#include "Render/material/shader_base.h"
 
 Material::Material()
 {
+	ShaderId = GWorld->GetScene()->GetMaterialProxy()->GetDefaultShaderId();
 }
 
-void Material::RegisterMaterial() {
+void Material::RegisterMaterial()
+{
 	GWorld->GetScene()->GetMaterialProxy()->AddMaterial(this);
+}
+uint Material::InnerRegisterShader(Rendering::shader_base* Shader)
+{
+	return GWorld->GetScene()->GetMaterialProxy()->RegisterShader(luisa::unique_ptr<Rendering::shader_base>(Shader));
 }
 
 void Material::UpdateMaterial() {

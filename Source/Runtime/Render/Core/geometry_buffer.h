@@ -4,7 +4,7 @@
 
 #pragma once
 #include <luisa/luisa-compute.h>
-#include "Render/material/material_base.h"
+#include "Render/material/shader_base.h"
 
 namespace MechEngine::Rendering
 {

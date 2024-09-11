@@ -114,6 +114,8 @@ namespace MechEngine::Rendering
             it.instace_id = instance_id;
             it.primitive_id = TriangleId;
             it.position_world = p;
+        	it.barycentric = bary;
+        	it.uv = triangle_interpolate(bary, v0->uv(), v1->uv(), v2->uv());
             it.triangle_normal_world = normal_world;
             it.vertex_normal_world = normalize(m * normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal())));
         	Float3 cornel_normal[3] = {StaticMeshProxy->get_corner_normal(instance_id, TriangleId, 0),

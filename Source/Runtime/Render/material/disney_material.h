@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "material_base.h"
+#include "shader_base.h"
 #include "shading_function.h"
 
 namespace MechEngine::Rendering
@@ -15,13 +15,13 @@ namespace MechEngine::Rendering
      * Disney's physically based shading model
      * @see https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf
      */
-    class disney_material : public material_base
+    class disney_material : public shader_base
     {
-        using material_base::material_base;
+        using shader_base::shader_base;
 
         static FORCEINLINE Float sqr(const Float& x) { return x*x; }
 
-        static Float SchlickFresnel(Float u)
+        static Float SchlickFresnel(const Float& u)
         {
             Float m = clamp(1.f-u, 0.f, 1.f);
             Float m2 = m*m;

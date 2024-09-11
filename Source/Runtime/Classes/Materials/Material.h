@@ -11,13 +11,9 @@ namespace MechEngine::Rendering
 {
 class MaterialSceneProxy;
 struct materialData;
+class shader_base;
 }
-enum MaterialMode
-{
-	BlinnPhong,
-	Disney,
-	Custom // should provide a shader pointer
-};
+
 enum NormalMode
 {
 	FaceNormal = 0,
@@ -43,12 +39,22 @@ public:
 	FORCEINLINE void SetAlpha(const float& InAlpha);
 	FORCEINLINE void SetBaseColor(const FColor& InColor);
 	FORCEINLINE void SetShowWireframe(bool bShow);
-	FORCEINLINE void SetMode(MaterialMode InMode);
+	FORCEINLINE void SetShader(uint InShaderId);
 	FORCEINLINE void SetNormalType(NormalMode InType);
 	FORCEINLINE void SetSpecularTint(const FColor& InColor);
 	FORCEINLINE void SetMetalness(float InMetalness);
 	FORCEINLINE void SetSpecular(float InSpecular);
 	FORCEINLINE void SetRoughness(float InRoughness);
+
+	/**
+	 * Bind a shader of the material by registering a new shader.
+	 * @tparam T shader type
+	 * @tparam Args shader constructor arguments
+	 * @param args shader constructor arguments
+	 * @return the shader id
+	 */
+	template <typename T, typename... Args>
+	uint BindShader(Args&&... args);
 
 
 	FORCEINLINE void PostEdit(Reflection::FieldAccessor& Field) override;
@@ -71,9 +77,9 @@ protected:
 	MPROPERTY()
 	bool bShowWireframe = false;
 
-
+	/** Binding shader id */
 	MPROPERTY()
-	MaterialMode Mode = Disney;
+	uint ShaderId = 0;
 
 	/**
 	 * The normal type of the material.
@@ -123,11 +129,14 @@ protected:
 	* Register the material to the renderer. Should be called affter creating the material.
 	*/
 	void RegisterMaterial();
+
+	/** Register the shader to the renderer, the pointer management should be handed by this call */
+	static uint InnerRegisterShader(Rendering::shader_base* Shader);
 };
 
 inline Material::Material(const Material& Other)
  : Object(Other) {
-	Mode = Other.Mode;
+	ShaderId = Other.ShaderId;
 	NormalType = Other.NormalType;
 	Alpha = Other.Alpha;
 	BaseColor = Other.BaseColor;
@@ -149,11 +158,6 @@ FORCEINLINE void Material::SetBaseColor(const FColor& InColor) {
 
 FORCEINLINE void Material::SetShowWireframe(bool bShow) {
 	bShowWireframe = bShow;
-	UpdateMaterial();
-}
-
-FORCEINLINE void Material::SetMode(MaterialMode InMode) {
-	Mode = InMode;
 	UpdateMaterial();
 }
 
@@ -186,6 +190,18 @@ FORCEINLINE void Material::PostEdit(Reflection::FieldAccessor& Field) {
 	UpdateMaterial();
 }
 
+FORCEINLINE void Material::SetShader(uint InShaderId) {
+	ShaderId = InShaderId;
+	UpdateMaterial();
+}
+
 inline ObjectPtr<Material> Material::DefaultMaterial() {
 	return NewObject<Material>();
+}
+
+template <typename T, typename... Args>
+uint Material::BindShader(Args&&... args) {
+	ShaderId = InnerRegisterShader(Cast<Rendering::shader_base>(new T(std::forward<Args>(args)...)));
+	UpdateMaterial();
+	return ShaderId;
 }

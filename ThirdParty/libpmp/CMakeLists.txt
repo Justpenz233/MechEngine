@@ -155,7 +155,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 # choose size of the scalar type

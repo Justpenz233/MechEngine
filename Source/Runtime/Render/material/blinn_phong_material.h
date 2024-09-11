@@ -3,14 +3,14 @@
 //
 
 #pragma once
-#include "material_base.h"
+#include "shader_base.h"
 #include "shading_function.h"
 
 namespace MechEngine::Rendering
 {
-	class blinn_phong_material : public material_base
+	class blinn_phong_material : public shader_base
 	{
-		using material_base::material_base;
+		using shader_base::shader_base;
 
 
 		[[nodiscard]] static Float D(const Float3& normal, const Float3& half, const Float& roughness)

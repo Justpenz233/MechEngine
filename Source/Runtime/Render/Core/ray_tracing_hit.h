@@ -37,6 +37,7 @@ namespace MechEngine::Rendering
 		Float depth;
 
 		Float3 position_world;
+		Float2 barycentric;
 		Float2 uv;
 		UInt2 pixel_coord;
 

@@ -142,8 +142,8 @@ void RayTracingScene::CompileShader()
 				};
 
 				material_parameters bxdf_parameters;
-				MaterialProxy->material_virtual_call.dispatch(
-					material_data.material_type, [&](const material_base* material) {
+				MaterialProxy->shader_call.dispatch(
+					material_data.material_type, [&](const shader_base* material) {
 						bxdf_parameters = material->calc_material_parameters(context);
 					});
 				g_buffer.write(pixel_coord, bxdf_parameters, intersection);
@@ -165,7 +165,7 @@ void RayTracingScene::CompileShader()
 						tmpu -= dotu * vps[0]->normal();
 						tmpv -= dotv * vps[1]->normal();
 						tmpw -= dotw * vps[2]->normal();
-						return x + triangle_interpolate(intersection.uv, tmpu, tmpv, tmpw);
+						return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
 					};
 				auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : x;
 
@@ -196,8 +196,8 @@ void RayTracingScene::CompileShader()
 									light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
 								});
 
-							MaterialProxy->material_virtual_call.dispatch(
-								material_data.material_type, [&](const material_base* material) {
+							MaterialProxy->shader_call.dispatch(
+								material_data.material_type, [&](const shader_base* material) {
 									mesh_color = material->bxdf(context, bxdf_parameters);
 								});
 						};

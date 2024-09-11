@@ -23,12 +23,12 @@ struct material_parameters
 	Float3 normal;
 };
 
-class material_base
+class shader_base
 {
 public:
-	material_base() = default;
+	shader_base() = default;
 
-	virtual ~material_base() = default;
+	virtual ~shader_base() = default;
 
 	/**
 	 * Evaluate the BxDF of the material at the given intersection point.
