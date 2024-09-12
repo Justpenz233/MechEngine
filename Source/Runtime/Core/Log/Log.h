@@ -1,5 +1,6 @@
 #pragma once
 #include "Log/Logger.h"
+#include "luisa/core/platform.h"
 #include <spdlog/fmt/fmt.h>
 
 
@@ -79,16 +80,30 @@ namespace MechEngine {
     #define ASSERT(Expr) \
         __M_Assert(#Expr, Expr, __FILE__, __LINE__)
 
+	inline void LOG_TRACE()
+    {
+    	std::string error_message;
+    	auto trace = luisa::backtrace();
+    	for (auto i = 0u; i < trace.size(); i++) {
+    		auto &&t = trace[i];
+    		using namespace std::string_view_literals;
+    		error_message.append(std::format(
+				"\n    {:>2} {}"sv,
+				i, luisa::to_string(t)));
+    	}
+    	MechEngine::Logger::Get().GetTempLogger()->info(error_message);
+    	LOG_FLUSH();
+    }
+
     template<typename... Args>
-	void __M_AssertMSG(const char* expr_str, bool expr, const char* file, int line, Args... args)
+	void __M_AssertMSG(const char* expr_str, bool expr, const char* file, int line, const Args&... args)
     {
         if (!expr) [[unlikely]]
         {
             LOG_CRITICAL(args...);
             LOG_CRITICAL("Assert failed, Expected:\t {0}", expr_str);
             LOG_CRITICAL("At Source:\t {0}, line {1} \n", file, line);
-        	LOG_FLUSH();
-            abort();
+        	abort();
         }
     }
 
@@ -96,11 +111,12 @@ namespace MechEngine {
     {
         if (!expr) [[unlikely]]
         {
-            LOG_CRITICAL("Assert failed: Expected:\t {0}\n Source:\t\t {1}, line {2} \n", expr_str, file, line);
-        	LOG_FLUSH();
-            abort();
+        	LOG_CRITICAL("Assert failed, Expected:\t {0}", expr_str);
+        	LOG_CRITICAL("At Source:\t {0}, line {1} \n", file, line);
+        	abort();
         }
     }
+
 
     template <class T>
     std::string ToString(const T& A)

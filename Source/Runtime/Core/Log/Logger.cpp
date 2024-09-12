@@ -3,17 +3,18 @@
 // Edited by Rick Zhang on Sep 05, 2024
 //
 
-#include "Logger.h"
-
+#include "Log.h"
 #include <iomanip>
 #include <sstream>
-
+#include <csignal>
 #include "Misc/Path.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/async.h"
 #include "spdlog/logger.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "Logger.h"
+
 namespace MechEngine
 {
 	Logger::~Logger()
@@ -39,6 +40,12 @@ namespace MechEngine
     	return (Path::ProjectLogDir()/ FileName).make_preferred();
     }
 
+	inline void CrashWithLog(int signal)
+	{
+		LOG_TRACE();
+		std::exit(signal);
+	}
+
     Logger::Logger()
     {
         size_t q_size = 8192;
@@ -60,5 +67,10 @@ namespace MechEngine
 
 		TempLogger = spdlog::stdout_color_mt("TempLogger");
 		TempLogger->set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
+
+		std::signal(SIGSEGV, CrashWithLog);
+		std::signal(SIGABRT, CrashWithLog);
+		std::signal(SIGFPE, CrashWithLog);
+		std::signal(SIGILL, CrashWithLog);
     }
 }
