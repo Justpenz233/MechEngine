@@ -80,7 +80,10 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 		UVMesh(v.idx(), 0) = uv_map[v].x();
 		UVMesh(v.idx(), 1) = uv_map[v].y();
 		UVMesh(v.idx(), 2) = 0;
+
+		PMesh->SetUV(v.idx(), FVector2(uv_map[v].x(), uv_map[v].y()));
 	}
+	AABB.init(PMesh->GetVertices(), PMesh->GetTriangles());
 
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
 	Config.quality = bvh::v2::DefaultBuilder<BVHNode>::Quality::High;
@@ -100,6 +103,7 @@ BCParametricMeshComponent::BCParametricMeshComponent(ObjectPtr<StaticMesh> InDis
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
+	AABB.init(PMesh->GetVertices(), PMesh->GetTriangles());
 }
 
 ObjectPtr<StaticMesh> BCParametricMeshComponent::GetUVMesh() const

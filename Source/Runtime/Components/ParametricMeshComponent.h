@@ -4,9 +4,9 @@
 
 #pragma once
 #include <igl/exact_geodesic.h>
-
 #include "StaticMeshComponent.h"
 #include "Algorithm/GeometryProcess.h"
+#include <igl/AABB.h>
 
 /**
  * Abstract class for parametric mesh component

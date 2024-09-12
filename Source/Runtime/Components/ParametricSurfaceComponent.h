@@ -93,6 +93,10 @@ public:
     FVector GetRulingLineDir() const;
 
 	bool IsClosed() { return SurfaceData->bIsClosed; }
+
+protected:
+	ObjectPtr<StaticMesh> AABBMesh;
+	igl::AABB<MatrixX3d, 3> AABB;
 };
 
 FVector ParametricSurfaceComponent::SampleNormal(double u, double v) const {
@@ -113,15 +117,6 @@ FVector ParametricSurfaceComponent::SampleTangentV(double u, double v) const
 	return SurfaceData->SampleTangentV(u, v);
 }
 
-FVector2 ParametricSurfaceComponent::Projection(const FVector& Point) const
-{
-	return SurfaceData->Projection(Point);
-}
-
-FVector2 ParametricSurfaceComponent::ProjectionThickness(const FVector& Point, double ThicknessSample) const
-{
-	return SurfaceData->ProjectionThickness(Point, ThicknessSample);
-}
 
 FVector2 ParametricSurfaceComponent::ProjectionThickness(const FVector& Point) const
 {

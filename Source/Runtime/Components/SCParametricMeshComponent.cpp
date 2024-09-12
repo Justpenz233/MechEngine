@@ -86,6 +86,16 @@ SCParametricMeshComponent::SCParametricMeshComponent(const ObjectPtr<StaticMesh>
 	double Max = U.maxCoeff(); double Min = U.minCoeff();
 	U = (U.array() - Min) / (Max - Min) * 2. - 1.;
 
+	for(int i = 0; i < U.rows(); i ++)
+	{
+		FVector V0 = U.row(i).normalized();
+		double v = acos(V0.z()) / M_PI;
+		double u = atan2(V0.y(), V0.x());
+		if (u < 0.) u += 2. * M_PI;
+		u /= 2. * M_PI;
+		PMesh->SetUV(i, {u, v});
+	}
+
 	TArray<BBox> BBoxes(F.rows());
 	TArray<Vec3> Centers(F.rows());
 	auto ToVec3 = [](const FVector& T){ return Vec3(T.x(), T.y(), T.z());};
@@ -99,6 +109,7 @@ SCParametricMeshComponent::SCParametricMeshComponent(const ObjectPtr<StaticMesh>
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
+	AABB.init(PMesh->GetVertices(), PMesh->GetTriangles());
 }
 
 TArray<FVector> SCParametricMeshComponent::GeodicShortestPath(const FVector& Start, const FVector& End) const

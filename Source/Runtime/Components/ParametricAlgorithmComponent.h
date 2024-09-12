@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ParametricMeshComponent.h"
+#include "igl/AABB.h"
 #include "Core/CoreMinimal.h"
 
 MCLASS(ParametricAlgorithmComponent)
@@ -20,9 +21,9 @@ public:
 
 	struct UVMappingSampleResult
 	{
-		bool Valid;
-		int TriangleIndex;
-		double u, v;
+		bool	Valid;
+		int		TriangleIndex;
+		double	u, v;
 		FVector Position;
 	};
 
@@ -65,11 +66,33 @@ public:
 		SetMeshData(Algorithm::GeometryProcess::SolidifyMeshEven(DisplayMesh, MeshThickness));
 	}
 
-	virtual ObjectPtr<StaticMesh> GetUVMesh() const { ASSERT("Not implemented"); return nullptr; }
+	virtual FVector2 Projection(const FVector& Point) const override;
+
+	virtual ObjectPtr<StaticMesh> GetUVMesh() const
+	{
+		ASSERT("Not implemented");
+		return nullptr;
+	}
 
 protected:
 	ObjectPtr<StaticMesh> PMesh;
 	ObjectPtr<StaticMesh> DisplayMesh;
 
-	ParametricAlgorithmComponent() = default;
+	igl::AABB<MatrixX3d, 3> AABB;
+							ParametricAlgorithmComponent() = default;
 };
+
+inline FVector2 ParametricAlgorithmComponent::Projection(const FVector& Point) const
+{
+	ASSERTMSG(PMesh->HasValidUV(), "AABB Mesh has no valid UV");
+	RowVector3d ClosetPoint; int TriangleIndex;
+	AABB.squared_distance(PMesh->GetVertices(), PMesh->GetTriangles(), Point, TriangleIndex, ClosetPoint);
+	auto Tri = PMesh->GetTriangle(TriangleIndex);
+	MatrixX3d Bary;
+	igl::barycentric_coordinates(ClosetPoint,
+		PMesh->GetVertex(Tri[0]).transpose(),
+		PMesh->GetVertex(Tri[1]).transpose(),
+		PMesh->GetVertex(Tri[2]).transpose(), Bary);
+	auto UV0 = PMesh->GetUV(Tri[0]); auto UV1 = PMesh->GetUV(Tri[1]); auto UV2 = PMesh->GetUV(Tri[2]);
+	return UV0 * Bary(0,0) + UV1 * Bary(0, 1) + UV2 * Bary(0, 2);
+}

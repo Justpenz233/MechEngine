@@ -97,7 +97,10 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(const ObjectPtr<StaticM
 
 	UVMesh.resize(UV_Temp.rows(), 3);
 	for (int i = 0; i < UV_Temp.rows(); i++)
+	{
 		UVMesh.row(i) = FVector{ UV_Temp(i, 0), UV_Temp(i, 1), 0 };
+		PMesh->SetUV(i, { UV_Temp(i, 0), UV_Temp(i, 1) });
+	}
 	// Set up the BVH tree
 	auto Config = bvh::v2::DefaultBuilder<BVHNode>::Config();
 	Config.quality = bvh::v2::DefaultBuilder<BVHNode>::Quality::High;
@@ -114,6 +117,7 @@ SCAFParametricMeshComponent::SCAFParametricMeshComponent(const ObjectPtr<StaticM
 		Centers[i] = T.get_center();
 	}
 	BVHUVMesh = bvh::v2::DefaultBuilder<Node>::build(BBoxes, Centers, Config);
+	AABB.init(PMesh->GetVertices(), PMesh->GetTriangles());
 }
 
 ParametricAlgorithmComponent::UVMappingSampleResult SCAFParametricMeshComponent::SampleHit(double U, double V) const

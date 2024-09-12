@@ -87,7 +87,14 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
 
 
 void ParametricSurfaceComponent::Triangular() {
-    double ThicknessFix = MeshThickness < 1e-4 ? 1e-3 : MeshThickness; // When nearlly zero, set to 1e-3 as alternative of two sided surface
+    double ThicknessFix = MeshThickness < 1e-4 ? 1e-3 : MeshThickness; // When nearlly zero, set to 1e-3 as alternative of two-sided surface
+
+	{
+		AABBMesh  = TriangularSurface(RullingLineNumU, RullingLineNumV,
+			[this](double u,double v){return Sample(u, v);}, false, SurfaceData->bIsClosed);
+    	AABB.clear();
+    	AABB.init(AABBMesh->GetVertices(), AABBMesh->GetTriangles());
+	}
 
     auto Inner  = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, -ThicknessFix*0.5);}, true, SurfaceData->bIsClosed);
     auto Outter = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, ThicknessFix*0.5);}, false, SurfaceData->bIsClosed);
@@ -172,7 +179,29 @@ void ParametricSurfaceComponent::SetThickness(double InThickness)
 
 FVector ParametricSurfaceComponent::GetRulingLineDir() const
 {
-    return SampleThickness(0., 1., 0.) - SampleThickness(0., 0., 0.);
+	return SampleThickness(0., 1., 0.) - SampleThickness(0., 0., 0.);
+}
+
+FVector2 ParametricSurfaceComponent::Projection(const FVector& Point) const
+{
+	ASSERTMSG(AABBMesh->HasValidUV(), "AABB Mesh has no valid UV");
+	RowVector3d ClosetPoint; int TriangleIndex;
+	AABB.squared_distance(AABBMesh->GetVertices(), AABBMesh->GetTriangles(), Point, TriangleIndex, ClosetPoint);
+	auto Tri = AABBMesh->GetTriangle(TriangleIndex);
+	MatrixX3d Bary;
+	igl::barycentric_coordinates(ClosetPoint,
+		AABBMesh->GetVertex(Tri[0]).transpose(),
+		AABBMesh->GetVertex(Tri[1]).transpose(),
+		AABBMesh->GetVertex(Tri[2]).transpose(), Bary);
+	auto UV0 = AABBMesh->GetUV(Tri[0]); auto UV1 = AABBMesh->GetUV(Tri[1]); auto UV2 = AABBMesh->GetUV(Tri[2]);
+	return UV0 * Bary(0,0) + UV1 * Bary(0, 1) + UV2 * Bary(0, 2);
+}
+
+FVector2 ParametricSurfaceComponent::ProjectionThickness(const FVector& Point, double ThicknessSample) const
+{
+	if (ThicknessSample == 0.) return Projection(Point);
+	else ASSERTMSG(false, "Not implemented");
+	return {};
 }
 
 TArray<FVector> ParametricSurfaceComponent::UVPath(const FVector& Start, const FVector& End) const

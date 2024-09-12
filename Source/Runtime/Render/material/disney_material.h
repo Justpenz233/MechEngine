@@ -64,6 +64,7 @@ namespace MechEngine::Rendering
             return pow(x, 2.2f);
         }
 
+    public:
         /**
          * disney's physically based shading model
          * @see https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf
