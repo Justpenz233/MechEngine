@@ -24,7 +24,13 @@ namespace MechEngine::Rendering
     };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::light_data, light_type, transform_id, intensity, light_color, radius) {};
+LUISA_STRUCT(MechEngine::Rendering::light_data, light_type, transform_id, intensity, light_color, radius)
+{
+	luisa::compute::Bool valid()
+	{
+		return light_type != ~0u;
+	}
+};
 
 
 namespace MechEngine::Rendering

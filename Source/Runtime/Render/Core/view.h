@@ -35,11 +35,10 @@ namespace MechEngine::Rendering
 LUISA_STRUCT(MechEngine::Rendering::view,
     projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix, projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix)
 {
-    [[nodiscard]] auto generate_ray(const luisa::compute::UInt2& pixel_coord)
+    [[nodiscard]] auto generate_ray(const luisa::compute::Float2& pixel_pos)
     {
-    	auto pixel       = make_float2(pixel_coord) + .5f;
     	auto resolution  = make_float2(viewport_size);
-    	auto p           = (pixel * 2.0f - resolution) / resolution;
+    	auto p           = (pixel_pos * 2.0f - resolution) / resolution;
     	p = make_float2(p.x * 1.f, p.y * -1.0f);
     	auto direction      = normalize(make_float3(1.f, p.x * tan_half_fovh, p.y * tan_half_fovv));
 		auto origin         = make_float3(transform_matrix[3]);

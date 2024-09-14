@@ -203,17 +203,16 @@ namespace MechEngine::Rendering
 		/**
 		 * Calaculate the hit position shading information
 		* @param ray Ray to trace
-		* @param view Current view
 		* @return Instersection of primitve information of the ray
 		*/
-		ray_intersection intersect(const Var<Ray>& ray, const Var<view>& view) const noexcept;
+		ray_intersection intersect(const Var<Ray>& ray) const noexcept;
 
 		/**
 		* Get the transform data of a transform by instance id
-		* @param instance_id instance ID
+		* @param instance_index instance ID
 		* @return Transform matrix
 		*/
-		Float4x4 get_instance_transform(Expr<uint> instance_id) const noexcept;
+		Float4x4 get_instance_transform(Expr<uint> instance_index) const noexcept;
 
 		/**
 		* Get the transform data of a transform by id

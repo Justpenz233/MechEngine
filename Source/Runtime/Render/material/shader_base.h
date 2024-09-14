@@ -102,7 +102,7 @@ protected:
 			};
 			$case(2) // corner normal
 			{
-				Normal = context.intersection.cornerl_normal_world;
+				Normal = context.intersection.corner_normal_world;
 			};
 			$default
 			{

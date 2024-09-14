@@ -29,25 +29,23 @@ namespace MechEngine::Rendering
 
 	struct ray_intersection
 	{
-		Float3 vertex_ndc[3];
-
 		Float3 triangle_normal_world;
 		Float3 vertex_normal_world;
-		Float3 cornerl_normal_world;
+		Float3 corner_normal_world;
 		Float depth;
 
 		Float3 position_world;
 		Float2 barycentric;
 		Float2 uv;
-		UInt2 pixel_coord;
 
-		UInt instace_id;
+		UInt instance_id;
+		UInt mesh_id;
 		UInt primitive_id;
 		UInt material_id;
 		Bool back_face;
 
-		ray_intersection(): instace_id(~0u) {}
-		[[nodiscard]] auto valid() const noexcept { return instace_id != ~0u; }
+		ray_intersection(): mesh_id(~0u), instance_id(~0u) {}
+		[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }
 
 	};
 }

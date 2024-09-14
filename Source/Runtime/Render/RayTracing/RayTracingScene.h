@@ -46,7 +46,29 @@ public:
 
 	uint2 GetWindosSize() const noexcept;
 protected:
-	unique_ptr<Shader2D<uint>> MainShader;
+
+	void render_main_view();
+
+	/**
+	 * Calculate the color of a pixel with a ray
+	 * @param ray the ray to calculate
+	 * @param pixel_pos the position of the pixel
+	 * @return pixel color
+	 */
+	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos);
+
+	/**
+	 * Calculate the color of point in a surface
+	 * @param ray the ray cast to the point
+	 * @param intersection the intersection point
+	 * @param calc_reflection whether the calculation should consider reflection
+	 * @return the color of the point, the alpha value of the color
+	 */
+	std::pair<Float3, Float> calc_surface_point_color(
+		Var<Ray> ray, const ray_intersection& intersection, Bool calc_reflection);
+
+
+	unique_ptr<Shader2D<>> MainShader;
 
 	virtual void CompileShader() override;
 };

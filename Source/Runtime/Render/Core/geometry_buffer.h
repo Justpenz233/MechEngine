@@ -33,7 +33,7 @@ struct geometry_buffer
 		const material_parameters& material,
 		const ray_intersection& intersection) noexcept
     {
-    	instance_id->write(pixel_coord, make_uint4(intersection.instace_id));
+    	instance_id->write(pixel_coord, make_uint4(intersection.instance_id));
     	material_id->write(pixel_coord, make_uint4(intersection.material_id));
     	base_color->write(pixel_coord, make_float4(material.base_color, 1.f));
     	normal->write(pixel_coord, make_float4(material.normal, 1.f));
