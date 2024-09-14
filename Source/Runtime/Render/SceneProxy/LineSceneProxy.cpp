@@ -6,7 +6,7 @@
 
 #include "CameraSceneProxy.h"
 #include "Render/Core/transform_data.h"
-#include "Render/Core/view_data.h"
+#include "Render/Core/view.h"
 #include "Render/Core/math_function.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
@@ -73,7 +73,7 @@ namespace MechEngine::Rendering
 	{
 
     	// Draw a cirlce in 2d screen space simulating thickness
-    	Callable raster_point = [&](Var<view_data> view, Float3 screen_position, Float radius, Float3 color) {
+    	Callable raster_point = [&](Var<view> view, Float3 screen_position, Float radius, Float3 color) {
     		auto pixel_min_int =
 					make_uint2(UInt(screen_position.x - 0.5f - radius),
 						UInt(screen_position.y - 0.5f - radius));
@@ -106,7 +106,7 @@ namespace MechEngine::Rendering
     	};
 
     	// Bresenham's line algorithm
-    	Callable raster_line = [&](Var<view_data> view, Float3 ndc_start, Float3 ndc_end, Float thickness, Float3 color) {
+    	Callable raster_line = [&](Var<view> view, Float3 ndc_start, Float3 ndc_end, Float thickness, Float3 color) {
     		auto screen_start = view->ndc_to_screen(ndc_start);
     		auto screen_end = view->ndc_to_screen(ndc_end);
     		Bool Steep = false;
@@ -147,8 +147,9 @@ namespace MechEngine::Rendering
     		};
     	};
 
-		DrawPointsShader = luisa::make_unique<Shader1D<view_data>>(Scene.RegisterShader<1>(
-			[&](Var<view_data> view) {
+		DrawPointsShader = luisa::make_unique<Shader1D<>>(Scene.RegisterShader<1>(
+			[&]() {
+				auto view = Scene.GetCameraProxy()->get_main_view();
 				auto point_id = dispatch_id().x;
 				auto point = bindelss_buffer<point_data>(points_data_bindless_id)->read(point_id);
 				auto world_position = point.world_position;
@@ -157,8 +158,9 @@ namespace MechEngine::Rendering
 				raster_point(view, make_float3(screen_position, ndc_position.z), point.radius, point.color);
 			}));
 
-    	DrawLineShader = luisa::make_unique<Shader2D<view_data>>(Scene.RegisterShader<2>(
-			[&](Var<view_data> view) {
+    	DrawLineShader = luisa::make_unique<Shader2D<>>(Scene.RegisterShader<2>(
+			[&]() {
+				auto view = Scene.GetCameraProxy()->get_main_view();
 				auto line_id = dispatch_id().x;
 				auto segment_id = dispatch_id().y;
 				Float segments = Float(dispatch_size_y());
@@ -186,11 +188,11 @@ namespace MechEngine::Rendering
 		SceneProxy::PostRenderPass(stream);
     	if (!Points.empty())
     	{
-    		stream << (*DrawPointsShader)(Scene.GetCameraProxy()->GetCurrentViewData()).dispatch(Points.size());
+    		stream << (*DrawPointsShader)().dispatch(Points.size());
     	}
     	if (!Lines.empty())
 		{
-			stream << (*DrawLineShader)(Scene.GetCameraProxy()->GetCurrentViewData()).dispatch(Lines.size(), NThreadPerLine);
+			stream << (*DrawLineShader)().dispatch(Lines.size(), NThreadPerLine);
 		}
 	}
 }

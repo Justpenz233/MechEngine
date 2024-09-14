@@ -5,7 +5,7 @@
 #pragma once
 
 #include <luisa/luisa-compute.h>
-#include "view_data.h"
+#include "view.h"
 #include "Misc/Platform.h"
 
 namespace MechEngine::Rendering

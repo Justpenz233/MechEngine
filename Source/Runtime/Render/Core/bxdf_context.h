@@ -17,10 +17,8 @@ namespace MechEngine::Rendering
      */
     struct bxdf_context
     {
-        Expr<Ray> ray;
         const ray_intersection& intersection;
-        Float3 w_o;
-        Float3 w_i;
         Var<materialData> material_data;
+    	Float3 w_o, w_i;
     };
 }

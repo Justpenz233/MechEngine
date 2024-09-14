@@ -26,9 +26,14 @@ Math::FBox StaticMeshActor::GetBoundingBox() const
 
 void StaticMeshActor::SetMaterial(const ObjectPtr<Material>& InMaterial)
 {
-	ASSERT(MeshComponent != nullptr);
 	if (MeshComponent)
 		MeshComponent->SetMaterial(InMaterial);
+}
+Material* StaticMeshActor::GetMaterial() const
+{
+	if (MeshComponent)
+		return MeshComponent->GetStaticMesh()->GetMaterial();
+	else return nullptr;
 }
 
 ObjectPtr<StaticMesh> StaticMeshActor::GetWorldMesh() const

@@ -82,7 +82,7 @@ void RayTracingScene::UploadRenderData()
 
 void RayTracingScene::Render()
 {
-	stream << (*MainShader)(CameraProxy->GetCurrentViewData(), LightProxy->LightCount()).dispatch(GetWindosSize());
+	stream << (*MainShader)(LightProxy->LightCount()).dispatch(GetWindosSize());
 
 	if(ViewMode != ViewMode::FrameBuffer)
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
@@ -108,8 +108,9 @@ void RayTracingScene::CompileShader()
 	GPUSceneInterface::CompileShader();
 
 	// Main pass shader
-	MainShader = luisa::make_unique<Shader2D<view_data, uint>>(device.compile<2>(
-		[&](Var<view_data> view, UInt LightCount) noexcept {
+	MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
+		[&](UInt LightCount) noexcept {
+			auto view = CameraProxy->get_main_view();
 			// Calc view space cordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 			auto pixel_coord = dispatch_id().xy();
 			auto pixel = make_float2(pixel_coord) + .5f;
@@ -121,7 +122,7 @@ void RayTracingScene::CompileShader()
 			// Ray trace rasterization
 			auto ray = view->generate_ray(pixel_coord);
 			auto intersection = intersect(ray, view);
-			intersection.pixel_coord = pixel_coord; // Ugly, to do something
+			intersection.pixel_coord = pixel_coord;
 			Float transmission = 1.f;
 			Float3 pixel_color = make_float3(0.f);
 			$while(intersection.valid())
@@ -135,10 +136,9 @@ void RayTracingScene::CompileShader()
 
 				// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
 				bxdf_context context{
-					.ray = ray,
 					.intersection = intersection,
+					.material_data = MaterialProxy->get_material_data(intersection.material_id),
 					.w_o = w_o,
-					.material_data = MaterialProxy->get_material_data(intersection.material_id)
 				};
 
 				material_parameters bxdf_parameters;

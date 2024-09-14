@@ -31,6 +31,12 @@ public:
 	void SetMaterial(const ObjectPtr<Material>& InMaterial);
 
 	/**
+	 * Fast interface to get the material of the controlled mesh
+	 * @return The material of the controlled mesh
+	 */
+	Material* GetMaterial() const;
+
+	/**
 	 * Get the world mesh of the actor. Which is to transform the mesh data by the actor's transform
 	 * @return The world mesh
 	 */

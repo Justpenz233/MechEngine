@@ -5,31 +5,12 @@
 #include "SceneProxy.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
-#include <luisa/dsl/builtin.h>
-
 #include "Math/MathType.h"
-#include "Render/Core/view_data.h"
+#include "Render/Core/view.h"
+#include "Render/RayTracing/RayTracingScene.h"
 
 class CameraComponent;
 class TransformComponent;
-namespace MechEngine::Rendering
-{
-using namespace luisa;
-using namespace luisa::compute;
-struct cameraData
-{
-	uint transformId{};
-	float4x4 Transform{};
-	float4x4 WorldToView{};
-	float4x4 ProjectionMatrix{};
-	float AspectRatio{};
-	float TanHalfFovH{};
-	float TanHalfFovV{};
-};
-}
-LUISA_STRUCT(MechEngine::Rendering::cameraData,
-	transformId, Transform, WorldToView, ProjectionMatrix, AspectRatio, TanHalfFovH, TanHalfFovV)
-{};
 
 namespace MechEngine::Rendering
 {
@@ -59,9 +40,8 @@ public:
 	 */
 	void UpdateCamera(CameraComponent* InCameraComponent);
 
-	view_data GetCurrentViewData() const;
 
-	[[nodiscard]] auto get_camera_position() const { return make_float3(Data->read(0).Transform[3]); }
+	// [[nodiscard]] auto get_camera_position() const { return make_float3(Data->read(0).Transform[3]); }
 
 	/**
 	 * Get the view matrix of camera
@@ -77,11 +57,21 @@ public:
 	 */
 	[[nodiscard]] FMatrix4 GetProjectionMatrix(uint Index = 0) const;
 
-protected:
-	bool bDirty = true;
-	BufferView<cameraData> Data;
-	uint TransformID = 0;
-	CameraComponent* CameraComponent = nullptr;
-};
+	/**
+	 * Get the main view data, used in shader, not support multi view yet
+	 * @return Main view data
+	 */
+	[[nodiscard]] Var<view> get_main_view(/* UInt view_id */) const noexcept { return bindelss_buffer<view>(buffer_id)->read(0); }
 
+protected:
+
+	/** Get main camera's view data */
+	[[nodiscard]] view GetCurrentViewData() const;
+
+	bool bDirty = true;
+	uint buffer_id = ~0u;
+	BufferView<view> view_buffer;
+	uint TransformID = 0;
+	CameraComponent* MainCameraComponent = nullptr;
+};
 }

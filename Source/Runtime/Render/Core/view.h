@@ -11,7 +11,7 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 
-    struct view_data
+    struct view
     {
         uint projection_type = 0; // 0 for perspective, 1 for orthographic
 
@@ -32,7 +32,7 @@ namespace MechEngine::Rendering
     };
 };
 
-LUISA_STRUCT(MechEngine::Rendering::view_data,
+LUISA_STRUCT(MechEngine::Rendering::view,
     projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix, projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix)
 {
     [[nodiscard]] auto generate_ray(const luisa::compute::UInt2& pixel_coord)

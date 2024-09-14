@@ -5,7 +5,7 @@
 #include "GPUSceneInterface.h"
 #include "Core/ray_tracing_hit.h"
 #include "Core/VertexData.h"
-#include "Core/view_data.h"
+#include "Core/view.h"
 #include "Misc/Config.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -73,7 +73,7 @@ namespace MechEngine::Rendering
         return rtAccel->intersect_any(ray, {});
     }
 
-    ray_intersection GPUSceneInterface::intersect(const Var<Ray>& ray, Var<view_data> view) const noexcept
+    ray_intersection GPUSceneInterface::intersect(const Var<Ray>& ray, const Var<view>& view) const noexcept
     {
         auto hit = trace_closest(ray);
         ray_intersection it;

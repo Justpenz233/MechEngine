@@ -8,7 +8,7 @@
 
 namespace MechEngine::Rendering
 {
-    struct view_data;
+    struct view;
 }
 
 namespace MechEngine::Rendering
@@ -90,8 +90,8 @@ namespace MechEngine::Rendering
     	uint points_data_bindless_id;
         BufferView<lines_data> lines_data_buffer;
         BufferView<point_data> points_data_buffer;
-        unique_ptr<Shader2D<view_data>> DrawLineShader;
-        unique_ptr<Shader1D<view_data>> DrawPointsShader;
+        unique_ptr<Shader2D<>> DrawLineShader;
+        unique_ptr<Shader1D<>> DrawPointsShader;
     	vector<point_data> Points;
     	vector<lines_data> Lines;
     	map<uint, uint> PointIdToIndex;

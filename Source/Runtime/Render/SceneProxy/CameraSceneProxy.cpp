@@ -12,35 +12,36 @@ namespace MechEngine::Rendering
 
 CameraSceneProxy::CameraSceneProxy(RayTracingScene& InScene)
 : SceneProxy(InScene)
-,Data {InScene.RegisterBuffer<cameraData>(1)}
-{}
+{
+	std::tie(view_buffer, buffer_id) = Scene.RegisterBindlessBuffer<view>(1);
+}
 
 void CameraSceneProxy::AddCamera(::CameraComponent* InCameraComponent, uint InTransformID)
 {
-	CameraComponent = InCameraComponent;
+	MainCameraComponent = InCameraComponent;
 	TransformID = InTransformID;
 	bDirty = true;
 }
 
 void CameraSceneProxy::UpdateCamera(::CameraComponent* InCameraComponent)
 {
-	ASSERTMSG(InCameraComponent == CameraComponent, "CameraComponent is not the same");
+	ASSERTMSG(InCameraComponent == MainCameraComponent, "CameraComponent is not the same");
 	bDirty = true;
 }
 
-view_data CameraSceneProxy::GetCurrentViewData() const
+view CameraSceneProxy::GetCurrentViewData() const
 {
-	auto view_matrix = CameraComponent->GetViewMatrix();
-	auto projection_matrix = CameraComponent->GetProjectionMatrix();
+	auto view_matrix = MainCameraComponent->GetViewMatrix();
+	auto projection_matrix = MainCameraComponent->GetProjectionMatrix();
 	auto view_projection_matrix = projection_matrix * view_matrix;
-	return view_data{
+	return view{
 		.projection_type = 0,
-		.aspect_ratio = CameraComponent->GetAspectRatio(),
-		.tan_half_fovh = CameraComponent->GetTanHalfFovH(),
-		.tan_half_fovv = CameraComponent->GetTanHalfFovV(),
+		.aspect_ratio = MainCameraComponent->GetAspectRatio(),
+		.tan_half_fovh = MainCameraComponent->GetTanHalfFovH(),
+		.tan_half_fovv = MainCameraComponent->GetTanHalfFovV(),
 
 		.viewport_size = Scene.GetWindosSize(),
-		.transform_matrix = ToLuisaMatrix(CameraComponent->GetOwner()->GetTransformMatrix()),
+		.transform_matrix = ToLuisaMatrix(MainCameraComponent->GetOwner()->GetTransformMatrix()),
 
 		.view_matrix = ToLuisaMatrix(view_matrix),
 		.inverse_view_matrix = ToLuisaMatrix(view_matrix.inverse().eval()),
@@ -55,17 +56,17 @@ view_data CameraSceneProxy::GetCurrentViewData() const
 
 FMatrix4 CameraSceneProxy::GetViewMatrix(uint Index) const
 {
-	return CameraComponent->GetViewMatrix();
+	return MainCameraComponent->GetViewMatrix();
 }
 
 FMatrix4 CameraSceneProxy::GetProjectionMatrix(uint Index) const
 {
-	return CameraComponent->GetProjectionMatrix();
+	return MainCameraComponent->GetProjectionMatrix();
 }
 
 void CameraSceneProxy::UploadDirtyData(Stream& stream)
 {
-	if(!CameraComponent)
+	if(!MainCameraComponent)
 	{
 		LOG_ERROR("No valid Camera in scene, raytracing will not work");
 		exit(0);
@@ -73,15 +74,8 @@ void CameraSceneProxy::UploadDirtyData(Stream& stream)
 	}
 	if (bDirty)
 	{
-		cameraData data;
-		data.transformId = TransformID;
-		data.Transform = ToLuisaMatrix(CameraComponent->GetOwner()->GetTransformMatrix());
-		data.WorldToView = ToLuisaMatrix(CameraComponent->GetViewMatrix());
-		data.ProjectionMatrix = ToLuisaMatrix(CameraComponent->GetProjectionMatrix());
-		data.AspectRatio = CameraComponent->GetAspectRatio();
-		data.TanHalfFovH = std::tan(0.5f * radians(CameraComponent->GetFovH()));
-		data.TanHalfFovV = data.TanHalfFovH / data.AspectRatio;
-		stream << Data.copy_from(&data);
+		auto Data = GetCurrentViewData();
+		stream << view_buffer.copy_from(&Data);
 	}
 	bDirty = false;
 }

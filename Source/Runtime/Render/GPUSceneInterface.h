@@ -6,7 +6,7 @@
 #include "Core/geometry_buffer.h"
 #include "Core/VertexData.h"
 #include "Core/ViewMode.h"
-#include "Core/view_data.h"
+#include "Core/view.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
 #include "Math/MathType.h"
@@ -206,7 +206,7 @@ namespace MechEngine::Rendering
 		* @param view Current view
 		* @return Instersection of primitve information of the ray
 		*/
-		ray_intersection intersect(const Var<Ray>& ray, Var<view_data> view) const noexcept;
+		ray_intersection intersect(const Var<Ray>& ray, const Var<view>& view) const noexcept;
 
 		/**
 		* Get the transform data of a transform by instance id
