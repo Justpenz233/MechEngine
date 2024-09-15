@@ -13,7 +13,7 @@
 
 #include "Eigen/Eigen"
 
-class FTransform;
+struct FTransform;
 namespace MechEngine::Math
 {
 template <class T>

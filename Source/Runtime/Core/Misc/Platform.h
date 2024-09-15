@@ -72,6 +72,13 @@ typedef unsigned char uint8;
 	#else
 		#define EDITOR_API __declspec(dllimport)
 	#endif
+
+	#ifdef USER_API_EXPORT
+		#define USER_API __declspec(dllexport)
+	#else
+		#define USER_API __declspec(dllimport)
+	#endif
+
 #else
 	#define ENGINE_API
 	#define EDITOR_API
