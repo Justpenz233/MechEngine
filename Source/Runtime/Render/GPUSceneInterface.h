@@ -268,6 +268,9 @@ namespace MechEngine::Rendering
 
 		/** Whether to use shadow ray offset by HACKING THE SHADOW TERMINATOR*/
 		bool bShadowRayOffset;
+
+		/** Whether to use global illumination */
+		bool bGlobalIllumination;
 	};
 
 template<typename T>

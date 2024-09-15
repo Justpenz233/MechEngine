@@ -103,7 +103,7 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 }
 
 std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
-	Var<Ray> ray, const ray_intersection& intersection, Bool calc_reflection)
+	Var<Ray> ray, const ray_intersection& intersection, bool global_illumination)
 {
 	auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 
@@ -187,8 +187,31 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 			return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
 		};
 
-		pixel_radiance += calc_lighting(light_dir, bRenderShadow) * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
+		auto lighting = calc_lighting(light_dir, bRenderShadow);
+
+		// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
+		// Cheaper method in the those machine not have hardware acceleration
+		if (!bGlobalIllumination)
+			lighting = lighting * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
+		pixel_radiance += lighting;
 	};
+	if(global_illumination)
+	{
+		$if(material_data.alpha == 1.f) // Only reflect for opaque surface
+		{
+			// Reflection
+			auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
+			auto reflect_intersection = intersect(reflect_ray);
+			$if(reflect_intersection.valid())
+			{
+				auto [reflect_radiance, alpha]
+				= calc_surface_point_color(reflect_ray, reflect_intersection, false);
+
+				// By not we estimate importance sampling by setting the weight of reflection to 0.05 and direction to reflect dir
+				pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
+			};
+		};
+	}
 	return {pixel_radiance, material_data.alpha};
 }
 
@@ -201,7 +224,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 	$while(intersection.valid())
 	{
 		auto [surface_radiance, alpha]
-		= calc_surface_point_color(ray, intersection, true);
+		= calc_surface_point_color(ray, intersection, bGlobalIllumination);
 
 		pixel_color += surface_radiance * alpha * transmission;
 		transmission *= 1.f - alpha;

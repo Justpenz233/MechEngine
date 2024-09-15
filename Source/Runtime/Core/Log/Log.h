@@ -87,7 +87,7 @@ namespace MechEngine {
     	for (auto i = 0u; i < trace.size(); i++) {
     		auto &&t = trace[i];
     		using namespace std::string_view_literals;
-    		error_message.append(std::format(
+    		error_message.append(fmt::format(
 				"\n    {:>2} {}"sv,
 				i, luisa::to_string(t)));
     	}

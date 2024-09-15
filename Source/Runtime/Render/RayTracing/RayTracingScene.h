@@ -61,17 +61,15 @@ protected:
 	 * Calculate the color of point in a surface
 	 * @param ray the ray cast to the point
 	 * @param intersection the intersection point
-	 * @param calc_reflection whether the calculation should consider reflection
+	 * @param global_illumination whether the calculation should consider reflection
 	 * @return the color of the point, the alpha value of the color
 	 */
 	std::pair<Float3, Float> calc_surface_point_color(
-		Var<Ray> ray, const ray_intersection& intersection, Bool calc_reflection);
+		Var<Ray> ray, const ray_intersection& intersection, bool global_illumination);
 
 
 	unique_ptr<Shader2D<>> MainShader;
 
 	virtual void CompileShader() override;
 };
-
-
 }
