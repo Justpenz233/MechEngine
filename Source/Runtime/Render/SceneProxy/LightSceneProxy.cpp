@@ -86,6 +86,6 @@ void LightSceneProxy::UploadDirtyData(Stream& stream)
 	}
 	DirtyLights.clear();
 
-	stream << light_buffer.subview(0, id).copy_from(LightDatas.data());
+	stream << light_buffer.copy_from(LightDatas.data());
 }
 }
