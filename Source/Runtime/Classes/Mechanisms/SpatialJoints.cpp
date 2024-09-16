@@ -12,7 +12,7 @@
 SpatialJoint::SpatialJoint(char InType, const FTransform& InInitTransform, bool InIsRoot)
 : Type(InType), IKJoint(EDOF3D::FreeNone, EDOF3D::FreeNone, InInitTransform, InIsRoot)
 {
-    if (Type == 'R')
+    if (Type == 'R' || Type == 'D')
         SetDOF(FreeZ, FreeNone);
     else if (Type == 'P'){
         SetDOF(FreeNone, FreeX);

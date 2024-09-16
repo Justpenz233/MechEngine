@@ -185,8 +185,9 @@ FVector ParametricSurfaceComponent::GetRulingLineDir() const
 FVector2 ParametricSurfaceComponent::Projection(const FVector& Point) const
 {
 	ASSERTMSG(AABBMesh->HasValidUV(), "AABB Mesh has no valid UV");
-	RowVector3d ClosetPoint; int TriangleIndex;
+	RowVector3d ClosetPoint; int TriangleIndex = 0;
 	AABB.squared_distance(AABBMesh->GetVertices(), AABBMesh->GetTriangles(), Point, TriangleIndex, ClosetPoint);
+
 	auto Tri = AABBMesh->GetTriangle(TriangleIndex);
 	MatrixX3d Bary;
 	igl::barycentric_coordinates(ClosetPoint,
