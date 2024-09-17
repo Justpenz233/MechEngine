@@ -28,7 +28,7 @@ ObjectPtr<CurveComponent> CurveActor::GetCurveComponent()
 TArray<FVector> CurveActor::SampleWithEqualChordLength(int Samples) const
 {
 	auto SamplesData = CComponent->GetCurveData()->SampleWithEqualChordLength(Samples);
-	auto Transform = GetTransform();
+	auto Transform = GetFTransform();
 	std::ranges::for_each(SamplesData, [&Transform](FVector& Sample) { Sample = Transform * Sample; });
 	return SamplesData;
 }
