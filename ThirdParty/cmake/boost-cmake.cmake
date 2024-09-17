@@ -2,6 +2,8 @@ include(FetchContent)
 cmake_policy(SET CMP0135 NEW)
 
 set(BOOST_INCLUDE_LIBRARIES serialization system foreach any variant graph property_map multiprecision heap filesystem safe_numerics)
+set(BOOST_RUNTIME_LINK shared)
+set(BUILD_SHARED_LIBS ON)
 FetchContent_Declare(
         Boost
         URL https://github.com/boostorg/boost/releases/download/boost-1.81.0/boost-1.81.0.tar.xz

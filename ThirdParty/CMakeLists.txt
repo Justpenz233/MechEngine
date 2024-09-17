@@ -5,7 +5,7 @@ if(MSVC)
 endif()
 
 # Use system packages if available
-find_package(Boost QUIET)
+#find_package(Boost QUIET COMPONENTS serialization system foreach any variant graph property_map multiprecision heap filesystem safe_numerics)
 find_package(Eigen QUIET)
 
 if(NOT Boost_FOUND)
