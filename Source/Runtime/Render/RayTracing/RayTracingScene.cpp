@@ -153,10 +153,7 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 	{
 		// First calculate light color, as rendering equation is L_i(x, w_i)
 		auto light_data = LightProxy->get_light_data(light_id);
-		$if(!light_data->valid())
-		{
-			$break;
-		};
+		$if(!light_data->valid()) {$break;};
 		auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
 		auto light_dir = normalize(light_transform->get_location() - x);
 
@@ -277,7 +274,7 @@ void RayTracingScene::render_main_view()
 	auto pixel_coord = dispatch_id().xy();
 
 	// Fill with default
-	// g_buffer.set_default(pixel_coord, make_float4(1.f));
+	g_buffer.set_default(pixel_coord, make_float4(1.f));
 	frame_buffer()->write(pixel_coord, make_float4(1.f));
 
 	// Ray trace rasterization

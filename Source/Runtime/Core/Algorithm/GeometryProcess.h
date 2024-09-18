@@ -67,4 +67,10 @@ namespace MechEngine::Algorithm::GeometryProcess
 	ENGINE_API ObjectPtr<StaticMesh> SolidifyMeshEven(const ObjectPtr<StaticMesh>& Mesh, double Thickness); // Solidfy with half thickness on both side
 
 
+	/**
+	 * Fast OBB estimation from a set of points.
+	 * @param points The input points.
+	 * @return The OBB center, axes, and extents, represented as a Transform.(Transform from a unit cube to the OBB)
+	 */
+	ENGINE_API FTransform EstimatePointsOBB(const TArray<FVector>& points);
 };

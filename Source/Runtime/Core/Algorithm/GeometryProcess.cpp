@@ -317,5 +317,38 @@ namespace MechEngine::Algorithm::GeometryProcess
 		Result->SetGeometry(TriM);
 		return Result;
 	}
+	FTransform EstimatePointsOBB(const TArray<FVector>& points)
+	{
+		int num_points = points.size();
+		// Step 1: Compute the centroid
+		Vector3d centroid = Vector3d::Zero();
+		for (const auto& point : points) {
+			centroid += point;
+		}
+		centroid /= num_points;
+
+		// Step 2: Center the points
+		MatrixXd centered_points(3, num_points);
+		for (int i = 0; i < num_points; ++i) {
+			centered_points.col(i) = points[i] - centroid;
+		}
+
+		// Step 3: Compute the covariance matrix
+		Matrix3d covariance_matrix = centered_points * centered_points.transpose() / num_points;
+
+		// Step 4: Perform Eigenvalue decomposition (PCA)
+		Eigen::SelfAdjointEigenSolver<Matrix3d> eigen_solver(covariance_matrix);
+		Matrix3d eigenvectors = eigen_solver.eigenvectors();  // These are the axes of the OBB
+		Vector3d eigenvalues = eigen_solver.eigenvalues();    // Variance along the principal axes (not used directly here)
+
+		// Step 5: Rotate the points into the PCA frame
+		MatrixXd rotated_points = eigenvectors.transpose() * centered_points;
+
+		// Step 6: Compute the AABB in the rotated space
+		Vector3d min_point = rotated_points.rowwise().minCoeff();
+		Vector3d max_point = rotated_points.rowwise().maxCoeff();
+
+		return {centroid, FQuat(eigenvectors), (max_point - min_point)};
+	}
 
 	} // namespace MechEngine::Algorithm::GeometryProcess

@@ -177,7 +177,7 @@ namespace MechEngine::Rendering
 					std::tie(ndc_start, ndc_end) = view->clamp_to_ndc(ndc_start, ndc_end);
 					auto segment_start = lerp(ndc_start, ndc_end, Float(segment_id) / segments);
 					auto segment_end = lerp(ndc_start, ndc_end, Float(segment_id + 1) / segments);
-					raster_line(view, ndc_start, ndc_end, line.thickness, line.color);
+					raster_line(view, segment_start, segment_end, line.thickness, line.color);
 				};
 			}));
 	}
