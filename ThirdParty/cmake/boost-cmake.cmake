@@ -6,7 +6,33 @@ set(BOOST_RUNTIME_LINK shared)
 set(BUILD_SHARED_LIBS ON)
 FetchContent_Declare(
         Boost
-        URL https://github.com/boostorg/boost/releases/download/boost-1.81.0/boost-1.81.0.tar.xz
+        URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.gz
         DOWNLOAD_EXTRACT_TIMESTAMP true
 )
 FetchContent_MakeAvailable(Boost)
+
+add_library(Boost::boost INTERFACE IMPORTED)
+foreach(lib ${BOOST_INCLUDE_LIBRARIES})
+    target_link_libraries(Boost::boost INTERFACE Boost::${lib})
+
+    get_target_property(target_type boost_${lib} TYPE)
+    if (target_type STREQUAL "INTERFACE_LIBRARY")
+        if (MSVC)
+            target_compile_options(boost_${lib} INTERFACE -W0)
+        else ()
+            target_compile_options(boost_${lib} INTERFACE -w)
+        endif ()
+    elseif (NOT target_type STREQUAL "INTERFACE_LIBRARY")
+        if (MSVC)
+            target_compile_options(boost_${lib} PRIVATE -W0)
+        else ()
+            target_compile_options(boost_${lib} PRIVATE -w)
+        endif ()
+    endif()
+
+#    if (MSVC)
+#        target_compile_options(boost_${lib} PRIVATE -W0)
+#    else ()
+#        target_compile_options(boost_${lib} PRIVATE -w -Wno-error -Wno-old-style-cast)
+#    endif ()
+endforeach()
