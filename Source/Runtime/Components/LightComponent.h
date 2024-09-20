@@ -27,25 +27,18 @@ public:
 
 	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 
+	/** Light intensity is only a scalar value representing the relative brightness of the light. */
 	FORCEINLINE float GetIntensity() const;
 	FORCEINLINE void SetIntensity(float InIntensity);
 
 	FORCEINLINE FColor GetLightColor() const;
 	FORCEINLINE void SetLightColor(const FColor& InColor);
-
-	FORCEINLINE void SetSamplesPerPixel(int InSamplesPerPixel);
-	FORCEINLINE int GetSamplesPerPixel() const;
-
 protected:
 	MPROPERTY()
 	float Intensity = 1.0f;
 
 	MPROPERTY()
 	FColor LightColor = FColor{1.0f, 1.0f, 1.0f};
-
-	/** Samples per pixel for ray tracing */
-	MPROPERTY()
-	int SamplesPerPixel;
 
 protected:
 	bool bDirty = false;
@@ -56,16 +49,6 @@ FORCEINLINE void LightComponent::SetLightColor(const FColor& InColor)
 {
 	LightColor = InColor;
 	MarkAsDirty();
-}
-
-FORCEINLINE void LightComponent::SetSamplesPerPixel(int InSamplesPerPixel) {
-	SamplesPerPixel = InSamplesPerPixel;
-	MarkAsDirty();
-}
-
-FORCEINLINE int LightComponent::GetSamplesPerPixel() const
-{
-	return SamplesPerPixel;
 }
 
 FORCEINLINE void LightComponent::SetIntensity(float InIntensity)

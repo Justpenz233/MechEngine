@@ -26,8 +26,8 @@ namespace MechEngine::Rendering
 	class CameraSceneProxy;
 	class TransformSceneProxy;
 	class StaticMeshSceneProxy;
-	class ray_tracing_hit;
-	class ray_intersection;
+	struct ray_tracing_hit;
+	struct ray_intersection;
 	class LineSceneProxy;
 
 	using namespace luisa;

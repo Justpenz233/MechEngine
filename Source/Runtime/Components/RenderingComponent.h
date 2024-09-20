@@ -35,10 +35,6 @@ public:
 	FORCEINLINE virtual void TickComponent(double DeltaTime) override;
 
 protected:
-
-	MPROPERTY()
-	bool bCastShadow = true;
-
 	MPROPERTY()
 	bool bVisible = true;
 
