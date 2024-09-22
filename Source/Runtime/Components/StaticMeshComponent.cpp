@@ -22,7 +22,7 @@ StaticMeshComponent::~StaticMeshComponent()
 	{
 		if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
 		{
-			SceneProxy->RemoveStaticMesh(this);
+			SceneProxy->RemoveStaticMesh(MeshID);
 		}
 	}
 }
@@ -44,7 +44,9 @@ void StaticMeshComponent::BeginPlay()
 	ActorComponent::BeginPlay();
 	// Add the mesh to the scene
 	auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
-	GetScene()->GetStaticMeshProxy()->AddStaticMesh(this, TransformId);
+	MeshID = GetScene()->GetStaticMeshProxy()->AddStaticMesh(MeshData.get());
+	InstanceID = GetScene()->GetStaticMeshProxy()->AddInstance(MeshID, TransformId);
+
 	if (IsDirty())
 	{
 		if(Dirty & DIRTY_REMESH)
@@ -69,14 +71,20 @@ void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
 	RenderingComponent::PostEdit(Field);
 	String FieldName = Field.getFieldName();
-	if (FieldName == NAME(Color) || FieldName == NAME(bVisible))
-		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
+	if (FieldName == NAME(bVisible))
+	{
+		World->GetScene()->GetStaticMeshProxy()->SetInstanceVisibility(InstanceID, bVisible);
+	}
+	else
+	{
+		LOG_WARNING("{} is not supported in StaticMeshComponent", FieldName);
+	}
 }
 
 void StaticMeshComponent::SetVisible(bool InVisible)
 {
 	bVisible = InVisible;
-	World->GetScene()->GetStaticMeshProxy()->UpdateStaticMesh(this);
+	World->GetScene()->GetStaticMeshProxy()->SetInstanceVisibility(InstanceID, bVisible);
 }
 
 void StaticMeshComponent::UploadRenderingData()
@@ -85,7 +93,7 @@ void StaticMeshComponent::UploadRenderingData()
 	{
 		ASSERTMSG(MeshData->GetMaterial() != nullptr, "Material should not be null!");
 		ASSERTMSG(MeshData->CheckNormalValid(), "Geometry is modified, but not called GeometryChanged.");
-		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(this);
+		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(MeshID, MeshData.get());
 	}
 }
 void StaticMeshComponent::Remesh()

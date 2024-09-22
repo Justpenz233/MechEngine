@@ -46,6 +46,7 @@ namespace MechEngine::Rendering
 
 		ray_intersection(): mesh_id(~0u), instance_id(~0u) {}
 		[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }
+		[[nodiscard]] auto is_light() const noexcept {return mesh_id == ~0u;}
 
 	};
 }

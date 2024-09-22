@@ -23,7 +23,6 @@ public:
 	/**
 	 * Add a new light to the scene and bind the corresponding transform
 	 * @param InLight LightComponent to add
-	 * @param InTransformID Corresponding transform id
 	 */
 	void AddLight(LightComponent* InLight, uint InTransformID);
 
@@ -58,6 +57,10 @@ protected:
 	LightSceneProxy(const LightSceneProxy&) = delete;
 	LightSceneProxy& operator=(const LightSceneProxy&) = delete;
 	LightSceneProxy(LightSceneProxy&&) = delete;
+
+	// Accel user id which represents a light
+	uint light_user_id = ~0u;
+
 	//Light collection
 	uint id = 0;
 	static constexpr auto light_max_number = 256u;
@@ -69,7 +72,7 @@ protected:
 	uint point_light_tag;
 	uint directional_light_tag;
 
-	// component to [lightid, transformid]
+	// component to light index at LightDatas, and the transform id
 	map<LightComponent*, std::pair<uint, uint>> LightIndexMap;
 	set<LightComponent*> DirtyLights;
 };

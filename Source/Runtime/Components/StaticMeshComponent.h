@@ -100,6 +100,11 @@ public:
 
 protected:
 	StaticMeshDirtyTag Dirty = DIRTY_RENDERDATA;
+
+	// Instance id for the mesh that this component holds
+	uint InstanceID = ~0u;
+
+	uint MeshID = ~0u;
 };
 
 FORCEINLINE bool StaticMeshComponent::IsVisible() const
