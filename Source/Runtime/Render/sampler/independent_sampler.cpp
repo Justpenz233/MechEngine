@@ -4,17 +4,18 @@
 
 #include "independent_sampler.h"
 #include "Render/Core/random.h"
+#include "luisa/dsl/sugar.h"
 
 namespace MechEngine::Rendering
 {
 
 void independent_sampler::init(Expr<uint2> pixel, Expr<uint> sample_index) noexcept
 {
-	state = xxhash32(make_uint4(pixel, get_seed(), sample_index));
+	state.emplace(xxhash32(make_uint4(pixel, get_seed(), sample_index)));
 }
 Float independent_sampler::generate_1d() noexcept
 {
-	return lcg(state);
+	return lcg(*state);
 }
 
 Float2 independent_sampler::generate_2d() noexcept

@@ -72,6 +72,5 @@ namespace MechEngine
 		std::signal(SIGABRT, CrashWithLog);
 		std::signal(SIGFPE, CrashWithLog);
 		std::signal(SIGILL, CrashWithLog);
-		std::signal(SIGBUS, CrashWithLog);
     }
 }

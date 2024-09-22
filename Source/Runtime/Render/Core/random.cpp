@@ -50,8 +50,8 @@ Float3 sample_uniform_sphere(Expr<float2> u) noexcept
 Float3 sample_uniform_sphere_surface(Expr<float2> u) noexcept
 {
 	static Callable impl = [](const Float2& u) noexcept {
-		auto theta = acos(1. - 2. * u.x);
-		auto phi = 2. * pi * u.y;
+		auto theta = acos(1.f - 2.f * u.x);
+		auto phi = 2.f * pi * u.y;
 		auto sin_theta = sin(theta);
 		return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
 	};
@@ -62,7 +62,7 @@ Float3 sample_uniform_hemisphere_surface(Expr<float2> u) noexcept
 {
 	static Callable impl = [](const Float2& u) noexcept {
 		auto theta = acos(1.f - 2.f * u.x) * 0.5f;
-		auto phi = 2. * pi * u.y;
+		auto phi = 2.f * pi * u.y;
 		auto sin_theta = sin(theta);
 		return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
 	};

@@ -148,34 +148,37 @@ namespace MechEngine::Rendering
 		Float c = z[1] - z[0];
 		$for(i, 0, 2)
 		{
-			$if (x[i] < min.x)
+			$if(x[i] < min.x)
 			{
 				y[i] = b / a * (min.x - x[0]) + y[0];
 				z[i] = c / a * (min.x - x[0]) + z[0];
 				x[i] = min.x;
-			}$elif(x[i] > max.x)
+			}
+			$elif(x[i] > max.x)
 			{
 				y[i] = b / a * (max.x - x[0]) + y[0];
 				z[i] = c / a * (max.x - x[0]) + z[0];
 				x[i] = max.x;
 			};
-			$if (y[i] < min.y)
+			$if(y[i] < min.y)
 			{
 				x[i] = a / b * (min.y - y[0]) + x[0];
 				z[i] = c / b * (min.y - y[0]) + z[0];
 				y[i] = min.y;
-			}$elif(y[i] > max.y)
+			}
+			$elif(y[i] > max.y)
 			{
 				x[i] = a / b * (max.y - y[0]) + x[0];
 				z[i] = c / b * (max.y - y[0]) + z[0];
 				y[i] = max.y;
 			};
-			$if (z[i] < min.z)
+			$if(z[i] < min.z)
 			{
 				x[i] = a / c * (min.z - z[0]) + x[0];
 				y[i] = b / c * (min.z - z[0]) + y[0];
 				z[i] = min.z;
-			}$elif(z[i] > max.z)
+			}
+			$elif(z[i] > max.z)
 			{
 				x[i] = a / c * (max.z - z[0]) + x[0];
 				y[i] = b / c * (max.z - z[0]) + y[0];
@@ -183,6 +186,19 @@ namespace MechEngine::Rendering
 			};
 		};
 		return std::make_pair(make_float3(x[0], y[0], z[0]), make_float3(x[1], y[1], z[1]));
+	}
+
+	/**
+	 * Calculate the orthogonal basis of a given normal. Assume the normal is normalized, and is z axis.
+	 * @see https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
+	 * @param n given normal
+	 * @return the orthogonal basis
+	 */
+	FORCEINLINE std::array<Float3, 3> orthogonal_basis(const Float3& n)
+	{
+		Float3 t = normalize(cross(n, select(make_float3(1.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), abs(n.x) > 0.9f)));
+		Float3 b = cross(n, t);
+		return { cross(n, b), b, n};
 	}
 
 }

@@ -31,7 +31,7 @@ namespace MechEngine::Rendering
 
     void GPUSceneInterface::CompileShader()
     {
-    	LoadRenderSettings();
+    	ASSERTMSG(sampler.get(), "Sampler should be created first in the derived class");
 
         ViewModePass = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
         {

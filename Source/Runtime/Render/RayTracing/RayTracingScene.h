@@ -46,8 +46,11 @@ public:
 
 	uint2 GetWindosSize() const noexcept;
 protected:
-
-	void render_main_view();
+	/**
+	 * Render the main view, dispatch the render kernel
+	 * @param frame_index the index of the frame, should start from 0 and increase by 1
+	 */
+	void render_main_view(const UInt& frame_index);
 
 	/**
 	 * Calculate the color of a pixel with a ray
@@ -68,7 +71,7 @@ protected:
 		Var<Ray> ray, const ray_intersection& intersection, bool global_illumination);
 
 
-	unique_ptr<Shader2D<>> MainShader;
+	unique_ptr<Shader2D<uint>> MainShader;
 
 	virtual void CompileShader() override;
 };

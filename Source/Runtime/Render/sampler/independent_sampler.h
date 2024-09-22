@@ -13,7 +13,7 @@ using luisa::compute::UInt;
 class independent_sampler : public sampler_base
 {
 protected:
-	UInt state;
+	luisa::optional<UInt> state;
 
 public:
 	virtual ~independent_sampler() = default;

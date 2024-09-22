@@ -9,6 +9,7 @@
 #include "Render/ViewportInterface.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/math_function.h"
+#include "Render/Core/random.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -16,6 +17,7 @@
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/LineSceneProxy.h"
+#include "Render/sampler/independent_sampler.h"
 
 namespace MechEngine::Rendering
 {
@@ -82,7 +84,7 @@ void RayTracingScene::UploadRenderData()
 
 void RayTracingScene::Render()
 {
-	stream << (*MainShader)().dispatch(GetWindosSize());
+	stream << (*MainShader)(++FrameCounter).dispatch(GetWindosSize());
 
 	if(ViewMode != ViewMode::FrameBuffer)
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
@@ -128,7 +130,6 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 	// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
 
 	auto normal = bxdf_parameters.normal;
-	auto reflect_dir = reflect(-w_o, normal);
 
 	// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
 	auto offset_ray = [&]() {
@@ -189,14 +190,19 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 		// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
 		// Cheaper method in the those machine not have hardware acceleration
 		if (!bGlobalIllumination)
-			lighting = lighting * 0.95f + calc_lighting(reflect_dir, false) * 0.05f;
+			lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal), false) * 0.05f;
 		pixel_radiance += lighting;
 	};
 	if(global_illumination)
 	{
 		$if(material_data.alpha == 1.f) // Only reflect for opaque surface
 		{
-			// Reflection
+			// Reflection by Orthonormal Basis
+			// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
+			auto reflect_dir = sample_uniform_hemisphere_surface(get_sampler()->generate_2d());
+			auto onb = orthogonal_basis(normal);
+			reflect_dir = normalize(reflect_dir.x * onb[0] + reflect_dir.y * onb[1] + reflect_dir.z * onb[2]);
+
 			auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
 			auto reflect_intersection = intersect(reflect_ray);
 			$if(reflect_intersection.valid())
@@ -204,7 +210,6 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 				auto [reflect_radiance, alpha]
 				= calc_surface_point_color(reflect_ray, reflect_intersection, false);
 
-				// By not we estimate importance sampling by setting the weight of reflection to 0.05 and direction to reflect dir
 				pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
 			};
 		};
@@ -234,7 +239,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 		};
 		$break;
 	};
-	pixel_color += transmission * make_float3(1.f);
+	pixel_color += transmission * BackgroundColor;
 
 	// Draw wireframe pass, blend  with the pixel color as Anti-aliasing
 	// Currently, we only draw the first intersection with the wireframe, which means
@@ -267,15 +272,16 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 	return pixel_color;
 }
 
-void RayTracingScene::render_main_view()
+void RayTracingScene::render_main_view(const UInt& frame_index)
 {
 	auto view = CameraProxy->get_main_view();
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
+	get_sampler()->init(pixel_coord, frame_index);
 
 	// Fill with default
 	g_buffer.set_default(pixel_coord, make_float4(1.f));
-	frame_buffer()->write(pixel_coord, make_float4(1.f));
+	// frame_buffer()->write(pixel_coord, make_float4(1.f));
 
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
@@ -286,12 +292,17 @@ void RayTracingScene::render_main_view()
 
 void RayTracingScene::CompileShader()
 {
+	LoadRenderSettings();
+
+	// Initialize the sampler
+	sampler = luisa::make_unique<independent_sampler>();
+
 	// Compile base shaders
 	GPUSceneInterface::CompileShader();
 
 	// Main pass shader
-	MainShader = luisa::make_unique<Shader2D<>>(device.compile<2>(
-		[&]() noexcept { render_main_view(); }));
+	MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
+		[&](UInt frame_index) noexcept { render_main_view(frame_index); }));
 
 }
 }

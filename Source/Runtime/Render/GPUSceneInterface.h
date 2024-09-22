@@ -9,7 +9,7 @@
 #include "Core/view.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
-#include "Math/MathType.h"
+#include "sampler/sampler_base.h"
 
 class Material;
 class StaticMeshComponent;
@@ -35,7 +35,7 @@ namespace MechEngine::Rendering
 	/**
 	 * GPU scene interface provides the interface to control the rendering scene.
 	 * Basically provide interface to register, update, and delete rendering components.
-	 * Also should provide interface to manage GPU resources for render pipeline.
+	 * Also, should provide interface to manage GPU resources for render pipeline.
 	 * Each scene contains a set of stream and device to manage the resources, the renderer should access through the interface.
 	 */
 	class ENGINE_API GPUSceneInterface
@@ -53,6 +53,7 @@ namespace MechEngine::Rendering
 		void ViewModeSet(ViewMode InMode) { ViewMode = InMode; }
 
 		[[nodiscard]] ViewMode GetViewMode() const noexcept { return ViewMode; }
+		FORCEINLINE uint GetFrameCount() const noexcept { return FrameCounter; }
 
 		/***********************************************************************************************
 		*								Shaders 									                   *
@@ -62,35 +63,6 @@ namespace MechEngine::Rendering
 		virtual void CompileShader();
 
 
-	protected:
-		unique_ptr<Shader2D<uint>> ViewModePass;
-
-
-
-	/***********************************************************************************************
-	*									GPU resource management									   *
-	*					Resiger resource and manage ownerships by these interface                  *
-	***********************************************************************************************/
-	protected:
-		ViewMode ViewMode = FrameBuffer;
-		Accel rtAccel;
-		BindlessArray bindlessArray;
-		geometry_buffer g_buffer;
-
-		size_t _bindless_buffer_count{0u};
-		size_t _bindless_tex2d_count{0u};
-		size_t _bindless_tex3d_count{0u};
-		Stream& stream;
-		Device& device;
-
-		luisa::vector<luisa::unique_ptr<luisa::compute::Resource>> Resources;
-		static constexpr auto bindless_array_capacity = 500'000u;// limitation of Metal
-		static constexpr auto constant_buffer_size = 256u * 1024u;
-
-		/** Load render settings from config file */
-		virtual void LoadRenderSettings();
-
-	public:
 		/**
 		 * Create a resource and register it to the scene
 		 * the scene holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
@@ -181,13 +153,19 @@ namespace MechEngine::Rendering
 
 		/***********************************************************************************************
 		*									Basic scene shader functions							   *
-		*	            				Provide basic query throughout each proxys				       *
+		*	            				Provide basic query throughout each proxy				       *
 		***********************************************************************************************/
 
 		geometry_buffer& get_gbuffer() { return g_buffer; }
 
 		/**
-		 * Calculate closest hit information of a ray in the scene.
+		 * get the sampler of the thread
+		 * @return the sampler of the scene
+		 */
+		sampler_base* get_sampler() const { return sampler.get(); }
+
+		/**
+		 * Calculate the closest hit information of a ray in the scene.
 		 * @param ray Ray to trace
 		 * @return Hit information of the closest object hit by the ray
 		 */
@@ -260,6 +238,9 @@ namespace MechEngine::Rendering
 		// Line collection
 		unique_ptr<LineSceneProxy> LineProxy;
 
+		// random sampler, designed for GPU calling
+		unique_ptr<sampler_base> sampler;
+
 	protected:
 		// ---------------------Render setting-------------------------------
 
@@ -271,6 +252,37 @@ namespace MechEngine::Rendering
 
 		/** Whether to use global illumination */
 		bool bGlobalIllumination;
+
+		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
+
+		// Frame counter, start from 0, increase by 1 each frame
+		uint FrameCounter;
+
+		unique_ptr<Shader2D<uint>> ViewModePass;
+
+
+		/***********************************************************************************************
+		*									GPU resource management									   *
+		*					Resiger resource and manage ownerships by these interface                  *
+		***********************************************************************************************/
+		ViewMode ViewMode = FrameBuffer;
+		Accel rtAccel;
+		BindlessArray bindlessArray;
+		geometry_buffer g_buffer;
+
+		size_t _bindless_buffer_count{0u};
+		size_t _bindless_tex2d_count{0u};
+		size_t _bindless_tex3d_count{0u};
+		Stream& stream;
+		Device& device;
+
+		luisa::vector<luisa::unique_ptr<luisa::compute::Resource>> Resources;
+		static constexpr auto bindless_array_capacity = 500'000u;// limitation of Metal
+		static constexpr auto constant_buffer_size = 256u * 1024u;
+
+		/** Load render settings from config file */
+		virtual void LoadRenderSettings();
+
 	};
 
 template<typename T>
