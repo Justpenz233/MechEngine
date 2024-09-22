@@ -5,7 +5,6 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Math/Box.h"
-#include "Math/FTransform.h"
 
 // Material property update
 DECLARE_MULTICAST_DELEGATE(FOnMaterialUpdate);

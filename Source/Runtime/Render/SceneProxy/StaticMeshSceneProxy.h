@@ -7,6 +7,8 @@
 #include "Render/Core/VertexData.h"
 
 class StaticMeshComponent;
+class StaticMesh;
+
 namespace MechEngine::Rendering
 {
 struct static_mesh_data
@@ -118,13 +120,17 @@ public:
 			bindelss_buffer<float3>(mesh_data.corner_normal_buffer_id)->read(triangle_index * 3 + 2)};
 	}
 
-public://----------------- CPU CODE -----------------
-	uint TransformIdToMeshIndex(uint InTransformID)
-	{
-		if (!TransformMeshMap.count(InTransformID)) return ~0u;
-		if(!IdToIndex.count(MeshIdMap[TransformMeshMap[InTransformID]])) return ~0u;
-		return IdToIndex[MeshIdMap[TransformMeshMap[InTransformID]]];
-	}
+protected:
+
+	// Create default meshes and upload to GPU
+	void CreateDefaultMeshes();
+
+	/**
+	 * Get the flatten mesh data from mesh data, used for uploading mesh data to GPU
+	 * @param MeshData Mesh data to flatten
+	 * @return Flattened mesh data, vertices, triangles, corner normals in GPU format
+	 */
+	static std::tuple<vector<Vertex>, vector<Triangle>, vector<float3>> GetFlattenMeshData(StaticMesh* MeshData);
 
 protected:
 	bool bFrameUpdated = false;
@@ -132,12 +138,12 @@ protected:
 	//! We are using accel index as id for mesh, not the data array index
 	static constexpr auto instance_max_number = 65536u;
 	vector<static_mesh_data> StaticMeshDatas;
-	vector<StaticMeshResource> StaticMeshResource;
+	vector<StaticMeshResource> MeshResources;
 
 	BufferView<static_mesh_data> data_buffer;
 	uint data_buffer_id; // bindless array id of data buffer, this id will never change
 
-	map<uint, StaticMeshComponent*> TransformMeshMap; // used for mapping transform id to mesh id
+	map<StaticMeshComponent*, uint> MeshTransformMap; // used for mapping transform id to mesh id
 	unordered_map<StaticMeshComponent*, Mesh*> MeshDataMap; // used for mapping mesh component to mesh data
 
 	map<StaticMeshComponent*, uint> MeshIdMap; // used in update mesh
@@ -147,6 +153,9 @@ protected:
 
 	uint MeshIdCounter = 0;
 	unordered_map<uint, uint> IdToIndex;
+
+	//Uploaded unit sphere and plane mesh, used for light represent
+	StaticMeshResource SphereResource, PlaneResource;
 };
 
 }

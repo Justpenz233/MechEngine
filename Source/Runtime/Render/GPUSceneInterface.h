@@ -45,6 +45,7 @@ namespace MechEngine::Rendering
 
 		virtual ~GPUSceneInterface();
 
+		virtual void Init() {}
 		/**
 		 * Render the scene
 		 */
@@ -61,6 +62,9 @@ namespace MechEngine::Rendering
 		**********************************************************************************************/
 	public:
 		virtual void CompileShader();
+
+
+		auto& get_stream() { return stream; }
 
 
 		/**

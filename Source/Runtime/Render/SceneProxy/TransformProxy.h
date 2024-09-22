@@ -28,6 +28,8 @@ namespace MechEngine::Rendering
 		 */
 		uint AddTransform(TransformComponent* InTransform);
 
+		void BindTransform(uint InstanceID, uint TransformID);
+
 		/**
 		 * Check if a transform exists in the scene
 		 * @param InTransform Transformcomponent to check
@@ -59,9 +61,10 @@ namespace MechEngine::Rendering
 		static constexpr auto transform_matrix_buffer_size = 65536u;
 		uint Id = 0;
 		vector<transform_data> TransformDatas;
-		map<TransformComponent*, uint> TransformIndexMap;
+		map<TransformComponent*, uint> TransformIdMap;
 		set<TransformComponent*> DirtyTransforms;
-		map<TransformSceneProxy*, uint> TransformInstanceMap;
+		map<uint, uint> TransformToInstanceId;
+
 		uint bindless_id;
 		BufferView<transform_data> transform_buffer;
 	};

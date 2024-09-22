@@ -32,6 +32,7 @@ public:
 
 	explicit SceneProxy(RayTracingScene& InScene);
 
+	virtual void Init() {}
 	virtual bool IsDirty() { return false; }
 	virtual void CompileShader() {}
 	virtual void UploadDirtyData(luisa::compute::Stream& stream) = 0;

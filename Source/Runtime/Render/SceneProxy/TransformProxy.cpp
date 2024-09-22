@@ -25,14 +25,14 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 
 	for (TransformComponent* Component : DirtyTransforms)
 	{
-		auto ComponentId = TransformIndexMap[Component];
-		transform_data& data = TransformDatas[ComponentId];
+		auto TransformId = TransformIdMap[Component];
+		transform_data& data = TransformDatas[TransformId];
 		data.transformMatrix = ToLuisaMatrix(Component->GetTransformMatrix());
 		data.scale = ToLuisaVector(Component->GetScale());
 		data.rotationQuaternion = ToLuisaVector(Component->GetRotation().coeffs());
-		if(auto InstanceId = Scene.GetStaticMeshProxy()->TransformIdToMeshIndex(ComponentId); InstanceId != ~0u)
+		if (TransformToInstanceId.count(TransformId))
 		{
-			accel.set_transform_on_update(InstanceId, data.transformMatrix);
+			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transformMatrix);
 		}
 	}
 	stream << transform_buffer.subview(0, GetTransformCount()).copy_from(TransformDatas.data());
@@ -41,32 +41,47 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 
 uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
 {
-	if(!InTransform)
+	if (!InTransform)
 	{
 		LOG_WARNING("Trying to add a null transform to the scene.");
 		return 0;
 	}
-	if(TransformIndexMap.count(InTransform))
-		return TransformIndexMap[InTransform];
+	if (TransformIdMap.count(InTransform))
+		return TransformIdMap[InTransform];
 	uint NewId = Id++;
-	TransformIndexMap[InTransform] = NewId;
+	TransformIdMap[InTransform] = NewId;
 	DirtyTransforms.insert(InTransform);
 	return NewId;
+}
+void TransformSceneProxy::BindTransform(uint InstanceID, uint TransformID)
+{
+	if (TransformID >= GetTransformCount())
+	{
+		LOG_ERROR("Trying to bind a transform with id: {} that does not exist in the scene.", TransformID);
+		return;
+	}
+	if (accel.size() <= InstanceID)
+	{
+		LOG_ERROR("Trying to bind a transform to an instance with id: {} that does not exist in the scene.", InstanceID);
+		return;
+	}
+	TransformToInstanceId[TransformID] = InstanceID;
+	accel.set_transform_on_update(InstanceID, TransformDatas[TransformID].transformMatrix);
 }
 
 bool TransformSceneProxy::IsExist(TransformComponent* InTransform) const
 {
-	return TransformIndexMap.count(InTransform);
+	return TransformIdMap.count(InTransform);
 }
 
 bool TransformSceneProxy::IsExist(const uint TransformID) const
 {
-	return std::ranges::any_of(TransformIndexMap, [TransformID](const auto& Pair) { return Pair.second == TransformID; });
+	return std::ranges::any_of(TransformIdMap, [TransformID](const auto& Pair) { return Pair.second == TransformID; });
 }
 
 void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)
 {
-	if(TransformIndexMap.count(InTransform))
+	if(TransformIdMap.count(InTransform))
 		DirtyTransforms.insert(InTransform);
 	else
 		LOG_ERROR("Trying to update a transform from actor: {} that does not exist in the scene.", InTransform->GetOwnerName());
