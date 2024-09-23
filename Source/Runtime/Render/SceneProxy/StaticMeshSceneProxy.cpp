@@ -29,7 +29,7 @@ bool StaticMeshSceneProxy::IsDirty()
 
 uint StaticMeshSceneProxy::AddStaticMesh(StaticMesh* InMesh)
 {
-	if (!InMesh)
+	if (!InMesh || InMesh->IsEmpty())
 	{
 		LOG_WARNING("Trying to add a null mesh to the scene.");
 		return ~0u;
@@ -77,7 +77,6 @@ void StaticMeshSceneProxy::RemoveStaticMesh(uint MeshId)
 void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 {
 	bFrameUpdated = false;
-	if (!IsDirty()) return;
 
 	for (auto& Command : CommandQueue)
 	{
@@ -118,6 +117,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			case CInstance:
 			{
 				accel.set_mesh(Id2, *MeshResources[Id1].AccelMesh);
+				accel.set_instance_user_id_on_update(Id2, Id1);
 				MeshInstances[Id1].insert(Id2);
 				break;
 			}
@@ -150,6 +150,9 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				auto VBindlessid = StaticMeshData[Id1].vertex_buffer_id;
 				auto TBindlessid = StaticMeshData[Id1].triangle_buffer_id;
 				auto CNBindlessid = StaticMeshData[Id1].corner_normal_buffer_id;
+				auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshPtr->GetMaterial());
+
+				ASSERT(VBindlessid != ~0u && TBindlessid != ~0u && CNBindlessid != ~0u);
 				bindlessArray.emplace_on_update(VBindlessid, VBuffer->view());
 				bindlessArray.emplace_on_update(TBindlessid, TBuffer->view());
 				bindlessArray.emplace_on_update(CNBindlessid, CornerNormalBuffer->view());
@@ -157,7 +160,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				for (auto Instance : MeshInstances[Id1])
 					accel.set_mesh(Instance, *AccelMesh);
 
-				// Remove old data buffer
+				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID};
 				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerNormalBuffer };
 				auto PreVBuffer = MeshResources[Id1].VertexBuffer;
 				auto PreTBuffer = MeshResources[Id1].TriangleBuffer;
@@ -171,7 +174,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			}
 			case UInstance: // Not tested
 			{
-				for (int i = 0; i < MeshIdCounter; i ++)
+				for (int i = 0; i < MeshIdCounter; i++)
 				{
 					if (MeshInstances[i].count(Id1))
 					{
@@ -181,6 +184,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				}
 				MeshInstances[Id2].insert(Id1);
 				accel.set_mesh(Id1, *MeshResources[Id2].AccelMesh);
+				accel.set_instance_user_id_on_update(Id1, Id2);
 				break;
 			}
 			case DInstance: // Not tested
@@ -208,16 +212,11 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 	CommandQueue.clear();
 
 	if (bFrameUpdated)
-	{
-		ASSERTMSG(accel.size() <= instance_max_number, "Too many static mesh in scene!");
 		stream << data_buffer.subview(0, StaticMeshData.size()).copy_from(StaticMeshData.data());
-	}
-
 
 	if (accel.dirty())
 		stream << accel.build();
 }
-
 std::tuple<vector<Vertex>, vector<Triangle>, vector<float3>> StaticMeshSceneProxy::GetFlattenMeshData(StaticMesh* MeshData)
 {
 	int VertexNum = MeshData->GetVertexNum();

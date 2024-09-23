@@ -42,11 +42,6 @@ void StaticMeshComponent::TickComponent(double DeltaTime)
 void StaticMeshComponent::BeginPlay()
 {
 	ActorComponent::BeginPlay();
-	// Add the mesh to the scene
-	auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
-	MeshID = GetScene()->GetStaticMeshProxy()->AddStaticMesh(MeshData.get());
-	InstanceID = GetScene()->GetStaticMeshProxy()->AddInstance(MeshID, TransformId);
-
 	if (IsDirty())
 	{
 		if(Dirty & DIRTY_REMESH)
@@ -93,7 +88,18 @@ void StaticMeshComponent::UploadRenderingData()
 	{
 		ASSERTMSG(MeshData->GetMaterial() != nullptr, "Material should not be null!");
 		ASSERTMSG(MeshData->CheckNormalValid(), "Geometry is modified, but not called GeometryChanged.");
-		World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(MeshID, MeshData.get());
+		if(MeshID == ~0u)
+			MeshID = World->GetScene()->GetStaticMeshProxy()->AddStaticMesh(MeshData.get());
+		else
+			World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(MeshID, MeshData.get());
+
+		if (InstanceID == ~0u)
+		{
+			auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
+			InstanceID = GetScene()->GetStaticMeshProxy()->AddInstance(MeshID, TransformId);
+		}
+		else
+			GetScene()->GetStaticMeshProxy()->UpdateInstance(InstanceID, MeshID);
 	}
 }
 void StaticMeshComponent::Remesh()
