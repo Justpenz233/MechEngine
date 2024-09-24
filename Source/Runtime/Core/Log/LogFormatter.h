@@ -14,6 +14,16 @@ struct fmt::formatter<Eigen::Vector3d> : fmt::formatter<std::string>
         return fmt::formatter<std::string>::format(Context, ctx);
   }
 };
+
+template <>
+struct fmt::formatter<Eigen::Vector3i> : fmt::formatter<std::string>
+{
+	auto format(const Eigen::Vector3i& a, format_context& ctx) const {
+		std::string Context = fmt::format("[{0}, {1}, {2}]", a[0], a[1], a[2]);
+		return fmt::formatter<std::string>::format(Context, ctx);
+	}
+};
+
 template <>
 struct fmt::formatter<Eigen::Vector2d> : fmt::formatter<std::string>
 {

@@ -74,6 +74,11 @@ public:
 		return nullptr;
 	}
 
+	virtual ObjectPtr<StaticMesh> GetZeroThicknessMesh() const override
+	{
+		return DisplayMesh;
+	}
+
 protected:
 	ObjectPtr<StaticMesh> PMesh;
 	ObjectPtr<StaticMesh> DisplayMesh;

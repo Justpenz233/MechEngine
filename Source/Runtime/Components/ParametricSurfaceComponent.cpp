@@ -82,6 +82,7 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
     }
 
     assert(InnerTriangleNum == TriangleIndex);
+	Result->CalcNormal();
     return Result;
 }
 

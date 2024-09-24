@@ -42,6 +42,7 @@ namespace MechEngine
 
 	inline void CrashWithLog(int signal)
 	{
+		LOG_INFO("Crash with signal {}", signal);
 		LOG_TRACE();
 		std::exit(signal);
 	}

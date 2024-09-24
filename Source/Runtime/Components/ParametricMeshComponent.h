@@ -184,6 +184,12 @@ public:
 			SetThickness(MeshThickness);
 	}
 
+	virtual ObjectPtr<StaticMesh> GetZeroThicknessMesh() const
+	{
+		ASSERT("Not implemented");
+		return nullptr;
+	};
+
 protected:
 	ParametricMeshComponent() = default;
 

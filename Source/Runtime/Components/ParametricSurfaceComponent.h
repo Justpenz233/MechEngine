@@ -94,6 +94,8 @@ public:
 
 	bool IsClosed() { return SurfaceData->bIsClosed; }
 
+	virtual ObjectPtr<StaticMesh> GetZeroThicknessMesh() const override { return AABBMesh; }
+
 protected:
 	ObjectPtr<StaticMesh> AABBMesh;
 	igl::AABB<MatrixX3d, 3> AABB;
