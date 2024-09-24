@@ -160,8 +160,6 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				for (auto Instance : MeshInstances[Id1])
 					accel.set_mesh(Instance, *AccelMesh);
 
-				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID};
-				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerNormalBuffer };
 				auto PreVBuffer = MeshResources[Id1].VertexBuffer;
 				auto PreTBuffer = MeshResources[Id1].TriangleBuffer;
 				auto PreCNBuffer = MeshResources[Id1].CornerNormalBuffer;
@@ -170,6 +168,9 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				Scene.destroy(PreTBuffer);
 				Scene.destroy(PreCNBuffer);
 				Scene.destroy(PreMesh);
+
+				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID};
+				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerNormalBuffer };
 				break;
 			}
 			case UInstance: // Not tested

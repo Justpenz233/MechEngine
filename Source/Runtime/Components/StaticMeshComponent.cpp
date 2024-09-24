@@ -70,10 +70,6 @@ void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 	{
 		World->GetScene()->GetStaticMeshProxy()->SetInstanceVisibility(InstanceID, bVisible);
 	}
-	else
-	{
-		LOG_WARNING("{} is not supported in StaticMeshComponent", FieldName);
-	}
 }
 
 void StaticMeshComponent::SetVisible(bool InVisible)
