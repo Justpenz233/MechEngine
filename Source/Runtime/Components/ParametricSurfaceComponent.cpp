@@ -187,7 +187,7 @@ FVector2 ParametricSurfaceComponent::Projection(const FVector& Point) const
 {
 	ASSERTMSG(AABBMesh->HasValidUV(), "AABB Mesh has no valid UV");
 	RowVector3d ClosetPoint; int TriangleIndex = 0;
-	AABB.squared_distance(AABBMesh->GetVertices(), AABBMesh->GetTriangles(), Point, TriangleIndex, ClosetPoint);
+	AABB.squared_distance(AABBMesh->verM, AABBMesh->triM, Point, TriangleIndex, ClosetPoint);
 
 	auto Tri = AABBMesh->GetTriangle(TriangleIndex);
 	MatrixX3d Bary;

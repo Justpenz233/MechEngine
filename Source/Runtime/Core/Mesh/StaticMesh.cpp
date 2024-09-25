@@ -163,6 +163,9 @@ void StaticMesh::SaveOBJ(const Path& FileName) const
 	for (int i = 0; i < verM.rows(); i++) {
 		ofile << "v " << verM(i, 0) << " " << verM(i, 1) << " " << verM(i, 2) << std::endl;
 	}
+	for (int i = 0; i < UV.rows(); i++) {
+		ofile << "vt " << UV(i, 0) << " " << UV(i, 1) << std::endl;
+	}
 	for (int i = 0; i < triM.rows(); i++) {
 		ofile << "f " << triM(i, 0) + 1 << " " << triM(i, 1) + 1 << " " << triM(i, 2) + 1 << std::endl;
 	}
