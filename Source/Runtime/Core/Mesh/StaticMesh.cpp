@@ -185,7 +185,7 @@ StaticMesh* StaticMesh::Translate(const FVector& Translation)
 StaticMesh* StaticMesh::Rotate(const FQuat& Rotation)
 {
 	ParallelFor(verM.rows(), [this, Rotation](int i){
-		verM.row(i) = verM.row(i) * Rotation.matrix();
+		verM.row(i) = Rotation * verM.row(i);
 	});
 	OnGeometryUpdate();
 	return this;
@@ -246,6 +246,23 @@ TArray<int> StaticMesh::BoundaryVertices() const
 {
 	TArray<int> Result;
 	igl::boundary_loop(triM, Result);
+	return Result;
+}
+
+TArray<int> StaticMesh::BoundaryTriangles() const
+{
+	auto BoundaryVertex = BoundaryVertices();
+	auto BoundaryVSet = THashSet<int>(BoundaryVertex.begin(), BoundaryVertex.end());
+	TArray<int> Result;
+
+	// Find the boundary triangles
+	for (int i = 0; i < triM.rows(); i++)
+	{
+		if (BoundaryVSet.contains(triM(i, 0))
+			|| BoundaryVSet.contains(triM(i, 1))
+			|| BoundaryVSet.contains(triM(i, 2)))
+			Result.push_back(i);
+	}
 	return Result;
 }
 

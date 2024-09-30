@@ -219,6 +219,12 @@ public:
 	TArray<int> BoundaryVertices() const;
 
 	/**
+	 * Get the boundary triangles of the mesh
+	 * @return boundary triangles indices, will be empty if the mesh does not have boundary
+	 */
+	TArray<int> BoundaryTriangles() const;
+
+	/**
 	 * Check if the mesh is closed, i.e. the mesh is homeomorphic to a sphere
 	 * @return true, if the mesh is closed
 	 */

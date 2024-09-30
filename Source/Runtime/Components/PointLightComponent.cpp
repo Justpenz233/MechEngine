@@ -28,6 +28,7 @@ void PointLightComponent::UploadRenderingData()
 		GetWorld()->GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceId, MeshId);
 		GetWorld()->GetScene()->GetStaticMeshProxy()->BindInstance(MeshId, InstanceId);
 	}
+	bDirty = false;
 }
 
 void PointLightComponent::Remesh()

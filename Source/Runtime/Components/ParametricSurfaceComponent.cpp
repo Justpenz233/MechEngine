@@ -7,8 +7,19 @@
 #include "Surface/ParametricSurface.h"
 #include "igl/per_corner_normals.h"
 
-ParametricSurfaceComponent::ParametricSurfaceComponent(ObjectPtr<ParametricSurface> NewSurface, double InThickness)
-:SurfaceData(NewSurface) {MeshThickness = InThickness;}
+ParametricSurfaceComponent::ParametricSurfaceComponent(const ObjectPtr<ParametricSurface>& NewSurface, double InThickness)
+	: SurfaceData(NewSurface)
+{
+	MeshThickness = InThickness;
+}
+
+ParametricSurfaceComponent::ParametricSurfaceComponent(const ObjectPtr<ParametricSurface>& NewSurface, const ObjectPtr<StaticMesh>& InDisplayMesh)
+	: SurfaceData(NewSurface)
+{
+	DisplayMesh = InDisplayMesh;
+	SetMeshData(DisplayMesh);
+	MarkAsDirty(DIRTY_RENDERDATA);
+}
 
 void ParametricSurfaceComponent::Init()
 {
@@ -87,67 +98,68 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
 }
 
 
-void ParametricSurfaceComponent::Triangular() {
+ObjectPtr<StaticMesh> ParametricSurfaceComponent::Triangular() {
     double ThicknessFix = MeshThickness < 1e-4 ? 1e-3 : MeshThickness; // When nearlly zero, set to 1e-3 as alternative of two-sided surface
 
 	{
-		AABBMesh  = TriangularSurface(RullingLineNumU, RullingLineNumV,
+		AABBMesh  = TriangularSurface(RulingLineNumU, RulingLineNumV,
 			[this](double u,double v){return Sample(u, v);}, false, SurfaceData->bIsClosed);
     	AABB.clear();
     	AABB.init(AABBMesh->GetVertices(), AABBMesh->GetTriangles());
 	}
 
-    auto Inner  = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, -ThicknessFix*0.5);}, true, SurfaceData->bIsClosed);
-    auto Outter = TriangularSurface(RullingLineNumU, RullingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, ThicknessFix*0.5);}, false, SurfaceData->bIsClosed);
+    auto Inner  = TriangularSurface(RulingLineNumU, RulingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, -ThicknessFix*0.5);}, true, SurfaceData->bIsClosed);
+    auto Outter = TriangularSurface(RulingLineNumU, RulingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, ThicknessFix*0.5);}, false, SurfaceData->bIsClosed);
 
     assert(Inner->GetVertexNum() == Outter->GetVertexNum());
 
-    
-    MeshData = MeshBoolean::MeshConnect(Inner, Outter);
+	ObjectPtr<StaticMesh> Result;
+    Result = MeshBoolean::MeshConnect(Inner, Outter);
     
     bool IsClosedPolygon = SurfaceData->bIsClosed;
 
     int VertexNum           = Inner->GetVertexNum();
-    int TriangleIndex       = MeshData->GetFaceNum();
+    int TriangleIndex       = Result->GetFaceNum();
     int PreTriangleNum      = TriangleIndex;
-    int SupossedTriangleNum = TriangleIndex + 4 * (RullingLineNumU - 1) + IsClosedPolygon * 4 + (!IsClosedPolygon) * 4 * (RullingLineNumV - 1);
+    int SupossedTriangleNum = TriangleIndex + 4 * (RulingLineNumU - 1) + IsClosedPolygon * 4 + (!IsClosedPolygon) * 4 * (RulingLineNumV - 1);
     // Base triNum + Close along U + Close along V
 
-    MeshData->triM.conservativeResize(SupossedTriangleNum, 3);
+    Result->triM.conservativeResize(SupossedTriangleNum, 3);
 
-    for (int UIndex = 0; UIndex < RullingLineNumU; UIndex++)
+    for (int UIndex = 0; UIndex < RulingLineNumU; UIndex++)
     {
-        if(!IsClosedPolygon && UIndex == RullingLineNumU - 1) continue;
+        if(!IsClosedPolygon && UIndex == RulingLineNumU - 1) continue;
 
         int This     = UIndex;
-        int Right    = (UIndex == RullingLineNumU - 1)? 0 : This + 1;
-        MeshData->triM.row(TriangleIndex ++) = Vector3i{This, Right, Right + VertexNum};
-        MeshData->triM.row(TriangleIndex ++) = Vector3i{Right + VertexNum, This + VertexNum, This};
+        int Right    = (UIndex == RulingLineNumU - 1)? 0 : This + 1;
+        Result->triM.row(TriangleIndex ++) = Vector3i{This, Right, Right + VertexNum};
+        Result->triM.row(TriangleIndex ++) = Vector3i{Right + VertexNum, This + VertexNum, This};
 
         //!!!
-        This  += RullingLineNumU * (RullingLineNumV - 1);
-        Right += RullingLineNumU * (RullingLineNumV - 1);
-        MeshData->triM.row(TriangleIndex ++) = Vector3i{This, This + VertexNum, Right + VertexNum};
-        MeshData->triM.row(TriangleIndex ++) = Vector3i{Right + VertexNum, Right, This};
+        This  += RulingLineNumU * (RulingLineNumV - 1);
+        Right += RulingLineNumU * (RulingLineNumV - 1);
+        Result->triM.row(TriangleIndex ++) = Vector3i{This, This + VertexNum, Right + VertexNum};
+        Result->triM.row(TriangleIndex ++) = Vector3i{Right + VertexNum, Right, This};
     }
 
     if(!IsClosedPolygon)
     {
-        for (int VIndex = 0; VIndex < RullingLineNumV - 1; VIndex++)
+        for (int VIndex = 0; VIndex < RulingLineNumV - 1; VIndex++)
         {
-            int Left    = VIndex * RullingLineNumU;
-            int LeftTop = Left + RullingLineNumU;
-            MeshData->triM.row(TriangleIndex ++) = Vector3i{Left, Left + VertexNum, LeftTop + VertexNum};
-            MeshData->triM.row(TriangleIndex ++) = Vector3i{LeftTop + VertexNum, LeftTop, Left};
+            int Left    = VIndex * RulingLineNumU;
+            int LeftTop = Left + RulingLineNumU;
+            Result->triM.row(TriangleIndex ++) = Vector3i{Left, Left + VertexNum, LeftTop + VertexNum};
+            Result->triM.row(TriangleIndex ++) = Vector3i{LeftTop + VertexNum, LeftTop, Left};
 
-            int Right    = VIndex * RullingLineNumU + RullingLineNumU - 1;
-            int RightTop = Right + RullingLineNumU;
-            MeshData->triM.row(TriangleIndex ++) = Vector3i{Right, RightTop, RightTop + VertexNum};
-            MeshData->triM.row(TriangleIndex ++) = Vector3i{RightTop + VertexNum, Right + VertexNum, Right};
+            int Right    = VIndex * RulingLineNumU + RulingLineNumU - 1;
+            int RightTop = Right + RulingLineNumU;
+            Result->triM.row(TriangleIndex ++) = Vector3i{Right, RightTop, RightTop + VertexNum};
+            Result->triM.row(TriangleIndex ++) = Vector3i{RightTop + VertexNum, Right + VertexNum, Right};
         }
     }
-	MeshData->OnGeometryUpdate();
+	Result->OnGeometryUpdate();
     assert(SupossedTriangleNum == TriangleIndex);
+	return Result;
 }
 
 FVector ParametricSurfaceComponent::Sample(const double u, const double v) const {
@@ -165,9 +177,10 @@ FVector ParametricSurfaceComponent::SampleThickness(const double u, const double
 
 void ParametricSurfaceComponent::Remesh()
 {
+	if (DisplayMesh) return;
 	StaticMeshComponent::Remesh();
 	auto PreMaterial = MeshData->GetMaterialAsset();
-	Triangular();
+	MeshData = Triangular();
 	MeshData->SetMaterial(PreMaterial);
 }
 
