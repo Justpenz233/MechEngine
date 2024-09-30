@@ -83,8 +83,6 @@ void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)
 {
 	if(TransformIdMap.count(InTransform))
 		DirtyTransforms.insert(InTransform);
-	else
-		LOG_ERROR("Trying to update a transform from actor: {} that does not exist in the scene.", InTransform->GetOwnerName());
 }
 
 }
