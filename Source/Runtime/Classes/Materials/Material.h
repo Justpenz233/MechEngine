@@ -10,7 +10,7 @@
 namespace MechEngine::Rendering
 {
 class MaterialSceneProxy;
-struct materialData;
+struct material_data;
 class shader_base;
 }
 
@@ -67,7 +67,7 @@ public:
 	static ObjectPtr<Material> DefaultMaterial();
 
 protected:
-	friend class MechEngine::Rendering::materialData;
+	friend class MechEngine::Rendering::material_data;
 	friend class MechEngine::Rendering::MaterialSceneProxy;
 	inline static FColor DefalutColor = FLinearColor(1., 1., 1.);
 

@@ -43,6 +43,9 @@ protected:
 protected:
 	bool bDirty = false;
 
+	uint LightId = ~0u;
+	uint InstanceId = ~0u;
+
 };
 
 FORCEINLINE void LightComponent::SetLightColor(const FColor& InColor)

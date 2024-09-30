@@ -4,6 +4,7 @@
 
 #include "LightSceneProxy.h"
 
+#include "ShapeSceneProxy.h"
 #include "Components/ConstPointLightComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/PointLightComponent.h"
@@ -33,59 +34,64 @@ uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
 		return ~0u;
 }
 
-void LightSceneProxy::AddLight(LightComponent* InLight, uint InTransformID)
+uint LightSceneProxy::AddLight(LightComponent* InLight, uint InstanceId)
 {
-	if(InLight != nullptr)
+	if (InLight != nullptr)
 	{
-		ASSERTMSG(LightIndexMap.count(InLight) == 0, "Light already exists in the batch");
-		if(GetLightTypeTag(InLight) != ~0u)
+		if (GetLightTypeTag(InLight) == ~0u)
 		{
-			DirtyLights.insert(InLight);
-			LightIndexMap[InLight] = {id, InTransformID};
-			id += 1;
+			LOG_ERROR("Light type not supported");
+			return ~0u;
 		}
-		else
-		{
-			LOG_ERROR( "Light type not supported" );
-		}
+		auto LightID = IdCounter++;
+		LightDatas[LightID] = GetFlatLightData(InLight);
+		LightDatas[LightID].instance_id = InstanceId;
+		bDirty = true;
+		return LightID;
 	}
-	else
-	{
-		LOG_ERROR("Trying to add nullptr light to scene");
-	}
+	LOG_ERROR("Trying to add nullptr light to scene");
+	return ~0u;
 }
 
-void LightSceneProxy::UpdateLight(LightComponent* InLight)
+void LightSceneProxy::UpdateLight(LightComponent* InLight, uint LightId, uint InstanceId)
 {
-	DirtyLights.insert(InLight);
+	if(InLight == nullptr)
+	{
+		LOG_ERROR("Trying to update nullptr light");
+		return;
+	}
+	if(GetLightTypeTag(InLight) == ~0u)
+	{
+		LOG_ERROR( "Light type not supported" );
+		return;
+	}
+	LightDatas[LightId] = GetFlatLightData(InLight);
+	LightDatas[LightId].instance_id = InstanceId;
+	bDirty = true;
 }
 
 
 void LightSceneProxy::UploadDirtyData(Stream& stream)
 {
-	if( DirtyLights.empty()) { return; }
-	for(auto& Light : DirtyLights)
-	{
-		auto& LightData = LightDatas[LightIndexMap[Light].first];
-		LightData.intensity = Light->GetIntensity();
-		LightData.light_color = ToLuisaVector(Light->GetLightColor());
-		LightData.transform_id = LightIndexMap[Light].second;
-		if(auto Ptr = Cast<PointLightComponent>(Light))
-		{
-			LightData.light_type = point_light_tag;
-			LightData.radius = Ptr->GetRadius();
-		}
-		else if (Cast<ConstPointLightComponent>(Light))
-		{
-			LightData.light_type = const_light_tag;
-		}
-		else
-		{
-			LOG_ERROR( "Light type not supported" );
-		}
-	}
-	DirtyLights.clear();
-
+	if (!bDirty) return;
+	bDirty = false;
 	stream << light_buffer.copy_from(LightDatas.data());
 }
+
+light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
+{
+	light_data LightData;
+	LightData.intensity = InLight->GetIntensity();
+	LightData.light_color = ToLuisaVector(InLight->GetLightColor());
+	if (auto Ptr = Cast<PointLightComponent>(InLight))
+	{
+		LightData.light_type = point_light_tag;
+		LightData.radius = Ptr->GetRadius();
+	}
+	else if (Cast<ConstPointLightComponent>(InLight))
+	{
+		LightData.light_type = const_light_tag;
+	}
+	return LightData;
 }
+} // namespace MechEngine::Rendering

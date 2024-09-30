@@ -12,7 +12,7 @@ class LightComponent;
 namespace MechEngine::Rendering
 {
 
-using namespace  luisa;
+using namespace luisa;
 using namespace luisa::compute;
 
 class ENGINE_API LightSceneProxy: public SceneProxy
@@ -23,14 +23,16 @@ public:
 	/**
 	 * Add a new light to the scene and bind the corresponding transform
 	 * @param InLight LightComponent to add
+	 * @param InstanceId InstanceId of the light in the scene
 	 */
-	void AddLight(LightComponent* InLight, uint InTransformID);
+	uint AddLight(LightComponent* InLight, uint InstanceId);
 
 	/**
 	 * Update the light data in the scene
 	 * @param InLight LightComponent to update
+	 * @param LightId light id in the scene
 	 */
-	void UpdateLight(LightComponent* InLight);
+	void UpdateLight(LightComponent* InLight, uint LightId, uint InstanceId);
 
 	/**
 	 * Get the light type tag uint
@@ -44,7 +46,7 @@ public:
 
 	[[nodiscard]] FORCEINLINE uint LightCount() const
 	{
-		return id;
+		return IdCounter;
 	}
 
 	[[nodiscard]] FORCEINLINE Var<light_data> get_light_data(const UInt& light_id) const
@@ -54,15 +56,15 @@ public:
 
 	Polymorphic<light_base> light_virtual_call;
 protected:
+	light_data GetFlatLightData(LightComponent* InLight) const;
+
+
 	LightSceneProxy(const LightSceneProxy&) = delete;
 	LightSceneProxy& operator=(const LightSceneProxy&) = delete;
 	LightSceneProxy(LightSceneProxy&&) = delete;
 
-	// Accel user id which represents a light
-	uint light_user_id = ~0u;
-
 	//Light collection
-	uint id = 0;
+	uint IdCounter = 0;
 	static constexpr auto light_max_number = 256u;
 	vector<light_data> LightDatas;
 	uint bindless_id;
@@ -72,8 +74,6 @@ protected:
 	uint point_light_tag;
 	uint directional_light_tag;
 
-	// component to light index at LightDatas, and the transform id
-	map<LightComponent*, std::pair<uint, uint>> LightIndexMap;
-	set<LightComponent*> DirtyLights;
+	bool bDirty = false;
 };
 }
