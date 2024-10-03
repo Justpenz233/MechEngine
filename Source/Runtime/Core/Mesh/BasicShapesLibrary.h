@@ -33,7 +33,7 @@ public:
 
     // Central at orgin, samples for circle, Height in z direction
     static ObjectPtr<StaticMesh> GenerateCylinder(double length, double radius, int Samples = 32);
-    static ObjectPtr<StaticMesh> GenerateCylinder(Vector3d A, Vector3d B, double Radius, int Samples = 32);
+    static ObjectPtr<StaticMesh> GenerateCylinder(const Vector3d& A, Vector3d B, double Radius, int Samples = 32);
 
 	/**
 	 * Generate a capsule
@@ -50,7 +50,7 @@ public:
 	 */
 	static ObjectPtr<StaticMesh> GenerateOneHatCapsule(double Radius, double Height, bool bTopHat = true, int Sample = 32, int RingSample = 32);
 
-
+	static ObjectPtr<StaticMesh> GenerateHollowCylinder(const Vector3d& A, const Vector3d& B, double OuterRadius, double InnerRadius, int Samples = 32);
     static ObjectPtr<StaticMesh> GenerateHollowCylinder(double OuterRadius, double InnerRadius, double Height, int Sample = 32);
 
 	// Generate a cuboid with different size in x, y, z direction

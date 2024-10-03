@@ -534,7 +534,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCylinder(double length, double
     return NewObject<StaticMesh>(verList, triList);
 }
 
-ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCylinder(Vector3d A, Vector3d B, double Radius, int Samples)
+auto BasicShapesLibrary::GenerateCylinder(const Vector3d& A, Vector3d B, double Radius, int Samples) -> ObjectPtr<StaticMesh>
 {
 	// Create a cylinder with the given radius and computed length
 	double Length = (B - A).norm();
@@ -690,7 +690,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, d
 		Vertices.emplace_back(0, 0, HalfHeight + Radius);
 		for (int i = 0; i < RingSample; i++)
 		{
-			double  theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
+			double theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
 			for (int j = 0; j < RingSample; j++)
 			{
 				double phi = j * 2 * M_PI / RingSample;
@@ -725,7 +725,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, d
 		int IndexBias = Vertices.size();
 		for (int i = 0; i < Sample; i++)
 		{
-			for(int j = 0;j < RingSample; j ++)
+			for (int j = 0; j < RingSample; j++)
 			{
 				double beta = j * 2.0 * M_PI / RingSample;
 
@@ -736,8 +736,10 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, d
 				Vertices.emplace_back(x, y, z);
 			}
 		}
-		for (int h = 0; h < Sample - 1; ++ h) {
-			for (int i = 0; i < RingSample; ++ i) {
+		for (int h = 0; h < Sample - 1; ++h)
+		{
+			for (int i = 0; i < RingSample; ++i)
+			{
 				int start = h * RingSample + IndexBias;
 				int cur = i + start;
 				int next = (i + 1) % RingSample + start;
@@ -747,7 +749,8 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, d
 		}
 		Vertices.emplace_back(0, 0, -HalfHeight);
 		int CenterIndex = Vertices.size() - 1;
-		for (int i = 0; i < RingSample; i ++) {
+		for (int i = 0; i < RingSample; i++)
+		{
 			int next = (i + 1) % RingSample + CenterIndex - RingSample;
 			int cur = i + CenterIndex - RingSample;
 			Indices.emplace_back(CenterIndex, next, cur);
@@ -766,8 +769,28 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, d
 	}
 
 	auto Result = NewObject<StaticMesh>(Vertices, Indices);
-	if(!bTopHat) Result->RotateEuler({M_PI, 0, 0});
+	if (!bTopHat)
+		Result->RotateEuler({ M_PI, 0, 0 });
 	return Result;
+}
+
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateHollowCylinder(const Vector3d& A, const Vector3d& B, double OuterRadius, double InnerRadius, int Samples)
+{
+	double Length = (B - A).norm();
+	auto   Mesh = GenerateHollowCylinder(OuterRadius, InnerRadius, Length, Samples);
+
+	// Compute the translation matrix
+	Vector3d   center = 0.5f * (A + B);
+	Vector3d   TArray = (B - A).normalized();
+	FQuat	   Rotation = FQuat::FromTwoVectors(Vector3d{ 0., 0., 1. }, TArray);
+	FTransform Transform = FTransform::Identity();
+	Transform.SetRotation(Rotation);
+	Transform.SetTranslation(center);
+
+	// Transform the cylinder to its target position and orientation
+	Mesh->TransformMesh(Transform.GetMatrix());
+	return Mesh;
+
 }
 
 ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateHollowCylinder(double OuterRadius, double InnerRadius, double Height, int Sample)

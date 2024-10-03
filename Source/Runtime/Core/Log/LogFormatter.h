@@ -93,19 +93,10 @@ struct fmt::formatter<std::vector<T>> : fmt::formatter<std::string> {
 	// if the vector has more than 20 elements, the last element will be "..."
 	auto format(const std::vector<T>& a, format_context& ctx) {
 		std::string Context = "[";
-		int Count = 0;
-		int EndIndex = a.size() > 100 ? 100 : a.size() - 1;
 		for (auto& i : a)
 		{
 			Context += fmt::format("{}", i);
-			if(Count != EndIndex)
-				Context += ", ";
-			else if (EndIndex < a.size() - 1)
-			{
-				Context += "...";
-				break;
-			}
-			Count ++;
+			Context += ", ";
 		}
 		Context += "]";
 		return fmt::formatter<std::string>::format(Context, ctx);
