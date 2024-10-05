@@ -189,6 +189,7 @@ namespace MechEngine::Rendering
 		* @return Instersection of primitve information of the ray
 		*/
 		ray_intersection intersect(const Var<Ray>& ray) const noexcept;
+		ray_intersection intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept;
 
 		/**
 		* Get the transform data of a transform by instance id

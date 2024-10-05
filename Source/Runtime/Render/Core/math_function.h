@@ -200,5 +200,16 @@ namespace MechEngine::Rendering
 		Float3 b = cross(n, t);
 		return { cross(n, b), b, n};
 	}
+	/**
+	 * Calculate the orthogonal basis of a given normal and a point mapping to normal space. Assume the normal is normalized, and is z axis.
+	 * @param n given normal
+	 * @param p point mapping to normal space
+	 * @return new point in the orthogonal basis
+	 */
+	FORCEINLINE Float3 orthogonal_basis(const Float3& n, const Float3& p)
+	{
+		auto basis = orthogonal_basis(n);
+		return p.x * basis[0] + p.y * basis[1] + p.z * basis[2];
+	}
 
 }

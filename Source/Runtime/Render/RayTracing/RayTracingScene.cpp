@@ -162,71 +162,51 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 		};
 		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
 
-
-		$for(light_id, 128)
+		if(global_illumination)
 		{
-			// First calculate light color, as rendering equation is L_i(x, w_i)
-			auto light_data = LightProxy->get_light_data(light_id);
-			$if(!light_data->valid()) {$break;};
-			auto light_location = rtAccel->instance_transform(light_data->instance_id)[3].xyz();
-			auto light_dir = normalize(light_location - x);
-			auto distance_to_light = length(light_location - x);
-
-			auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
-				Float3 light_color = make_float3(0.f);
-				Float3 mesh_color = make_float3(0.f);
-				Float3 light_visibility = make_float3(1.);
-				$if(dot(w_i, normal) >= 0.f)
+			auto wi = orthogonal_basis(normal, sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
+			auto cos = dot(wi, normal);
+			auto diffuse_ray = make_ray(shadow_ray_origin, wi);
+			auto hit = trace_closest(diffuse_ray);
+			auto ray_li = ite(
+				hit.miss(),
+				make_float3(0.f),
+				calc_surface_point_color(ray, intersect(hit, ray), false).first);
+			context.w_i = wi;
+			Float3 bxdf;
+			MaterialProxy->shader_call.dispatch(
+						material_data.material_type, [&](const shader_base* material) {
+							bxdf = material->bxdf(context, bxdf_parameters);
+						});
+			pixel_radiance = ray_li * bxdf;
+		}
+		else // Direct lighting
+		{
+			$for(light_id, 128)
+			{
+				// First calculate light color, as rendering equation is L_i(x, w_i)
+				auto light = LightProxy->get_light_data(light_id);
+				$if(!light->valid()) {$break;};
+				auto light_location = rtAccel->instance_transform(light->instance_id)[3].xyz();
+				auto light_dir = normalize(light_location - x);
+				auto distance_to_light = length(light_location - x);
+				Float3 light_le = make_float3(0.f);
+				Float3 bxdf = make_float3(0.f);
+				auto cos = dot(light_dir, normal);
+				$if(cos > 0.001f)
 				{
-					context.w_i = w_i;
-
-					if (calc_shadow)// Shadow ray
-					{
-						auto Hit = trace_closest(make_ray(shadow_ray_origin, w_i, 0.f, 1.f)).instance_id;
-						light_visibility = select(make_float3(0.), make_float3(1.),
-						 Hit == light_data->instance_id | Hit == ~0u);
-					}
-
+					context.w_i = light_dir;
 					// Dispatch light evaluate polymorphic, so that we can have different light type
 					LightProxy->light_virtual_call.dispatch(
-						light_data.light_type, [&](const light_base* light) {
-							light_color = light->l_i(light_data, distance_to_light, w_i);
+						light.light_type, [&](const light_base* light_type) {
+							light_le = light_type->l_i(light, distance_to_light, light_dir);
 						});
 
 					MaterialProxy->shader_call.dispatch(
 						material_data.material_type, [&](const shader_base* material) {
-							mesh_color = material->bxdf(context, bxdf_parameters);
+							bxdf = material->bxdf(context, bxdf_parameters);
 						});
-				};
-				return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
-			};
-
-			auto lighting = calc_lighting(light_dir, bRenderShadow);
-
-			// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
-			// Cheaper method in the those machine not have hardware acceleration
-			// if (!bGlobalIllumination)
-				// lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal), false) * 0.05f;
-			pixel_radiance += lighting;
-		};
-		if(global_illumination)
-		{
-			$if(material_data.alpha == 1.f) // Only reflect for opaque surface
-			{
-				// Reflection by Orthonormal Basis
-				// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
-				auto reflect_dir = sample_uniform_hemisphere_surface(get_sampler()->generate_2d());
-				auto onb = orthogonal_basis(normal);
-				reflect_dir = normalize(reflect_dir.x * onb[0] + reflect_dir.y * onb[1] + reflect_dir.z * onb[2]);
-
-				auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
-				auto reflect_intersection = intersect(reflect_ray);
-				$if(reflect_intersection.valid())
-				{
-					auto [reflect_radiance, alpha]
-					= calc_surface_point_color(reflect_ray, reflect_intersection, false);
-
-					pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
+					pixel_radiance = bxdf * light_le;
 				};
 			};
 		}
@@ -303,8 +283,12 @@ void RayTracingScene::render_main_view(const UInt& frame_index)
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
-	auto color = render_pixel(ray, pixel_pos);
-	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color), 1.f));
+
+	auto color = linear_to_srgb(render_pixel(ray, pixel_pos));
+	auto pre_color = frame_buffer()->read(pixel_coord).xyz();
+	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 1);
+
+	frame_buffer()->write(pixel_coord, make_float4(now_color, 1.f));
 }
 
 void RayTracingScene::CompileShader()
