@@ -26,9 +26,10 @@ namespace MechEngine::Rendering
 	class CameraSceneProxy;
 	class TransformSceneProxy;
 	class StaticMeshSceneProxy;
+	class LineSceneProxy;
+	class ShapeSceneProxy;
 	struct ray_tracing_hit;
 	struct ray_intersection;
-	class LineSceneProxy;
 
 	using namespace luisa;
 	using namespace luisa::compute;
@@ -222,8 +223,12 @@ namespace MechEngine::Rendering
 		FORCEINLINE LightSceneProxy* GetLightProxy() { return LightProxy.get(); }
 		FORCEINLINE MaterialSceneProxy* GetMaterialProxy() { return MaterialProxy.get(); }
 		FORCEINLINE LineSceneProxy* GetLineProxy() { return LineProxy.get(); }
+		FORCEINLINE ShapeSceneProxy* GetShapeProxy() { return ShapeProxy.get(); }
 
 	protected:
+		// Instance shape management
+		unique_ptr<ShapeSceneProxy> ShapeProxy;
+
 		// Mesh collection
 		unique_ptr<StaticMeshSceneProxy> StaticMeshProxy;
 

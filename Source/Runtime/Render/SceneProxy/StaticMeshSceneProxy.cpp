@@ -4,6 +4,7 @@
 
 #include "StaticMeshSceneProxy.h"
 #include "MaterialSceneProxy.h"
+#include "ShapeSceneProxy.h"
 #include "TransformProxy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Mesh/BasicShapesLibrary.h"
@@ -35,42 +36,33 @@ uint StaticMeshSceneProxy::AddStaticMesh(StaticMesh* InMesh)
 		return ~0u;
 	}
 	auto Id = ++MeshIdCounter;
-	CommandQueue.emplace_back(CMesh, Id, 0, InMesh);
+	CommandQueue.emplace_back(Create, Id, 0, InMesh);
 	return Id;
-}
-
-uint StaticMeshSceneProxy::AddInstance(uint MeshId, uint TransformId)
-{
-	accel.emplace_back(0);
-	auto InstanceId = accel.size() - 1;
-	CommandQueue.emplace_back(CInstance, MeshId, InstanceId, nullptr);
-	Scene.GetTransformProxy()->BindTransform(InstanceId, TransformId);
-	return InstanceId;
-}
-
-void StaticMeshSceneProxy::UpdateInstance(uint InstanceId, uint MeshId)
-{
-	CommandQueue.emplace_back(UInstance, InstanceId, MeshId, nullptr);
-}
-
-void StaticMeshSceneProxy::RemoveInstance(uint InstanceId)
-{
-	CommandQueue.emplace_back(DInstance, InstanceId, 0, nullptr);
-}
-
-void StaticMeshSceneProxy::SetInstanceVisibility(uint InstanceId, bool bVisible)
-{
-	CommandQueue.emplace_back(UVisibility, InstanceId, bVisible, nullptr);
 }
 
 void StaticMeshSceneProxy::UpdateStaticMeshGeometry(uint MeshId, StaticMesh* InMesh)
 {
-	CommandQueue.emplace_back(UMesh, MeshId, 0, InMesh);
+	if (!InMesh || InMesh->IsEmpty() || MeshId > MeshIdCounter)
+	{
+		LOG_WARNING("Trying to update a null mesh to the scene.");
+		return;
+	}
+	CommandQueue.emplace_back(Update, MeshId, 0, InMesh);
+}
+
+void StaticMeshSceneProxy::BindInstance(uint MeshID, uint InstanceID)
+{
+	if (MeshID > MeshIdCounter)
+	{
+		LOG_WARNING("Trying to bind a mesh that does not exist. ID {}", MeshID);
+		return;
+	}
+	CommandQueue.emplace_back(Bind, MeshID, InstanceID, nullptr);
 }
 
 void StaticMeshSceneProxy::RemoveStaticMesh(uint MeshId)
 {
-	CommandQueue.emplace_back(DMesh, MeshId, 0, nullptr);
+	CommandQueue.emplace_back(Delete, MeshId, 0, nullptr);
 }
 
 
@@ -86,7 +78,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 		auto MeshPtr = std::get<3>(Command);
 		switch (Type)
 		{
-			case CMesh:
+			case Create:
 			{
 				if (!MeshPtr || MeshPtr->IsEmpty())
 				{
@@ -110,23 +102,11 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				auto TBindlessid = Scene.RegisterBindless(TBuffer->view());
 				auto CNBindlessid = Scene.RegisterBindless(CornerlNormalBuffer->view());
 				auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshPtr->GetMaterial());
-				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID };
+				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID, 0 };
 				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerlNormalBuffer };
 				break;
 			}
-			case CInstance:
-			{
-				accel.set_mesh(Id2, *MeshResources[Id1].AccelMesh);
-				accel.set_instance_user_id_on_update(Id2, Id1);
-				MeshInstances[Id1].insert(Id2);
-				break;
-			}
-			case UVisibility:
-			{
-				accel.set_visibility_on_update(Id1, Id2);
-				break;
-			}
-			case UMesh:
+			case Update:
 			{
 				if (!MeshPtr || MeshPtr->IsEmpty())
 				{
@@ -152,16 +132,18 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				auto CNBindlessid = StaticMeshData[Id1].corner_normal_buffer_id;
 				auto MaterialID = Scene.GetMaterialProxy()->AddMaterial(MeshPtr->GetMaterial());
 
-				ASSERT(VBindlessid != ~0u && TBindlessid != ~0u && CNBindlessid != ~0u);
+				ASSERTMSG(VBindlessid != ~0u && TBindlessid != ~0u && CNBindlessid != ~0u,
+					"Trying to update a mesh that does not exist. ID {}", Id1);
 				bindlessArray.emplace_on_update(VBindlessid, VBuffer->view());
 				bindlessArray.emplace_on_update(TBindlessid, TBuffer->view());
 				bindlessArray.emplace_on_update(CNBindlessid, CornerNormalBuffer->view());
 
 				for (auto Instance : MeshInstances[Id1])
+				{
 					accel.set_mesh(Instance, *AccelMesh);
+					Scene.GetShapeProxy()->SetInstanceMeshID(Instance, Id1);
+				}
 
-				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID};
-				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerNormalBuffer };
 				auto PreVBuffer = MeshResources[Id1].VertexBuffer;
 				auto PreTBuffer = MeshResources[Id1].TriangleBuffer;
 				auto PreCNBuffer = MeshResources[Id1].CornerNormalBuffer;
@@ -170,29 +152,12 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				Scene.destroy(PreTBuffer);
 				Scene.destroy(PreCNBuffer);
 				Scene.destroy(PreMesh);
+
+				StaticMeshData[Id1] = { VBindlessid, TBindlessid, CNBindlessid, MaterialID, 0};
+				MeshResources[Id1] = { AccelMesh, VBuffer, TBuffer, CornerNormalBuffer };
 				break;
 			}
-			case UInstance: // Not tested
-			{
-				for (int i = 0; i < MeshIdCounter; i++)
-				{
-					if (MeshInstances[i].count(Id1))
-					{
-						MeshInstances[i].erase(Id1);
-						break;
-					}
-				}
-				MeshInstances[Id2].insert(Id1);
-				accel.set_mesh(Id1, *MeshResources[Id2].AccelMesh);
-				accel.set_instance_user_id_on_update(Id1, Id2);
-				break;
-			}
-			case DInstance: // Not tested
-			{
-				accel.set_visibility_on_update(Id1, false);
-				break;
-			}
-			case DMesh:
+			case Delete:
 			{
 				for (auto Instance : MeshInstances[Id1])
 					accel.set_visibility_on_update(Instance, false);
@@ -207,15 +172,24 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				MeshResources[Id1] = {};
 				break;
 			}
+			case Bind:
+			{
+				if (!MeshResources[Id1].AccelMesh)
+				{
+					LOG_ERROR("Trying to bind a mesh that does not exist. ID {}", Id1);
+					continue;
+				}
+				for (auto Meshes : MeshInstances)
+					if (Meshes.count(Id2)) Meshes.erase(Id2);
+				MeshInstances[Id1].insert(Id2);
+				accel.set_mesh(Id2, *MeshResources[Id1].AccelMesh);
+			}
 		}
 	}
 	CommandQueue.clear();
 
 	if (bFrameUpdated)
 		stream << data_buffer.subview(0, StaticMeshData.size()).copy_from(StaticMeshData.data());
-
-	if (accel.dirty())
-		stream << accel.build();
 }
 std::tuple<vector<Vertex>, vector<Triangle>, vector<float3>> StaticMeshSceneProxy::GetFlattenMeshData(StaticMesh* MeshData)
 {

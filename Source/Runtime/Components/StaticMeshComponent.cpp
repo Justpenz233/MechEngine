@@ -7,6 +7,7 @@
 #include "Game/World.h"
 #include "Materials/Material.h"
 #include "Render/GPUSceneInterface.h"
+#include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 
@@ -20,9 +21,13 @@ StaticMeshComponent::~StaticMeshComponent()
 {
 	if(GetWorld() != nullptr)
 	{
-		if(auto SceneProxy = GetScene()->GetStaticMeshProxy()) // Check nullptr prevent a system shut down
+		if(auto ShapeProxy = GetScene()->GetShapeProxy()) // Check nullptr prevent a system shut down
 		{
-			SceneProxy->RemoveStaticMesh(MeshID);
+			ShapeProxy->RemoveInstance(InstanceID);
+		}
+		if (auto StaticMeshProxy = GetScene()->GetStaticMeshProxy())
+		{
+			StaticMeshProxy->RemoveStaticMesh(MeshID);
 		}
 	}
 }
@@ -68,18 +73,14 @@ void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 	String FieldName = Field.getFieldName();
 	if (FieldName == NAME(bVisible))
 	{
-		World->GetScene()->GetStaticMeshProxy()->SetInstanceVisibility(InstanceID, bVisible);
-	}
-	else
-	{
-		LOG_WARNING("{} is not supported in StaticMeshComponent", FieldName);
+		World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 	}
 }
 
 void StaticMeshComponent::SetVisible(bool InVisible)
 {
 	bVisible = InVisible;
-	World->GetScene()->GetStaticMeshProxy()->SetInstanceVisibility(InstanceID, bVisible);
+	World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 }
 
 void StaticMeshComponent::UploadRenderingData()
@@ -94,12 +95,16 @@ void StaticMeshComponent::UploadRenderingData()
 			World->GetScene()->GetStaticMeshProxy()->UpdateStaticMeshGeometry(MeshID, MeshData.get());
 
 		if (InstanceID == ~0u)
+			InstanceID = GetScene()->GetShapeProxy()->RegisterInstance();
+
+		if (InstanceID != ~0u)
 		{
 			auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
-			InstanceID = GetScene()->GetStaticMeshProxy()->AddInstance(MeshID, TransformId);
+			GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceID, MeshID);
+			GetWorld()->GetScene()->GetTransformProxy()->BindTransform(InstanceID, TransformId);
+			GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceID, MeshID);
+			GetScene()->GetStaticMeshProxy()->BindInstance(MeshID, InstanceID);
 		}
-		else
-			GetScene()->GetStaticMeshProxy()->UpdateInstance(InstanceID, MeshID);
 	}
 }
 void StaticMeshComponent::Remesh()

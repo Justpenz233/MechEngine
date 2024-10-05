@@ -17,6 +17,7 @@
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/LineSceneProxy.h"
+#include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/sampler/independent_sampler.h"
 
 namespace MechEngine::Rendering
@@ -31,6 +32,7 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	StaticMeshProxy = luisa::make_unique<StaticMeshSceneProxy>(*this);
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
 	LineProxy = luisa::make_unique<LineSceneProxy>(*this);
+	ShapeProxy = luisa::make_unique<ShapeSceneProxy>(*this);
 	auto size = Window->framebuffer().size();
 	LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
 	g_buffer.base_color = device.create_image<float>(PixelStorage::BYTE4,
@@ -60,6 +62,9 @@ void RayTracingScene::UploadRenderData()
 
 	// Make sure static mesh data is uploaded before transform data
 	// Because need to allocate instance id from accel
+	ShapeProxy->UploadDirtyData(stream);
+	UpdateBindlessArrayIfDirty();
+
 	StaticMeshProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
@@ -107,114 +112,126 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 	Var<Ray> ray, const ray_intersection& intersection, bool global_illumination)
 {
-	auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-
-	/************************************************************************
-	 *								Shading
-	 ************************************************************************/
-	auto x = intersection.position_world;
-	auto w_o = normalize(-ray->direction());
-
-	// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-	bxdf_context context{
-		.intersection = intersection,
-		.material_data = MaterialProxy->get_material_data(intersection.material_id),
-		.w_o = w_o,
-	};
-
-	material_parameters bxdf_parameters;
-	MaterialProxy->shader_call.dispatch(
-		material_data.material_type, [&](const shader_base* material) {
-			bxdf_parameters = material->calc_material_parameters(context);
-		});
-	// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
-
-	auto normal = bxdf_parameters.normal;
-
-	// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
-	auto offset_ray = [&]() {
-		auto vps = StaticMeshProxy->get_vertices(intersection.mesh_id, intersection.primitive_id);
-		auto tmpu = x - vps[0]->position();
-		auto tmpv = x - vps[1]->position();
-		auto tmpw = x - vps[2]->position();
-
-		auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
-		auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
-		auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
-
-		tmpu -= dotu * vps[0]->normal();
-		tmpv -= dotv * vps[1]->normal();
-		tmpw -= dotw * vps[2]->normal();
-		return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
-	};
-	auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : x;
-
 	Float3 pixel_radiance = make_float3(0.f);
-	$for(light_id, 128)
+	Float Alpha = 1.f;
+	$if(intersection.shape->is_light())
 	{
-		// First calculate light color, as rendering equation is L_i(x, w_i)
-		auto light_data = LightProxy->get_light_data(light_id);
-		$if(!light_data->valid()) {$break;};
-		auto light_transform = TransformProxy->get_transform_data(light_data.transform_id);
-		auto light_dir = normalize(light_transform->get_location() - x);
-
-		auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
-			Float3 light_color = make_float3(0.f);
-			Float3 mesh_color = make_float3(0.f);
-			Float3 light_visibility = make_float3(1.);
-			$if(dot(w_i, normal) >= 0.f)
-			{
-				context.w_i = w_i;
-				// Dispatch light evaluate polymorphic, so that we can have different light type
-
-				// Shadow ray
-				if (calc_shadow)
-					light_visibility = select(make_float3(1.), make_float3(0.),
-						has_hit(make_ray(shadow_ray_origin, w_i, 0.01f, 1.f)));
-
-				LightProxy->light_virtual_call.dispatch(
-					light_data.light_type, [&](const light_base* light) {
-						light_color = light->l_i(light_data, light_transform.transformMatrix, x, w_i);
-					});
-
-				MaterialProxy->shader_call.dispatch(
-					material_data.material_type, [&](const shader_base* material) {
-						mesh_color = material->bxdf(context, bxdf_parameters);
-					});
-			};
-			return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
-		};
-
-		auto lighting = calc_lighting(light_dir, bRenderShadow);
-
-		// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
-		// Cheaper method in the those machine not have hardware acceleration
-		if (!bGlobalIllumination)
-			lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal), false) * 0.05f;
-		pixel_radiance += lighting;
-	};
-	if(global_illumination)
-	{
-		$if(material_data.alpha == 1.f) // Only reflect for opaque surface
-		{
-			// Reflection by Orthonormal Basis
-			// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
-			auto reflect_dir = sample_uniform_hemisphere_surface(get_sampler()->generate_2d());
-			auto onb = orthogonal_basis(normal);
-			reflect_dir = normalize(reflect_dir.x * onb[0] + reflect_dir.y * onb[1] + reflect_dir.z * onb[2]);
-
-			auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
-			auto reflect_intersection = intersect(reflect_ray);
-			$if(reflect_intersection.valid())
-			{
-				auto [reflect_radiance, alpha]
-				= calc_surface_point_color(reflect_ray, reflect_intersection, false);
-
-				pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
-			};
-		};
+		pixel_radiance = LightProxy->get_light_data(intersection.shape.light_id)->light_color;
 	}
-	return {pixel_radiance, material_data.alpha};
+	$elif (intersection.shape->is_surface()) // Surface shade
+	{
+		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+		Alpha = material_data.alpha;
+		/************************************************************************
+		 *								Shading
+		 ************************************************************************/
+		auto x = intersection.position_world;
+		auto w_o = normalize(-ray->direction());
+
+		// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
+		bxdf_context context{
+			.intersection = intersection,
+			.material_data = MaterialProxy->get_material_data(intersection.material_id),
+			.w_o = w_o,
+		};
+
+		material_parameters bxdf_parameters;
+		MaterialProxy->shader_call.dispatch(
+			material_data.material_type, [&](const shader_base* material) {
+				bxdf_parameters = material->calc_material_parameters(context);
+			});
+		// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
+
+		auto normal = bxdf_parameters.normal;
+
+		// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
+		auto offset_ray = [&]() {
+			auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
+			auto tmpu = x - vps[0]->position();
+			auto tmpv = x - vps[1]->position();
+			auto tmpw = x - vps[2]->position();
+
+			auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
+			auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
+			auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
+
+			tmpu -= dotu * vps[0]->normal();
+			tmpv -= dotv * vps[1]->normal();
+			tmpw -= dotw * vps[2]->normal();
+			return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
+		};
+		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
+
+
+		$for(light_id, 128)
+		{
+			// First calculate light color, as rendering equation is L_i(x, w_i)
+			auto light_data = LightProxy->get_light_data(light_id);
+			$if(!light_data->valid()) {$break;};
+			auto light_location = rtAccel->instance_transform(light_data->instance_id)[3].xyz();
+			auto light_dir = normalize(light_location - x);
+			auto distance_to_light = length(light_location - x);
+
+			auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
+				Float3 light_color = make_float3(0.f);
+				Float3 mesh_color = make_float3(0.f);
+				Float3 light_visibility = make_float3(1.);
+				$if(dot(w_i, normal) >= 0.f)
+				{
+					context.w_i = w_i;
+
+					if (calc_shadow)// Shadow ray
+					{
+						auto Hit = trace_closest(make_ray(shadow_ray_origin, w_i, 0.f, 1.f)).instance_id;
+						light_visibility = select(make_float3(0.), make_float3(1.),
+						 Hit == light_data->instance_id | Hit == ~0u);
+					}
+
+					// Dispatch light evaluate polymorphic, so that we can have different light type
+					LightProxy->light_virtual_call.dispatch(
+						light_data.light_type, [&](const light_base* light) {
+							light_color = light->l_i(light_data, distance_to_light, w_i);
+						});
+
+					MaterialProxy->shader_call.dispatch(
+						material_data.material_type, [&](const shader_base* material) {
+							mesh_color = material->bxdf(context, bxdf_parameters);
+						});
+				};
+				return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
+			};
+
+			auto lighting = calc_lighting(light_dir, bRenderShadow);
+
+			// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
+			// Cheaper method in the those machine not have hardware acceleration
+			// if (!bGlobalIllumination)
+				// lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal), false) * 0.05f;
+			pixel_radiance += lighting;
+		};
+		if(global_illumination)
+		{
+			$if(material_data.alpha == 1.f) // Only reflect for opaque surface
+			{
+				// Reflection by Orthonormal Basis
+				// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
+				auto reflect_dir = sample_uniform_hemisphere_surface(get_sampler()->generate_2d());
+				auto onb = orthogonal_basis(normal);
+				reflect_dir = normalize(reflect_dir.x * onb[0] + reflect_dir.y * onb[1] + reflect_dir.z * onb[2]);
+
+				auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
+				auto reflect_intersection = intersect(reflect_ray);
+				$if(reflect_intersection.valid())
+				{
+					auto [reflect_radiance, alpha]
+					= calc_surface_point_color(reflect_ray, reflect_intersection, false);
+
+					pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
+				};
+			};
+		}
+	};
+	return {pixel_radiance, Alpha};
 }
 
 Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
@@ -246,14 +263,14 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 	// the wireframe would disappear in refractive or alpha blended surface
 	//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
 	//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-	$if(wireframe_intersection.valid())
+	$if(wireframe_intersection.shape->is_surface())
 	{
 		auto material_data = MaterialProxy->get_material_data(wireframe_intersection.material_id);
 		$if(material_data->show_wireframe == 1)
 		{
 			auto view = CameraProxy->get_main_view();
 			auto vertex_data = StaticMeshProxy->get_vertices(
-				wireframe_intersection.mesh_id,
+				wireframe_intersection.shape->mesh_id,
 				wireframe_intersection.primitive_id);
 			auto transform = get_instance_transform(
 				wireframe_intersection.instance_id);

@@ -17,7 +17,7 @@ struct TBox
 	Vector3<T> Max;
 
 	constexpr TBox()
-		: Min(Vector3<T>::Constant(std::numeric_limits<T>::max())), Max(Vector3<T>::Constant(std::numeric_limits<T>::min()))
+		: Min(Vector3<T>::Constant(std::numeric_limits<T>::max())), Max(Vector3<T>::Constant(std::numeric_limits<T>::lowest()))
 	{}
 
 	template <typename Arg>
@@ -41,7 +41,7 @@ struct TBox
 	explicit TBox(const std::vector<Vector3<T>>& Points)
 	{
 		Min = Vector3<T>::Constant(std::numeric_limits<T>::max());
-		Max = Vector3<T>::Constant(std::numeric_limits<T>::min());
+		Max = Vector3<T>::Constant(std::numeric_limits<T>::lowest());
 		for (auto& i : Points)
 		{
 			*this += i;
@@ -51,7 +51,7 @@ struct TBox
 	explicit TBox(const Eigen::MatrixX3d &Points)
 	{
 		Min = Vector3<T>::Constant(std::numeric_limits<T>::max());
-		Max = Vector3<T>::Constant(std::numeric_limits<T>::min());
+		Max = Vector3<T>::Constant(std::numeric_limits<T>::lowest());
 		for (int i = 0; i < Points.rows(); i++)
 		{
 			*this += Points.row(i);
@@ -82,13 +82,13 @@ struct TBox
 	 */
 	FORCEINLINE TBox<T>& operator+=(const Vector3<T>& Other)
 	{
-		Min.x() = Math::Min(Min.x(), Other.x());
-		Min.y() = Math::Min(Min.y(), Other.y());
-		Min.z() = Math::Min(Min.z(), Other.z());
+		Min.x() = std::min(Min.x(), Other.x());
+		Min.y() = std::min(Min.y(), Other.y());
+		Min.z() = std::min(Min.z(), Other.z());
 
-		Max.x() = Math::Max(Max.x(), Other.x());
-		Max.y() = Math::Max(Max.y(), Other.y());
-		Max.z() = Math::Max(Max.z(), Other.z());
+		Max.x() = std::max(Max.x(), Other.x());
+		Max.y() = std::max(Max.y(), Other.y());
+		Max.z() = std::max(Max.z(), Other.z());
 		return *this;
 	}
 

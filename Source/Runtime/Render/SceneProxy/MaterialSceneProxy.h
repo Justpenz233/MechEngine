@@ -51,7 +51,7 @@ public:
 
 public:
 
-	[[nodiscard]] Var<materialData> get_material_data(Expr<uint> material_index) const
+	[[nodiscard]] Var<material_data> get_material_data(Expr<uint> material_index) const
 	{
 		return material_data_buffer->read(material_index);
 	}
@@ -92,8 +92,8 @@ public:
 	Polymorphic<shader_base> shader_call;
 protected:
 	static constexpr uint MaxMaterials = 8192;
-	vector<materialData> MaterialDataVector;
-	BufferView<materialData> material_data_buffer;
+	vector<material_data> MaterialDataVector;
+	BufferView<material_data> material_data_buffer;
 
 	THashMap<class Material*, uint>	MaterialIDMap;
 	bool bNeedUpdate = false;

@@ -6,15 +6,26 @@
 #include "LightComponent.h"
 #include "Render/GPUSceneInterface.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
+#include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 
 void LightComponent::BeginPlay()
 {
-	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
-	GetScene()->GetLightProxy()->AddLight(this, TransformId);
+	UploadRenderingData();
 }
 
 void LightComponent::UploadRenderingData()
 {
-	GetScene()->GetLightProxy()->UpdateLight(this);
+
+	if (InstanceId == ~0u)
+		InstanceId = GetScene()->GetShapeProxy()->RegisterInstance();
+	if(LightId == ~0u)
+		LightId = GetScene()->GetLightProxy()->AddLight(this, InstanceId);
+	else
+		GetScene()->GetLightProxy()->UpdateLight(this, LightId, InstanceId);
+	GetScene()->GetShapeProxy()->SetInstanceLightID(InstanceId, LightId);
+
+	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
+	GetScene()->GetTransformProxy()->BindTransform(InstanceId, TransformId);
+
 }

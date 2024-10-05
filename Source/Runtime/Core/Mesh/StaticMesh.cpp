@@ -163,6 +163,9 @@ void StaticMesh::SaveOBJ(const Path& FileName) const
 	for (int i = 0; i < verM.rows(); i++) {
 		ofile << "v " << verM(i, 0) << " " << verM(i, 1) << " " << verM(i, 2) << std::endl;
 	}
+	for (int i = 0; i < UV.rows(); i++) {
+		ofile << "vt " << UV(i, 0) << " " << UV(i, 1) << std::endl;
+	}
 	for (int i = 0; i < triM.rows(); i++) {
 		ofile << "f " << triM(i, 0) + 1 << " " << triM(i, 1) + 1 << " " << triM(i, 2) + 1 << std::endl;
 	}
@@ -182,7 +185,7 @@ StaticMesh* StaticMesh::Translate(const FVector& Translation)
 StaticMesh* StaticMesh::Rotate(const FQuat& Rotation)
 {
 	ParallelFor(verM.rows(), [this, Rotation](int i){
-		verM.row(i) = verM.row(i) * Rotation.matrix();
+		verM.row(i) = Rotation * verM.row(i);
 	});
 	OnGeometryUpdate();
 	return this;
@@ -243,6 +246,23 @@ TArray<int> StaticMesh::BoundaryVertices() const
 {
 	TArray<int> Result;
 	igl::boundary_loop(triM, Result);
+	return Result;
+}
+
+TArray<int> StaticMesh::BoundaryTriangles() const
+{
+	auto BoundaryVertex = BoundaryVertices();
+	auto BoundaryVSet = THashSet<int>(BoundaryVertex.begin(), BoundaryVertex.end());
+	TArray<int> Result;
+
+	// Find the boundary triangles
+	for (int i = 0; i < triM.rows(); i++)
+	{
+		if (BoundaryVSet.contains(triM(i, 0))
+			|| BoundaryVSet.contains(triM(i, 1))
+			|| BoundaryVSet.contains(triM(i, 2)))
+			Result.push_back(i);
+	}
 	return Result;
 }
 

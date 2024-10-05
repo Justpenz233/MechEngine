@@ -4,7 +4,7 @@
 
 #pragma once
 #include "LightComponent.h"
-#include "Components/ActorComponent.h"
+#include "StaticMeshComponent.h"
 
 MCLASS(PointLightComponent)
 class PointLightComponent : public LightComponent
@@ -17,6 +17,16 @@ public:
 	FORCEINLINE double GetRadius() const { return Radius; }
 
 protected:
-	MPROPERTY()
-	double Radius = 1.0;
+	MPROPERTY(Slide_(0.1, 1.))
+	double Radius = 0.1;
+
+	virtual void BeginPlay() override;
+	virtual void UploadRenderingData() override;
+	void Remesh();
+	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
+
+
+	// Used for a mesh representation of the light
+	uint MeshId = ~0u;
+	ObjectPtr<StaticMesh> MeshData;
 };

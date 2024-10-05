@@ -46,10 +46,10 @@ public:
 	FORCEINLINE Material* GetMaterial() const;
 	FORCEINLINE ObjectPtr<Material> GetMaterialAsset() const;
 	FORCEINLINE void SetMaterial(ObjectPtr<Material> InMaterial);
-	FORCEINLINE MatrixX3d GetVertices() const;
+	FORCEINLINE const MatrixX3d& GetVertices() const;
 	FORCEINLINE FVector GetVertex(int Index) const;
 	FORCEINLINE FVector GetVertexNormal(int Index) const;
-	FORCEINLINE MatrixX3i GetTriangles() const;
+	FORCEINLINE const MatrixX3i& GetTriangles() const;
 	FORCEINLINE Vector3i GetTriangle(int Index) const;
 	FORCEINLINE FVector GetTriangleCenter(int Index) const;
 
@@ -219,6 +219,12 @@ public:
 	TArray<int> BoundaryVertices() const;
 
 	/**
+	 * Get the boundary triangles of the mesh
+	 * @return boundary triangles indices, will be empty if the mesh does not have boundary
+	 */
+	TArray<int> BoundaryTriangles() const;
+
+	/**
 	 * Check if the mesh is closed, i.e. the mesh is homeomorphic to a sphere
 	 * @return true, if the mesh is closed
 	 */
@@ -313,7 +319,7 @@ FORCEINLINE FVector StaticMesh::GetVertex(int Index) const
 	return verM.row(Index);
 }
 
-FORCEINLINE MatrixX3d StaticMesh::GetVertices() const
+FORCEINLINE const MatrixX3d& StaticMesh::GetVertices() const
 {
 	return verM;
 }
@@ -330,7 +336,7 @@ FORCEINLINE Vector3i StaticMesh::GetTriangle(int Index) const
 	return triM.row(Index);
 }
 
-FORCEINLINE MatrixX3i StaticMesh::GetTriangles() const
+FORCEINLINE const MatrixX3i& StaticMesh::GetTriangles() const
 {
 	return triM;
 }

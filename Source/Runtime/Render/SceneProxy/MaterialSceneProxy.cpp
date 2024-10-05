@@ -11,7 +11,7 @@
 Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
 :SceneProxy(InScene)
 {
-	material_data_buffer = Scene.RegisterBuffer<materialData>(MaxMaterials);
+	material_data_buffer = Scene.RegisterBuffer<material_data>(MaxMaterials);
 
 	auto disney_shader_id = shader_call.create<disney_material>();
 	auto blinn_phong_id = shader_call.create<blinn_phong_material>();
@@ -45,7 +45,7 @@ void Rendering::MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
 	bNeedUpdate = true;
 	uint ID = MaterialIDMap[InMaterial];
 	uint ShaderID = InMaterial->ShaderId;
-	MaterialDataVector[ID] = materialData(ShaderID, InMaterial);
+	MaterialDataVector[ID] = material_data(ShaderID, InMaterial);
 }
 
 void Rendering::MaterialSceneProxy::UploadDirtyData(Stream& stream)

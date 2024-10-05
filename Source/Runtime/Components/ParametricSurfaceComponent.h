@@ -15,14 +15,16 @@ protected:
 	ParametricSurfaceComponent() = default;
 
 	MPROPERTY()
-	int RullingLineNumU = 256;
+	int RulingLineNumU = 256;
 
 	MPROPERTY()
-	int RullingLineNumV = 64;
+	int RulingLineNumV = 64;
 
 public:
 	// Thickness will be sampled from [-HalfThickness, HalfThickness]
-    explicit ParametricSurfaceComponent(ObjectPtr<ParametricSurface> NewSurface, double InThickness = 0.05);
+    explicit ParametricSurfaceComponent(const ObjectPtr<ParametricSurface>& NewSurface, double InThickness = 0.05);
+
+	explicit ParametricSurfaceComponent(const ObjectPtr<ParametricSurface>& NewSurface, const ObjectPtr<StaticMesh>& InDisplayMesh);
 
 	template<class T, class ...Args>
 	explicit ParametricSurfaceComponent(double InThickness = 0.05, Args&& ...args) : ParametricSurfaceComponent(NewObject<T>(args...)) { MeshThickness = InThickness; }
@@ -84,7 +86,7 @@ public:
 	virtual void Remesh() override;
 
     /// Triangular this surface 
-    virtual void Triangular();
+    virtual ObjectPtr<StaticMesh> Triangular();
 
 	virtual double GetThickness() const override { return MeshThickness; }
 
@@ -94,8 +96,11 @@ public:
 
 	bool IsClosed() { return SurfaceData->bIsClosed; }
 
+	virtual ObjectPtr<StaticMesh> GetZeroThicknessMesh() const override { return AABBMesh; }
+
 protected:
 	ObjectPtr<StaticMesh> AABBMesh;
+	ObjectPtr<StaticMesh> DisplayMesh;
 	igl::AABB<MatrixX3d, 3> AABB;
 };
 

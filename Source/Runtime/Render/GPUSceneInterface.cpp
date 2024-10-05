@@ -13,6 +13,7 @@
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/LineSceneProxy.h"
+#include "SceneProxy/ShapeSceneProxy.h"
 
 namespace MechEngine::Rendering
 {
@@ -25,9 +26,7 @@ namespace MechEngine::Rendering
     }
 
     // empty detor here to make unqiue ptr happy
-    GPUSceneInterface::~GPUSceneInterface()
-    {
-    }
+    GPUSceneInterface::~GPUSceneInterface() {}
 
     void GPUSceneInterface::CompileShader()
     {
@@ -81,7 +80,8 @@ namespace MechEngine::Rendering
         $if(!hit.miss())
         {
             it.instance_id = hit.instance_id;
-        	auto mesh_id = rtAccel->instance_user_id(it.instance_id);
+        	it.shape = ShapeProxy->get_instance_shape(hit.instance_id);
+        	auto mesh_id = it.shape->mesh_id;
             auto TriangleId = hit.primitive_id;
             auto object_transform = get_instance_transform(it.instance_id);
             auto Tri = StaticMeshProxy->get_triangle(mesh_id, TriangleId);
@@ -95,10 +95,6 @@ namespace MechEngine::Rendering
             auto p1_local = v1->position();
             auto p2_local = v2->position();
 
-            auto p0_world = (object_transform * make_float4(p0_local, 1.f)).xyz();
-            auto p1_world = (object_transform * make_float4(p1_local, 1.f)).xyz();
-            auto p2_world = (object_transform * make_float4(p2_local, 1.f)).xyz();
-
             auto dp0_local = p1_local - p0_local;
             auto dp1_local = p2_local - p0_local;
 
@@ -109,7 +105,6 @@ namespace MechEngine::Rendering
             auto c = cross(m * dp0_local, m * dp1_local);
             auto normal_world = normalize(c);
 
-            it.mesh_id = mesh_id;
             it.primitive_id = TriangleId;
             it.position_world = p;
         	it.barycentric = bary;

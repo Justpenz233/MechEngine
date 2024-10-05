@@ -14,10 +14,8 @@ namespace MechEngine::Rendering
     public:
         using light_base::light_base;
 
-        [[nodiscard]] virtual Float3 l_i(Expr<light_data> data, const Float4x4& light_transform, const Float3& x, const Float3& w_i) const override
+        [[nodiscard]] virtual Float3 l_i(Expr<light_data> data, const Float& distance, const Float3& w_i) const override
         {
-            auto light_pos = light_transform[3].xyz();
-            auto distance = length(x - light_pos);
             auto attenuation = 1.f / (distance * distance + data.radius);
             return data.intensity * srgb_to_linear(data.light_color) * attenuation;
         }
@@ -29,7 +27,7 @@ namespace MechEngine::Rendering
 	public:
 	using light_base::light_base;
 
-	[[nodiscard]] virtual Float3 l_i(Expr<light_data> data, const Float4x4& light_transform, const Float3& x, const Float3& w_i) const override
+	[[nodiscard]] virtual Float3 l_i(Expr<light_data> data, const Float& distance, const Float3& w_i) const override
 	{
 		return data.intensity * srgb_to_linear(data.light_color);
 	}

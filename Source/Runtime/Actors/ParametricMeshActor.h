@@ -29,7 +29,18 @@ public:
         SurfaceComponent = AddComponent<ParametricSurfaceComponent>(SurfaceData, Thickness);
     }
 
-	// Construct with a SARFParametricMeshComponent
+	explicit ParametricMeshActor(const ObjectPtr<ParametricSurface>& SurfaceData, const ObjectPtr<StaticMesh>& DisplayMesh)
+    {
+	    SurfaceComponent = AddComponent<ParametricSurfaceComponent>(SurfaceData, DisplayMesh);
+    }
+
+
+	/**
+	 * Given a mesh, construct a parametric mesh actor with a specific parametrization method
+	 * This actor will show as the given init mesh
+	 * @param InitMesh The mesh to parametrize
+	 * @param Method The parametrization method
+	 */
 	ParametricMeshActor(const ObjectPtr<StaticMesh>& InitMesh, ParametrizationMethod Method)
     {
     	if(Method == SphereicalConformal)
@@ -40,8 +51,14 @@ public:
 			SurfaceComponent = AddComponent<BCParametricMeshComponent>(InitMesh, InitMesh);
     }
 
-
-	ParametricMeshActor(const ObjectPtr<StaticMesh>& DisplayMesh, const ObjectPtr<StaticMesh>& PMesh,
+	/**
+	 * Given the display mesh and the parametric mesh, construct a parametric mesh actor with a specific parametrization method
+	 * This actor will show as the given display mesh, but the parametrization will be done on the PMesh
+	 * @param DisplayMesh The mesh to display
+	 * @param PMesh The mesh to parametrize
+	 * @param Method The parametrization method
+	 */
+ParametricMeshActor(const ObjectPtr<StaticMesh>& DisplayMesh, const ObjectPtr<StaticMesh>& PMesh,
 		ParametrizationMethod Method)
     {
     	if(Method == SphereicalConformal)

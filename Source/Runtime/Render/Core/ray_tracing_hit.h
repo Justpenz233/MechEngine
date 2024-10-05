@@ -4,6 +4,7 @@
 
 
 #pragma once
+#include "shape.h"
 #include <luisa/core/basic_traits.h>
 #include <luisa/core/basic_types.h>
 #include "triangle_data.h"
@@ -26,7 +27,6 @@ namespace MechEngine::Rendering
 	};
 	using hit = ray_tracing_hit;
 
-
 	struct ray_intersection
 	{
 		Float3 triangle_normal_world;
@@ -38,15 +38,14 @@ namespace MechEngine::Rendering
 		Float2 barycentric;
 		Float2 uv;
 
+		Var<shape> shape;
 		UInt instance_id;
-		UInt mesh_id;
 		UInt primitive_id;
 		UInt material_id;
 		Bool back_face;
 
-		ray_intersection(): mesh_id(~0u), instance_id(~0u) {}
+		ray_intersection(): instance_id(~0u) {}
 		[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }
-		[[nodiscard]] auto is_light() const noexcept {return mesh_id == ~0u;}
 
 	};
 }

@@ -23,6 +23,14 @@ struct static_mesh_data
 
 	// Material id
 	uint material_id = ~0u;
+
+	// Mesh tag
+	uint mesh_tag = 0u;
+
+	auto valid() const
+	{
+		return vertex_buffer_id != ~0u && triangle_buffer_id != ~0u && corner_normal_buffer_id != ~0u && material_id != ~0u;
+	}
 };
 
 struct StaticMeshResource
@@ -35,7 +43,13 @@ struct StaticMeshResource
 };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::static_mesh_data, vertex_buffer_id, triangle_buffer_id, corner_normal_buffer_id, material_id) {};
+LUISA_STRUCT(MechEngine::Rendering::static_mesh_data, vertex_buffer_id, triangle_buffer_id, corner_normal_buffer_id, material_id, mesh_tag)
+{
+	auto valid()
+	{
+		return vertex_buffer_id != ~0u & triangle_buffer_id != ~0u & corner_normal_buffer_id != ~0u;
+	}
+};
 
 namespace MechEngine::Rendering
 {
@@ -59,37 +73,18 @@ public:
 	uint AddStaticMesh(StaticMesh* InMesh);
 
 	/**
-	* Add a new instance of the mesh to the scene
-	* @param MeshId Mesh id of the mesh
-	* @param TransformId Transform id of the instance
-	* @return instance id of the new instance
-	*/
-	[[nodiscard]] uint AddInstance(uint MeshId, uint TransformId);
-
-	/**
-	 * Bind instance to a new mesh
-	 * @param InstanceId Instance id
-	 * @param MeshId Mesh id
-	 */
-	void UpdateInstance(uint InstanceId, uint MeshId);
-
-	/**
-	* Remove the instance from the scene
-	* @param InstanceId Instance id
-	*/
-	void RemoveInstance(uint InstanceId);
-
-	/**
-	* Set the visibility of the instance
-	* @param InstanceId Instance id
-	* @param bVisible Visibility
-	*/
-	void SetInstanceVisibility(uint InstanceId, bool bVisible);
-
-	/**
-	* Update the mesh geometry in the scene
+	* Update the mesh geometry corresponding to the MeshID in the GPU
+	* @param MeshId Mesh id
+	* @param InMesh Mesh data
 	*/
 	void UpdateStaticMeshGeometry(uint MeshId, StaticMesh* InMesh);
+
+	/**
+	 * Bind the mesh to the instance
+	 * @param InstanceID Instance id
+	 * @param MeshID Mesh id
+	 */
+	void BindInstance(uint MeshID, uint InstanceID);
 
 	/**
 	 * Remove the mesh from the scene
@@ -104,6 +99,11 @@ public:
 	[[nodiscard]] Var<static_mesh_data> get_static_mesh_data(const UInt& mesh_id) const
 	{
 		return bindelss_buffer<static_mesh_data>(data_buffer_id)->read(mesh_id);
+	}
+
+	UInt get_mesh_tag(const UInt& mesh_id) const
+	{
+		return get_static_mesh_data(mesh_id)->mesh_tag;
 	}
 
 	[[nodiscard]] Var<Triangle> get_triangle(const UInt& mesh_id, const UInt& triangle_index) const
@@ -145,9 +145,6 @@ public:
 
 protected:
 
-	// Create default meshes and upload to GPU
-	void CreateDefaultMeshes();
-
 	/**
 	 * Get the flatten mesh data from mesh data, used for uploading mesh data to GPU
 	 * @param MeshData Mesh data to flatten
@@ -175,13 +172,10 @@ protected:
 
 	enum CommandType
 	{
-		CMesh,
-		CInstance,
-		UVisibility,
-		UMesh,
-		UInstance,
-		DInstance,
-		DMesh,
+		Create,
+		Update,
+		Delete,
+		Bind
 	};
 	vector<std::tuple<CommandType, uint, uint, StaticMesh*>> CommandQueue;
 };
