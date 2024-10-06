@@ -33,6 +33,9 @@ public:
 
 	FORCEINLINE FColor GetLightColor() const;
 	FORCEINLINE void SetLightColor(const FColor& InColor);
+
+	/** Get the total area of the light source */
+	virtual float GetLightSourceTotalArea() const;
 protected:
 	MPROPERTY()
 	float Intensity = 1.0f;

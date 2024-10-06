@@ -1,19 +1,18 @@
 //
-// Created by MarvelLi on 2024/9/23.
+// Created by Mayn on 2024/10/6.
 //
-#include "PointLightComponent.h"
+
+#include "AreaLightComponent.h"
 #include "Mesh/BasicShapesLibrary.h"
 #include "Render/GPUSceneInterface.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
-
-void PointLightComponent::BeginPlay()
+void AreaLightComponent::BeginPlay()
 {
 	Remesh();
 	UploadRenderingData();
 }
-
-void PointLightComponent::UploadRenderingData()
+void AreaLightComponent::UploadRenderingData()
 {
 	LightComponent::UploadRenderingData();
 
@@ -30,20 +29,19 @@ void PointLightComponent::UploadRenderingData()
 	bDirty = false;
 }
 
-void PointLightComponent::Remesh()
+void AreaLightComponent::Remesh()
 {
-	if (Radius < 1e-4)
-		MeshData = BasicShapesLibrary::GenerateSphere(0.01, 32);
-	else
-		MeshData = BasicShapesLibrary::GenerateSphere(Radius, 32);
+	MeshData = BasicShapesLibrary::GeneratePlane(Size);
+	MeshData->RotateEuler(FVector{M_PI, 0., 0.});
 }
 
-void PointLightComponent::PostEdit(Reflection::FieldAccessor& Field)
+void AreaLightComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
 	LightComponent::PostEdit(Field);
-	if (Field == NAME(Radius))
+	if (Field == NAME(Size))
 	{
 		Remesh();
 		UploadRenderingData();
 	}
 }
+

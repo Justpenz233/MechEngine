@@ -72,7 +72,7 @@ protected:
 
 	uint const_light_tag;
 	uint point_light_tag;
-	uint directional_light_tag;
+	uint rectangle_light_tag;
 
 	bool bDirty = false;
 };

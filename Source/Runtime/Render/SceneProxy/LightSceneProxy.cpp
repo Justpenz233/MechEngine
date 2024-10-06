@@ -3,13 +3,13 @@
 //
 
 #include "LightSceneProxy.h"
-
 #include "ShapeSceneProxy.h"
+#include "Components/AreaLightComponent.h"
 #include "Components/ConstPointLightComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Render/Core/TypeConvertion.h"
-#include "Render/light/point_light.h"
+#include "Render/light/area_light.h"
 #include "Render/RayTracing/RayTracingScene.h"
 
 namespace MechEngine::Rendering
@@ -20,8 +20,7 @@ LightSceneProxy::LightSceneProxy(RayTracingScene& InScene) noexcept
 	LightDatas.resize(light_max_number);
 	std::tie(light_buffer, bindless_id) = Scene.RegisterBindlessBuffer<light_data>(light_max_number);
 
-	point_light_tag = light_virtual_call.create<point_light>();
-	const_light_tag = light_virtual_call.create<const_point_light>();
+	point_light_tag = light_virtual_call.create<point_light>(Scene);
 }
 
 uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
@@ -86,11 +85,19 @@ light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
 	if (auto Ptr = Cast<PointLightComponent>(InLight))
 	{
 		LightData.light_type = point_light_tag;
-		LightData.radius = Ptr->GetRadius();
+		LightData.size = {Ptr->GetRadius(), Ptr->GetRadius()};
 	}
 	else if (Cast<ConstPointLightComponent>(InLight))
 	{
 		LightData.light_type = const_light_tag;
+	}
+	else if (auto Ptr = Cast<AreaLightComponent>(InLight))
+	{
+		LightData.light_type = rectangle_light_tag;
+		LightData.size = {
+			static_cast<float>(Ptr->GetSize().x()),
+			static_cast<float>(Ptr->GetSize().y())
+		};
 	}
 	return LightData;
 }

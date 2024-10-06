@@ -89,9 +89,9 @@ void RayTracingScene::UploadRenderData()
 
 void RayTracingScene::Render()
 {
-	stream << (*MainShader)(++FrameCounter).dispatch(GetWindosSize());
+	stream << (*MainShader)(FrameCounter++).dispatch(GetWindosSize());
 
-	if(ViewMode != ViewMode::FrameBuffer)
+	if(ViewMode != ViewMode::FrameBuffer) [[unlikely]]
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
 
 	LineProxy->PostRenderPass(stream);
@@ -116,7 +116,14 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 	Float Alpha = 1.f;
 	$if(intersection.shape->is_light())
 	{
-		pixel_radiance = LightProxy->get_light_data(intersection.shape.light_id)->light_color;
+		auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
+		// LightProxy->light_virtual_call.dispatch(
+		// 	light_data.light_type, [&](const light_base* light_type) {
+		// 		pixel_radiance = light_type->l(light_data, intersection.position_world,
+		// 			intersection.corner_normal_world,
+		// 			-ray->direction());
+		// 	});
+		pixel_radiance = light_data.light_color;
 	}
 	$elif (intersection.shape->is_surface()) // Surface shade
 	{
@@ -165,7 +172,6 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 		if(global_illumination)
 		{
 			auto wi = orthogonal_basis(normal, sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
-			auto cos = dot(wi, normal);
 			auto diffuse_ray = make_ray(shadow_ray_origin, wi);
 			auto hit = trace_closest(diffuse_ray);
 			auto ray_li = ite(
@@ -188,25 +194,25 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 				auto light = LightProxy->get_light_data(light_id);
 				$if(!light->valid()) {$break;};
 				auto light_location = rtAccel->instance_transform(light->instance_id)[3].xyz();
-				auto light_dir = normalize(light_location - x);
-				auto distance_to_light = length(light_location - x);
-				Float3 light_le = make_float3(0.f);
+				auto light_dir = light_location - x;
+				light_li_sample light_sample{};
 				Float3 bxdf = make_float3(0.f);
 				auto cos = dot(light_dir, normal);
-				$if(cos > 0.001f)
+
+				$if(cos > 0.001f & !has_hit(make_ray(shadow_ray_origin, light_dir, 0.01f, 0.99f)))
 				{
 					context.w_i = light_dir;
 					// Dispatch light evaluate polymorphic, so that we can have different light type
 					LightProxy->light_virtual_call.dispatch(
 						light.light_type, [&](const light_base* light_type) {
-							light_le = light_type->l_i(light, distance_to_light, light_dir);
+							light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
 						});
 
 					MaterialProxy->shader_call.dispatch(
 						material_data.material_type, [&](const shader_base* material) {
 							bxdf = material->bxdf(context, bxdf_parameters);
 						});
-					pixel_radiance = bxdf * light_le;
+					pixel_radiance = bxdf * light_sample.l_i / light_sample.pdf * cos;
 				};
 			};
 		}
@@ -223,7 +229,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 	$while(intersection.valid())
 	{
 		auto [surface_radiance, alpha]
-		= calc_surface_point_color(ray, intersection, bGlobalIllumination);
+		= calc_surface_point_color(ray, intersection, true);
 
 		pixel_color += surface_radiance * alpha * transmission;
 		transmission *= 1.f - alpha;
@@ -276,17 +282,13 @@ void RayTracingScene::render_main_view(const UInt& frame_index)
 	auto pixel_coord = dispatch_id().xy();
 	get_sampler()->init(pixel_coord, frame_index);
 
-	// Fill with default
-	g_buffer.set_default(pixel_coord, make_float4(1.f));
-	// frame_buffer()->write(pixel_coord, make_float4(1.f));
-
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
 
 	auto color = linear_to_srgb(render_pixel(ray, pixel_pos));
 	auto pre_color = frame_buffer()->read(pixel_coord).xyz();
-	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 1);
+	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 0);
 
 	frame_buffer()->write(pixel_coord, make_float4(now_color, 1.f));
 }

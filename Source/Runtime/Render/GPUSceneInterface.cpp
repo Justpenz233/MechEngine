@@ -29,31 +29,34 @@ namespace MechEngine::Rendering
     GPUSceneInterface::~GPUSceneInterface() {}
 
     void GPUSceneInterface::CompileShader()
-    {
-    	ASSERTMSG(sampler.get(), "Sampler should be created first in the derived class");
+	{
+		ASSERTMSG(sampler.get(), "Sampler should be created first in the derived class");
 
-        ViewModePass = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode)
-        {
-            auto pixel_coord = dispatch_id().xy();
-            $switch(ViewMode)
-            {
-                $case(static_cast<uint>(ViewMode::DepthBuffer))
-                {
-                    frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(g_buffer.flattend_index(pixel_coord))));
-                };
-                $case(static_cast<uint>(ViewMode::NormalWorldBuffer))
-                {
-                    frame_buffer()->write(pixel_coord, g_buffer.normal->read(pixel_coord));
-                };
-                $case(static_cast<uint>(ViewMode::BaseColorBuffer))
-                {
-                    frame_buffer()->write(pixel_coord, g_buffer.base_color->read(pixel_coord));
-                };
-            };
-        }));
+		ViewModePass = luisa::make_unique<Shader2D<uint>>(device.compile<2>([&](UInt ViewMode) {
+			auto pixel_coord = dispatch_id().xy();
+			$switch(ViewMode)
+			{
+				$case(static_cast<uint>(ViewMode::DepthBuffer))
+				{
+					frame_buffer()->write(pixel_coord, make_float4(g_buffer.depth->read(g_buffer.flattend_index(pixel_coord))));
+				};
+				$case(static_cast<uint>(ViewMode::NormalWorldBuffer))
+				{
+					frame_buffer()->write(pixel_coord, g_buffer.normal->read(pixel_coord));
+				};
+				$case(static_cast<uint>(ViewMode::BaseColorBuffer))
+				{
+					frame_buffer()->write(pixel_coord, g_buffer.base_color->read(pixel_coord));
+				};
+			};
+		}));
 
-    	LineProxy->CompileShader();
-    }
+		LineProxy->CompileShader();
+	}
+	void GPUSceneInterface::ResetFrameCounter() noexcept
+	{
+    	FrameCounter = 0;
+	}
 
 	void GPUSceneInterface::LoadRenderSettings()
 	{

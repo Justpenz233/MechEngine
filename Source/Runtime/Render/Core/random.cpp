@@ -68,5 +68,14 @@ Float3 sample_uniform_hemisphere_surface(Expr<float2> u) noexcept
 	};
 	return impl(u);
 }
+Float2 sample_uniform_disk(Expr<float2> u) noexcept
+{
+	static Callable impl = [](const Float2& u) noexcept {
+		auto r = sqrt(u.x);
+		auto theta = 2.f * pi * u.y;
+		return make_float2(r * cos(theta), r * sin(theta));
+	};
+	return impl(u);
+}
 
 };

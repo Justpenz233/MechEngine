@@ -64,13 +64,15 @@ namespace MechEngine::Rendering
 	public:
 		virtual void CompileShader();
 
+  		/** Reset the frame counter to 0, used to clear integrator */
+		void ResetFrameCounter() noexcept;
 
 		auto& get_stream() { return stream; }
 
 
 		/**
 		 * Create a resource and register it to the scene
-		 * the scene holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
+		 * holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
 		 * @tparam T Resource type
 		 * @tparam Args Resource constructor arguments
 		 * @param args Resource constructor arguments
@@ -266,7 +268,7 @@ namespace MechEngine::Rendering
 		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
 
 		// Frame counter, start from 0, increase by 1 each frame
-		uint FrameCounter;
+		uint FrameCounter = 0;
 
 		unique_ptr<Shader2D<uint>> ViewModePass;
 

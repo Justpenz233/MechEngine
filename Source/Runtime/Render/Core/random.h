@@ -48,4 +48,12 @@ Float3 sample_uniform_sphere_surface(Expr<float2> u) noexcept;
  */
 Float3 sample_uniform_hemisphere_surface(Expr<float2> u) noexcept;
 
+
+/**
+ * Sample a point on disk uniformly.
+ * @param u a random float2 in [0, 1]
+ * @return a point on the disk
+ */
+Float2 sample_uniform_disk(Expr<float2> u) noexcept;
+
 }

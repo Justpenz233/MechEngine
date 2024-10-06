@@ -19,7 +19,7 @@ void LightComponent::UploadRenderingData()
 
 	if (InstanceId == ~0u)
 		InstanceId = GetScene()->GetShapeProxy()->RegisterInstance();
-	if(LightId == ~0u)
+	if (LightId == ~0u)
 		LightId = GetScene()->GetLightProxy()->AddLight(this, InstanceId);
 	else
 		GetScene()->GetLightProxy()->UpdateLight(this, LightId, InstanceId);
@@ -27,5 +27,10 @@ void LightComponent::UploadRenderingData()
 
 	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
 	GetScene()->GetTransformProxy()->BindTransform(InstanceId, TransformId);
+}
 
+float LightComponent::GetLightSourceTotalArea() const
+{
+	ASSERTMSG(false, "LightComponent::GetLightSourceTotalArea() is not implemented");
+	return 0.0f;
 }
