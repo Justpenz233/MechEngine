@@ -14,14 +14,13 @@ public:
 	AreaLightComponent() = default;
 	~AreaLightComponent() = default;
 
-	virtual void BeginPlay() override;
 	virtual void UploadRenderingData() override;
 	void Remesh();
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 
 
 	FORCEINLINE FVector2 GetSize() const { return Size; }
-	FORCEINLINE void SetSize(const FVector2& InSize) { Size = InSize; Remesh(); UploadRenderingData(); }
+	FORCEINLINE void SetSize(const FVector2& InSize) { Size = InSize; MarkAsDirty(); }
 
 protected:
 	MPROPERTY()

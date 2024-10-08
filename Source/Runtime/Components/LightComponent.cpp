@@ -9,11 +9,6 @@
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 
-void LightComponent::BeginPlay()
-{
-	UploadRenderingData();
-}
-
 void LightComponent::UploadRenderingData()
 {
 

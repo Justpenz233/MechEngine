@@ -23,6 +23,7 @@ namespace MechEngine
     	PropertyWidget CreateDoubleEditWidget();
 
         PropertyWidget CreateFVectorWidget();
+    	PropertyWidget CreateFVector2Widget();
 
     	PropertyWidget CreateFColorWidget();
 
@@ -36,6 +37,7 @@ namespace MechEngine
             if(TypeName == "string") return CreateStringEditWidget();
             if(TypeName == "int") return CreateIntEditWidget();
             if(TypeName == "FVector") return CreateFVectorWidget();
+        	if(TypeName == "FVector2") return CreateFVector2Widget();
         	if(TypeName == "bool") return CreateBoolEditWidget();
         	if(TypeName == "float") return CreateFloatEditWidget();
         	if(TypeName == "double") return CreateDoubleEditWidget();

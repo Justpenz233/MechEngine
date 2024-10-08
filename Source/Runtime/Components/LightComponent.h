@@ -22,7 +22,6 @@ public:
 	LightComponent() = default;
 	~LightComponent() = default;
 
-	virtual void BeginPlay() override;
 	virtual void UploadRenderingData() override;
 
 	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
@@ -44,8 +43,6 @@ protected:
 	FColor LightColor = FColor{1.0f, 1.0f, 1.0f};
 
 protected:
-	bool bDirty = false;
-
 	uint LightId = ~0u;
 	uint InstanceId = ~0u;
 

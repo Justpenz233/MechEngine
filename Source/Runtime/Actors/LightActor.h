@@ -5,6 +5,7 @@
 #pragma once
 #include "Game/Actor.h"
 #include "Components/PointLightComponent.h"
+#include "Components/AreaLightComponent.h"
 
 MCLASS(PointLightActor)
 class PointLightActor : public Actor
@@ -23,4 +24,22 @@ public:
 
 protected:
 	PointLightComponent* Component;
+};
+
+MCLASS(AreaLightActor)
+class AreaLightActor : public Actor
+{
+	REFLECTION_BODY(AreaLightActor)
+public:
+	AreaLightActor()
+	{
+		Component = AddComponent<AreaLightComponent>().get();
+	}
+
+	FORCEINLINE AreaLightComponent* GetLightComponent() const
+	{
+		return Component;
+	}
+protected:
+	AreaLightComponent* Component;
 };

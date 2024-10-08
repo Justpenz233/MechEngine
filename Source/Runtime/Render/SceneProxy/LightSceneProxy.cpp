@@ -21,6 +21,7 @@ LightSceneProxy::LightSceneProxy(RayTracingScene& InScene) noexcept
 	std::tie(light_buffer, bindless_id) = Scene.RegisterBindlessBuffer<light_data>(light_max_number);
 
 	point_light_tag = light_virtual_call.create<point_light>(Scene);
+	rectangle_light_tag = light_virtual_call.create<rectangle_light>(Scene);
 }
 
 uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
@@ -29,6 +30,8 @@ uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
 		return point_light_tag;
 	else if (InLight->IsA<ConstPointLightComponent>())
 		return const_light_tag;
+	else if (InLight->IsA<AreaLightComponent>())
+		return rectangle_light_tag;
 	else
 		return ~0u;
 }

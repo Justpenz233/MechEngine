@@ -18,7 +18,7 @@ namespace MechEngine::Rendering
 
     	virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float2& u) const override
     	{
-    		// Only consider the case when shading point inside the light source
+    		// Only consider the case when shading point outside the light source
     		auto light_transform = scene.get_instance_transform(data.instance_id);
     		const auto& radius = data.size.x;
     		auto center_obj = radius * sample_uniform_sphere_surface(u);
@@ -46,4 +46,27 @@ namespace MechEngine::Rendering
     		return {l_i, p_l - x, p_l, pdf};
     	}
     };
+
+
+	class rectangle_light : public light_base
+	{
+	public:
+		using light_base::light_base;
+
+		virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float2& u) const override
+		{
+			auto light_transform = scene.get_instance_transform(data.instance_id);
+			const auto& size = data.size.xy();
+			auto pdf = 1.f / (size.x * size.y);
+
+			// resample from light source
+			auto p_l_obj = make_float3((u.x - 0.5f) * size.x, 0.f, (u.y - 0.5f) * size.y);
+			auto p_l = (light_transform * make_float4(p_l_obj, 1.f)).xyz();
+			auto n_l = normalize((light_transform * make_float4(0.f, 0.f, 1.f, 0.f)).xyz());
+
+			auto w_i = p_l - x;
+			auto l_i = data.intensity * data.light_color * max(dot(normalize(w_i), n_l), 0.f) / distance_squared(x, p_l);
+			return {l_i, w_i, p_l, pdf};
+		}
+	};
 }

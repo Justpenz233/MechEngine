@@ -25,7 +25,6 @@ protected:
 	MPROPERTY(Slide_(0.001, 1.))
 	double Radius = 0.1;
 
-	virtual void BeginPlay() override;
 	virtual void UploadRenderingData() override;
 	void Remesh();
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
