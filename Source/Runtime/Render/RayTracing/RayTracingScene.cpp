@@ -193,21 +193,17 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 				// First calculate light color, as rendering equation is L_i(x, w_i)
 				auto light = LightProxy->get_light_data(light_id);
 				$if(!light->valid()) {$break;};
-				auto light_location = rtAccel->instance_transform(light->instance_id)[3].xyz();
-				auto light_dir = light_location - x;
 				light_li_sample light_sample{};
+				LightProxy->light_virtual_call.dispatch(
+					light.light_type, [&](const light_base* light_type) {
+						light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
+				});
+
 				Float3 bxdf = make_float3(0.f);
-				auto cos = dot(light_dir, normal);
-
-				$if(cos > 0.001f & !has_hit(make_ray(shadow_ray_origin, light_dir, 0.01f, 0.99f)))
+				auto cos = dot(normalize(light_sample.w_i), normal);
+				$if(cos > 0.01f & !has_hit(make_ray(shadow_ray_origin, light_sample.w_i, 0.01f, 0.99f)))
 				{
-					context.w_i = light_dir;
-					// Dispatch light evaluate polymorphic, so that we can have different light type
-					LightProxy->light_virtual_call.dispatch(
-						light.light_type, [&](const light_base* light_type) {
-							light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
-						});
-
+					context.w_i = light_sample.w_i;
 					MaterialProxy->shader_call.dispatch(
 						material_data.material_type, [&](const shader_base* material) {
 							bxdf = material->bxdf(context, bxdf_parameters);
