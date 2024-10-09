@@ -71,7 +71,7 @@ namespace MechEngine::Rendering
          * @see https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf
          */
         [[nodiscard]]
-        virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const override
+        virtual Float3 evaluate(const material_parameters& material_data, const Float3& w_o, const Float3& w_i) const override
         {
             auto N = material_data.normal;
 

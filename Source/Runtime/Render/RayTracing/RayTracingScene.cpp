@@ -110,110 +110,99 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 }
 
 std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
-	Var<Ray> ray, const ray_intersection& intersection, bool global_illumination)
+	Var<Ray> ray, ray_intersection intersection, bool global_illumination)
 {
 	Float3 pixel_radiance = make_float3(0.f);
-	Float Alpha = 1.f;
-	$if(intersection.shape->is_light())
+	Float alpha = 1.f; Float3 beta = make_float3(1.f);
+
+	for(int depth = 0; depth <= global_illumination ? 1 : 0; depth ++)
 	{
-		auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
-		// LightProxy->light_virtual_call.dispatch(
-		// 	light_data.light_type, [&](const light_base* light_type) {
-		// 		pixel_radiance = light_type->l(light_data, intersection.position_world,
-		// 			intersection.corner_normal_world,
-		// 			-ray->direction());
-		// 	});
-		pixel_radiance = light_data.light_color;
-	}
-	$elif (intersection.shape->is_surface()) // Surface shade
-	{
-		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-		Alpha = material_data.alpha;
-		/************************************************************************
-		 *								Shading
-		 ************************************************************************/
-		auto x = intersection.position_world;
-		auto w_o = normalize(-ray->direction());
-
-		// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-		bxdf_context context{
-			.intersection = intersection,
-			.material_data = MaterialProxy->get_material_data(intersection.material_id),
-			.w_o = w_o,
-		};
-
-		material_parameters bxdf_parameters;
-		MaterialProxy->shader_call.dispatch(
-			material_data.material_type, [&](const shader_base* material) {
-				bxdf_parameters = material->calc_material_parameters(context);
-			});
-		// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
-
-		auto normal = bxdf_parameters.normal;
-
-		// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
-		auto offset_ray = [&]() {
-			auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
-			auto tmpu = x - vps[0]->position();
-			auto tmpv = x - vps[1]->position();
-			auto tmpw = x - vps[2]->position();
-
-			auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
-			auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
-			auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
-
-			tmpu -= dotu * vps[0]->normal();
-			tmpv -= dotv * vps[1]->normal();
-			tmpw -= dotw * vps[2]->normal();
-			return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
-		};
-		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
-
-		if(global_illumination)
+		$if(intersection.shape->is_light() & depth == 0)
 		{
-			auto wi = orthogonal_basis(normal, sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
-			auto diffuse_ray = make_ray(shadow_ray_origin, wi);
-			auto hit = trace_closest(diffuse_ray);
-			auto ray_li = ite(
-				hit.miss(),
-				make_float3(0.f),
-				calc_surface_point_color(ray, intersect(hit, ray), false).first);
-			context.w_i = wi;
-			Float3 bxdf;
-			MaterialProxy->shader_call.dispatch(
-						material_data.material_type, [&](const shader_base* material) {
-							bxdf = material->bxdf(context, bxdf_parameters);
-						});
-			pixel_radiance = ray_li * bxdf;
+			auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
+			// LightProxy->light_virtual_call.dispatch(
+			// 	light_data.light_type, [&](const light_base* light_type) {
+			// 		pixel_radiance = light_type->l(light_data, intersection.position_world,
+			// 			intersection.corner_normal_world,
+			// 			-ray->direction());
+			// 	});
+			pixel_radiance = light_data.light_color;
 		}
-		else // Direct lighting
+		$elif (intersection.shape->is_surface()) // Surface shade
 		{
+			auto material_data = MaterialProxy->get_material_data(intersection.material_id);
+			alpha = material_data.alpha;
+
+			auto x = intersection.position_world;
+			auto w_o = normalize(-ray->direction());
+
+			// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
+			bxdf_context context{
+				.intersection = intersection,
+				.material_data = MaterialProxy->get_material_data(intersection.material_id),
+			};
+
+			material_parameters bxdf_parameters;
+			MaterialProxy->shader_call.dispatch(
+				material_data.material_type, [&](const shader_base* material) {
+					bxdf_parameters = material->calc_material_parameters(context);
+				});
+			// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
+
+			auto normal = bxdf_parameters.normal;
+
+			// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
+			auto offset_ray = [&]() {
+				auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
+				auto tmpu = x - vps[0]->position();
+				auto tmpv = x - vps[1]->position();
+				auto tmpw = x - vps[2]->position();
+
+				auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
+				auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
+				auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
+
+				tmpu -= dotu * vps[0]->normal();
+				tmpv -= dotv * vps[1]->normal();
+				tmpw -= dotw * vps[2]->normal();
+				return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
+			};
+			auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
+
+			// Sample light
 			$for(light_id, 128)
 			{
 				// First calculate light color, as rendering equation is L_i(x, w_i)
 				auto light = LightProxy->get_light_data(light_id);
-				$if(!light->valid()) {$break;};
+				$if(!light->valid()) { $break; };
 				light_li_sample light_sample{};
 				LightProxy->light_virtual_call.dispatch(
 					light.light_type, [&](const light_base* light_type) {
 						light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
-				});
-
-				Float3 bxdf = make_float3(0.f);
+					});
 				auto cos = dot(normalize(light_sample.w_i), normal);
 				$if(cos > 0.01f & !has_hit(make_ray(shadow_ray_origin, light_sample.w_i, 0.01f, 0.99f)))
 				{
-					context.w_i = light_sample.w_i;
 					MaterialProxy->shader_call.dispatch(
 						material_data.material_type, [&](const shader_base* material) {
-							bxdf = material->bxdf(context, bxdf_parameters);
+							pixel_radiance += beta * material->bxdf(bxdf_parameters, w_o, light_sample.w_i)
+							* light_sample.l_i / light_sample.pdf * cos;
 						});
-					pixel_radiance = bxdf * light_sample.l_i / light_sample.pdf * cos;
 				};
 			};
-		}
-	};
-	return {pixel_radiance, Alpha};
+
+			// Sample brdf
+			auto wi = orthogonal_basis(normal, sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
+			ray = make_ray(shadow_ray_origin, wi);
+			intersection = intersect(ray);
+			MaterialProxy->shader_call.dispatch(
+			material_data.material_type, [&](const shader_base* material) {
+				beta *= material->bxdf(bxdf_parameters, w_o, wi) * max(dot(wi, normal), 0.f) * 2.f * pi;
+			});
+		};
+	}
+
+	return {pixel_radiance, alpha};
 }
 
 Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)

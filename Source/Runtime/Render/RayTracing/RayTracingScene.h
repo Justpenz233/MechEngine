@@ -68,7 +68,7 @@ protected:
 	 * @return the color of the point, the alpha value of the color
 	 */
 	std::pair<Float3, Float> calc_surface_point_color(
-		Var<Ray> ray, const ray_intersection& intersection, bool global_illumination);
+		Var<Ray> ray, ray_intersection intersection, bool global_illumination);
 
 
 	unique_ptr<Shader2D<uint>> MainShader;

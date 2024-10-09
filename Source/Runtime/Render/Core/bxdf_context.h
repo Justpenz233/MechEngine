@@ -19,6 +19,5 @@ namespace MechEngine::Rendering
     {
         const ray_intersection& intersection;
         Var<material_data> material_data;
-    	Float3 w_o, w_i;
     };
 }

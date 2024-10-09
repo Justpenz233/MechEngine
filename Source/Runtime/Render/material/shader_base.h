@@ -36,9 +36,9 @@ public:
 	 * @param parameters The material parameters for the current material.
 	 * @return The color of the material at the given intersection point.
 	 */
-	[[nodiscard]] Float3 bxdf(const bxdf_context& context, const material_parameters& parameters) const
+	[[nodiscard]] Float3 bxdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const
 	{
-		return evaluate(parameters, context.intersection, context.w_o, context.w_i);
+		return evaluate(parameters, w_o, w_i);
 	}
 
 	/**
@@ -64,11 +64,10 @@ protected:
 	* Evaluate the material color at the given intersection point.
 	* This should calculate the color of the material at the given point.
 	* @param material_data  The material data for the current material, Contains textures and other material properties.
-	* @param intersection  The intersection data for the surface point. Contatins the position, normal, uv.
 	* @param w_o The direction from the intersection point to the camera.  Output irradiance direction.
 	* @param w_i The direction to the intersection point. Input irradiance direction.
 	*/
-	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const = 0;
+	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const Float3& w_o, const Float3& w_i) const = 0;
 
 	/**
 	 * Sample the diffuse property at the given intersection point.
