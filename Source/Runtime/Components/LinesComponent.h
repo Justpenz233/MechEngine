@@ -38,9 +38,10 @@ public:
 	 * The cube will be persistent if lifetime is negative.
 	 * @param Center center of the cube
 	 * @param Size size of the cube
+	 * @param Transform transform of the cube
 	 * @param Thickness thickness of the cube, in pixel
 	 * @param Color color of the cube
 	 * @param LifeTime lifetime of the cube
 	 */
-	void AddCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
+	void AddCube(const FVector& Center, const FVector& Size, const FTransform& Transform, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 };

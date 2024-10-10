@@ -28,11 +28,13 @@ void LinesComponent::AddLine(const FVector& WorldStart, const FVector& WorldEnd,
 		Rendering::ToLuisaVector(WorldStart), Rendering::ToLuisaVector(WorldEnd), Thickness, Rendering::ToLuisaVector(Color));
 }
 
-void LinesComponent::AddCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness, double LifeTime)
+void LinesComponent::AddCube(const FVector& Center, const FVector& Size, const FTransform& Transform, const FColor& Color, double Thickness, double LifeTime)
 {
 	auto HalfSize = Size / 2;
-	auto Min = Center - HalfSize;
-	auto Max = Center + HalfSize;
+	FVector Min = Center - HalfSize;
+	FVector Max = Center + HalfSize;
+	Min = Transform * Min;
+	Max = Transform * Max;
 	AddLine(Min, FVector(Min.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
 	AddLine(Min, FVector(Min.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
 	AddLine(Min, FVector(Max.x(), Min.y(), Min.z()), Color, Thickness, LifeTime);

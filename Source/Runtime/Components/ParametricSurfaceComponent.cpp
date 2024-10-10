@@ -26,6 +26,11 @@ void ParametricSurfaceComponent::Init()
 	ActorComponent::Init();
 	Remesh();
 	MarkAsDirty(DIRTY_RENDERDATA);
+
+	AABBMesh  = TriangularSurface(RulingLineNumU, RulingLineNumV,
+	[this](double u,double v){return Sample(u, v);}, false, SurfaceData->bIsClosed);
+	AABB.clear();
+	AABB.init(AABBMesh->GetVertices(), AABBMesh->GetTriangles());
 }
 
 void ParametricSurfaceComponent::PostEdit(Reflection::FieldAccessor& Field)
@@ -100,13 +105,6 @@ ObjectPtr<StaticMesh> ParametricSurfaceComponent::TriangularSurface(int NumU, in
 
 ObjectPtr<StaticMesh> ParametricSurfaceComponent::Triangular() {
     double ThicknessFix = MeshThickness < 1e-4 ? 1e-3 : MeshThickness; // When nearlly zero, set to 1e-3 as alternative of two-sided surface
-
-	{
-		AABBMesh  = TriangularSurface(RulingLineNumU, RulingLineNumV,
-			[this](double u,double v){return Sample(u, v);}, false, SurfaceData->bIsClosed);
-    	AABB.clear();
-    	AABB.init(AABBMesh->GetVertices(), AABBMesh->GetTriangles());
-	}
 
     auto Inner  = TriangularSurface(RulingLineNumU, RulingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, -ThicknessFix*0.5);}, true, SurfaceData->bIsClosed);
     auto Outter = TriangularSurface(RulingLineNumU, RulingLineNumV, [this, ThicknessFix](double u,double v){return SampleThickness(u, v, ThicknessFix*0.5);}, false, SurfaceData->bIsClosed);
