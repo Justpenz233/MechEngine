@@ -7,7 +7,7 @@
 #include "StaticMeshComponent.h"
 
 MCLASS(PointLightComponent)
-class PointLightComponent : public LightComponent
+class ENGINE_API PointLightComponent : public LightComponent
 {
 	REFLECTION_BODY(PointLightComponent)
 public:
