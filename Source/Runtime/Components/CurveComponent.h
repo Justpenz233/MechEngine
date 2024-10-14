@@ -12,10 +12,10 @@ enum CurveDrawMode
     Discrete, AsMesh
 };
 
-MCLASS(StaticCurveComponent)
+MCLASS(CurveComponent)
 class ENGINE_API CurveComponent : public StaticMeshComponent
 {
-    REFLECTION_BODY(StaticCurveComponent)
+    REFLECTION_BODY(CurveComponent)
 public:
     explicit CurveComponent(ObjectPtr<Curve>);
 
