@@ -83,16 +83,12 @@ ParametricMeshActor(const ObjectPtr<StaticMesh>& DisplayMesh, const ObjectPtr<St
 
 	FORCEINLINE FVector Sample(const FVector2& UV) const
     {
-		if(ThicknessToSample == 0.)
-			return GetTransform() * SurfaceComponent->Sample(UV[0], UV[1]);
-        else return GetTransform() * SurfaceComponent->SampleThickness(UV[0], UV[1], ThicknessToSample);
+		return GetFTransform() * SurfaceComponent->Sample(UV[0], UV[1]);
     }
 
     FORCEINLINE FVector Sample(double u, double v) const
     {
-		if (ThicknessToSample == 0.)
-			return GetTransform() * SurfaceComponent->Sample(u, v);
-        else return GetTransform() * SurfaceComponent->SampleThickness(u, v, ThicknessToSample);
+		return GetFTransform() * SurfaceComponent->Sample(u, v);
     }
 
     FORCEINLINE FVector SampleNormal(double u, double v) const
@@ -117,12 +113,12 @@ ParametricMeshActor(const ObjectPtr<StaticMesh>& DisplayMesh, const ObjectPtr<St
 
     FORCEINLINE FVector SampleThickness(double u, double v)
     {
-        return GetTransform() * SurfaceComponent->SampleThickness(u, v);
+        return GetFTransform() * SurfaceComponent->SampleThickness(u, v);
     }
 
     FORCEINLINE FVector SampleThickness(double u, double v, double ThicknessSample)
     {
-        return GetTransform() * SurfaceComponent->SampleThickness(u, v, ThicknessSample);
+        return GetFTransform() * SurfaceComponent->SampleThickness(u, v, ThicknessSample);
     }
 
     FORCEINLINE void SetThickness(double InThickness)

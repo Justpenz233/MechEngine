@@ -113,6 +113,8 @@ public:
 	void DebugDrawLine(const FVector& WorldStart, const FVector& WorldEnd, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 
 	void DebugDrawCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
+
+	void DebugDrawBox(const FBox& Box, const FTransform& Transform, const FColor& Color, double Thickness = 2., double LifeTime = -1.);
 	/**
 	 * Get the timer manager of the world, used for control the timer in the world
 	 * The timer will be ticked by the world

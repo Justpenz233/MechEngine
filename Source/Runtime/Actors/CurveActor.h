@@ -9,6 +9,7 @@ class ENGINE_API CurveActor : public Actor
 {
     REFLECTION_BODY(CurveActor)
 protected:
+	MPROPERTY()
     ObjectPtr<CurveComponent> CComponent;
 
 public:

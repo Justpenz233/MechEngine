@@ -50,6 +50,6 @@ void OrientedSurfaceComponent::Build(const ObjectPtr<StaticMesh>& OrientedMesh, 
 	}
 	else
 	{
-		sdf = MakeUnique<sdf::SDF>(OrientedMesh->GetVertices().cast<float>(), OrientedMesh->GetTriangles().cast<uint32_t>(), false, true);
+		sdf = MakeUnique<sdf::SDF>(OrientedMesh->GetVertices().cast<float>(), OrientedMesh->GetTriangles().cast<uint32_t>(), true, true);
 	}
 }

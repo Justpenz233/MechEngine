@@ -170,7 +170,12 @@ void World::DebugDrawLine(const FVector& WorldStart, const FVector& WorldEnd, co
 }
 void World::DebugDrawCube(const FVector& Center, const FVector& Size, const FColor& Color, double Thickness, double LifeTime)
 {
-	DebugDrawComponent->AddCube(Center, Size, Color, Thickness, LifeTime);
+	DebugDrawComponent->AddCube(Center, Size, {}, Color, Thickness, LifeTime);
+}
+
+void World::DebugDrawBox(const FBox& Box, const FTransform& Transform, const FColor& Color, double Thickness, double LifeTime)
+{
+	DebugDrawComponent->AddCube(Box.GetCenter(), Box.GetSize(), Transform, Color, Thickness, LifeTime);
 }
 
 void World::ExportSceneToObj(const Path& FolderPath, bool bExportGlobal)
