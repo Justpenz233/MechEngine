@@ -14,7 +14,7 @@ namespace MechEngine::Rendering
 
     	uint instance_id = ~0u;
 
-        float intensity = 1.f;
+        luisa::float3 intensity;
 
         // light color in linear space
         luisa::float3 light_color;

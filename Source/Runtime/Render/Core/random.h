@@ -10,11 +10,11 @@ namespace MechEngine::Rendering
 {
 	using namespace luisa::compute;
 
-constexpr auto one_minus_epsilon = 0x1.fffffep-1f;
+	constexpr auto one_minus_epsilon = 0x1.fffffep-1f;
 
-inline Float uniform_uint_to_float(Expr<uint> u) noexcept {
-	return min(one_minus_epsilon, u * 0x1p-32f);
-}
+	inline Float uniform_uint_to_float(Expr<uint> u) noexcept {
+		return min(one_minus_epsilon, u * 0x1p-32f);
+	}
 
 /**
  *  Linear Congruential Generator
@@ -55,5 +55,19 @@ Float3 sample_uniform_hemisphere_surface(Expr<float2> u) noexcept;
  * @return a point on the disk
  */
 Float2 sample_uniform_disk(Expr<float2> u) noexcept;
+
+/**
+ * Sample a point on hemisphere with cosine distribution.
+ * @param u a random float2 in [0, 1]
+ * @return a point on the hemisphere
+ */
+Float3 sample_cosine_hemisphere(Expr<float2> u) noexcept;
+
+/**
+ * Calculate the pdf of cosine hemisphere sampling.
+ * @param w the direction to sample
+ * @return the pdf of cosine hemisphere sampling
+ */
+Float pdf_cosine_hemisphere(Expr<float3> w) noexcept;
 
 }

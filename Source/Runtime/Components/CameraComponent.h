@@ -39,6 +39,7 @@ public:
 	inline void MarkDirty() { IsDirty = true; }
 	inline void ClearDirty() { IsDirty = false; }
 
+	void SetFovH(float InFovH) { FovH = InFovH; MarkDirty(); }
 	FORCEINLINE float GetFovH() const { return DegToRad(FovH); }
 	FORCEINLINE float GetTanHalfFovH() const { return tanf(DegToRad(FovH) / 2.f); }
 	FORCEINLINE float GetFovV() const { return 2.f * atanf(tanf(DegToRad(FovH) / 2.f) / GetAspectRatio()); }

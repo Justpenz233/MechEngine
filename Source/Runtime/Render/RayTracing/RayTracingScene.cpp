@@ -109,29 +109,25 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 	return Window->framebuffer().size();
 }
 
-std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
-	Var<Ray> ray, ray_intersection intersection, bool global_illumination)
+Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) const
 {
+	ray_intersection wireframe_intersection;
 	Float3 pixel_radiance = make_float3(0.f);
-	Float alpha = 1.f; Float3 beta = make_float3(1.f);
+	Float3 beta = make_float3(1.f);
 
-	for(int depth = 0; depth <= global_illumination ? 1 : 0; depth ++)
+	$for(depth, 0, 2)
 	{
+		auto intersection = intersect(ray);
+		$if(depth == 0) {wireframe_intersection = intersection;}; // For wireframe pass
 		$if(intersection.shape->is_light() & depth == 0)
 		{
 			auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
-			// LightProxy->light_virtual_call.dispatch(
-			// 	light_data.light_type, [&](const light_base* light_type) {
-			// 		pixel_radiance = light_type->l(light_data, intersection.position_world,
-			// 			intersection.corner_normal_world,
-			// 			-ray->direction());
-			// 	});
 			pixel_radiance = light_data.light_color;
+			$break;
 		}
 		$elif (intersection.shape->is_surface()) // Surface shade
 		{
 			auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-			alpha = material_data.alpha;
 
 			auto x = intersection.position_world;
 			auto w_o = normalize(-ray->direction());
@@ -144,10 +140,10 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 
 			material_parameters bxdf_parameters;
 			MaterialProxy->shader_call.dispatch(
-				material_data.material_type, [&](const shader_base* material) {
+				material_data.shader_id, [&](const shader_base* material) {
 					bxdf_parameters = material->calc_material_parameters(context);
 				});
-			// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
+
 
 			auto normal = bxdf_parameters.normal;
 
@@ -170,64 +166,31 @@ std::pair<Float3, Float> RayTracingScene::calc_surface_point_color(
 			auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
 
 			// Sample light
-			$for(light_id, 128)
-			{
-				// First calculate light color, as rendering equation is L_i(x, w_i)
-				auto light = LightProxy->get_light_data(light_id);
-				$if(!light->valid()) { $break; };
-				light_li_sample light_sample{};
-				LightProxy->light_virtual_call.dispatch(
-					light.light_type, [&](const light_base* light_type) {
-						light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
-					});
-				auto cos = dot(normalize(light_sample.w_i), normal);
-				$if(cos > 0.01f & !has_hit(make_ray(shadow_ray_origin, light_sample.w_i, 0.01f, 0.99f)))
-				{
-					MaterialProxy->shader_call.dispatch(
-						material_data.material_type, [&](const shader_base* material) {
-							pixel_radiance += beta * material->bxdf(bxdf_parameters, w_o, light_sample.w_i)
-							* light_sample.l_i / light_sample.pdf * cos;
-						});
-				};
-			};
-
+			auto light_id = 0;
+			auto light = LightProxy->get_light_data(light_id);
+			LightProxy->light_virtual_call.dispatch(light.light_type,
+				[&](const light_base* light_type) {
+					auto light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
+					auto cos = dot(normalize(light_sample.w_i), normal);
+					$if(cos > 0.01f & !has_hit(make_ray(shadow_ray_origin, light_sample.w_i, 0.01f, 0.99f)))
+					{
+						MaterialProxy->shader_call.dispatch(
+							material_data.shader_id, [&](const shader_base* material) {
+								pixel_radiance += beta * material->bxdf(bxdf_parameters, w_o, light_sample.w_i)
+									* light_sample.l_i / light_sample.pdf * cos;
+							});
+					};
+				});
 			// Sample brdf
-			auto wi = orthogonal_basis(normal, sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
-			ray = make_ray(shadow_ray_origin, wi);
-			intersection = intersect(ray);
 			MaterialProxy->shader_call.dispatch(
-			material_data.material_type, [&](const shader_base* material) {
-				beta *= material->bxdf(bxdf_parameters, w_o, wi) * max(dot(wi, normal), 0.f) * 2.f * pi;
+			material_data.shader_id, [&](const shader_base* material) {
+				auto [wi, pdf] = material->sample(get_sampler()->generate_2d());
+				wi = orthogonal_basis(normal, wi);
+				beta *= material->bxdf(bxdf_parameters, w_o, wi) * max(dot(wi, normal), 0.f) / pdf;
+				ray = make_ray(shadow_ray_origin, wi);
 			});
 		};
-	}
-
-	return {pixel_radiance, alpha};
-}
-
-Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
-{
-	auto intersection = intersect(ray);
-	auto wireframe_intersection = intersection; // For wireframe pass
-	Float  transmission = 1.f;
-	Float3 pixel_color = make_float3(0.f);
-	$while(intersection.valid())
-	{
-		auto [surface_radiance, alpha]
-		= calc_surface_point_color(ray, intersection, true);
-
-		pixel_color += surface_radiance * alpha * transmission;
-		transmission *= 1.f - alpha;
-		$if(alpha != 1.f & transmission > 1e-2f)
-		{
-			ray->set_origin(
-				offset_ray_origin(intersection.position_world, intersection.triangle_normal_world, ray->direction()));
-			intersection = intersect(ray);
-			$continue;
-		};
-		$break;
 	};
-	pixel_color += transmission * BackgroundColor;
 
 	// Draw wireframe pass, blend  with the pixel color as Anti-aliasing
 	// Currently, we only draw the first intersection with the wireframe, which means
@@ -254,10 +217,10 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 
 			//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
 			auto wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
-			pixel_color = lerp(pixel_color, make_float3(0.f), wireframe_intensity);
+			pixel_radiance = lerp(pixel_radiance, make_float3(0.f), wireframe_intensity);
 		};
 	};
-	return pixel_color;
+	return pixel_radiance;
 }
 
 void RayTracingScene::render_main_view(const UInt& frame_index)
@@ -271,11 +234,11 @@ void RayTracingScene::render_main_view(const UInt& frame_index)
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
 
-	auto color = linear_to_srgb(render_pixel(ray, pixel_pos));
-	auto pre_color = frame_buffer()->read(pixel_coord).xyz();
+	auto color = render_pixel(ray, pixel_pos);
+	auto pre_color = srgb_to_linear(frame_buffer()->read(pixel_coord).xyz());
 	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 0);
 
-	frame_buffer()->write(pixel_coord, make_float4(now_color, 1.f));
+	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(now_color), 1.f));
 }
 
 void RayTracingScene::CompileShader()

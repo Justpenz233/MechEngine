@@ -78,4 +78,23 @@ Float2 sample_uniform_disk(Expr<float2> u) noexcept
 	return impl(u);
 }
 
+Float3 sample_cosine_hemisphere(Expr<float2> u) noexcept
+{
+	static Callable impl = [](const Float2& u) noexcept {
+		auto theta = acos(sqrt(u.x));
+		auto phi = 2.f * pi * u.y;
+		auto sin_theta = sin(theta);
+		return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
+	};
+	return impl(u);
+}
+
+Float pdf_cosine_hemisphere(Expr<float3> w) noexcept
+{
+	static Callable impl = [](const Float3& w) noexcept {
+		return w.z * inv_pi;
+	};
+	return impl(w);
+}
+
 };

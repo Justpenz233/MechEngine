@@ -83,7 +83,7 @@ void LightSceneProxy::UploadDirtyData(Stream& stream)
 light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
 {
 	light_data LightData;
-	LightData.intensity = InLight->GetIntensity();
+	LightData.intensity = ToLuisaVector(InLight->GetIntensity());
 	LightData.light_color = ToLuisaVector(InLight->GetLightColor());
 	if (auto Ptr = Cast<PointLightComponent>(InLight))
 	{

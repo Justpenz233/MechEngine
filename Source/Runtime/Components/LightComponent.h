@@ -27,8 +27,8 @@ public:
 	FORCEINLINE virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 
 	/** Light intensity is only a scalar value representing the relative brightness of the light. */
-	FORCEINLINE float GetIntensity() const;
-	FORCEINLINE void SetIntensity(float InIntensity);
+	FORCEINLINE FVector GetIntensity() const;
+	FORCEINLINE void SetIntensity(const FVector& InIntensity);
 
 	FORCEINLINE FColor GetLightColor() const;
 	FORCEINLINE void SetLightColor(const FColor& InColor);
@@ -37,7 +37,7 @@ public:
 	virtual float GetLightSourceTotalArea() const;
 protected:
 	MPROPERTY()
-	float Intensity = 1.0f;
+	FVector Intensity = FVector::Ones();
 
 	MPROPERTY()
 	FColor LightColor = FColor{1.0f, 1.0f, 1.0f};
@@ -54,7 +54,7 @@ FORCEINLINE void LightComponent::SetLightColor(const FColor& InColor)
 	MarkAsDirty();
 }
 
-FORCEINLINE void LightComponent::SetIntensity(float InIntensity)
+FORCEINLINE void LightComponent::SetIntensity(const FVector& InIntensity)
 {
 	Intensity = InIntensity;
 	MarkAsDirty();
@@ -70,7 +70,7 @@ FORCEINLINE void LightComponent::PostEdit(Reflection::FieldAccessor& Field)
 	MarkAsDirty();
 }
 
-FORCEINLINE float LightComponent::GetIntensity() const
+FORCEINLINE FVector LightComponent::GetIntensity() const
 {
 	return Intensity;
 }

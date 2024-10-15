@@ -58,18 +58,7 @@ protected:
 	 * @param pixel_pos the position of the pixel
 	 * @return pixel color
 	 */
-	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos);
-
-	/**
-	 * Calculate the color of point in a surface
-	 * @param ray the ray cast to the point
-	 * @param intersection the intersection point
-	 * @param global_illumination whether the calculation should consider reflection
-	 * @return the color of the point, the alpha value of the color
-	 */
-	std::pair<Float3, Float> calc_surface_point_color(
-		Var<Ray> ray, ray_intersection intersection, bool global_illumination);
-
+	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos) const;
 
 	unique_ptr<Shader2D<uint>> MainShader;
 

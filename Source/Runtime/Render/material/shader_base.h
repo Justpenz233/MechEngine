@@ -6,7 +6,7 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
-
+#include "Render/Core/random.h"
 
 namespace MechEngine::Rendering
 {
@@ -31,9 +31,22 @@ public:
 	virtual ~shader_base() = default;
 
 	/**
+	 * Sample the brdf.
+	 * @param u The random number to sample the material.
+	 * @return The sampled direction and the pdf of the sample.
+	 */
+	[[nodiscard]]
+	virtual std::pair<Float3, Float> sample(const Float2& u) const
+	{
+		auto w = sample_cosine_hemisphere(u);
+		return {w, pdf_cosine_hemisphere(w)};
+	}
+
+	/**
 	 * Evaluate the BxDF of the material at the given intersection point.
-	 * @param context  The context for the current bxdf evaluation.
 	 * @param parameters The material parameters for the current material.
+	 * @param w_o The direction from the intersection point to the camera.  Output irradiance direction.
+	 * @param w_i The direction to the intersection point. Input irradiance direction.
 	 * @return The color of the material at the given intersection point.
 	 */
 	[[nodiscard]] Float3 bxdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const
