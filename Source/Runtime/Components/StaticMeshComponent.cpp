@@ -80,7 +80,8 @@ void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 void StaticMeshComponent::SetVisible(bool InVisible)
 {
 	bVisible = InVisible;
-	World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
+	if(InstanceID != ~0u)
+		World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 }
 
 void StaticMeshComponent::UploadRenderingData()
@@ -106,22 +107,25 @@ void StaticMeshComponent::UploadRenderingData()
 			GetScene()->GetStaticMeshProxy()->BindInstance(MeshID, InstanceID);
 		}
 	}
+	World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 }
+
 void StaticMeshComponent::Remesh()
 {
 	MarkAsDirty(DIRTY_RENDERDATA);
 }
 
-ObjectPtr<StaticMesh> StaticMeshComponent::GetMeshData()
-{
-	return MeshData;
-}
-ObjectPtr<StaticMesh> StaticMeshComponent::GetStaticMesh()
+ObjectPtr<StaticMesh> StaticMeshComponent::GetMeshData() const
 {
 	return MeshData;
 }
 
-ObjectPtr<StaticMesh> StaticMeshComponent::GetCollisionMesh()
+ObjectPtr<StaticMesh> StaticMeshComponent::GetStaticMesh() const
+{
+	return MeshData;
+}
+
+ObjectPtr<StaticMesh> StaticMeshComponent::GetCollisionMesh() const
 {
 	return CollisionMesh;
 }
@@ -132,7 +136,7 @@ void StaticMeshComponent::SetMeshData(ObjectPtr<StaticMesh> InMeshData)
 	MarkAsDirty(DIRTY_RENDERDATA);
 }
 
-void StaticMeshComponent::SetCollisionMeshData(ObjectPtr<StaticMesh> InCollisionMesh)
+void StaticMeshComponent::SetCollisionMeshData(const ObjectPtr<StaticMesh>& InCollisionMesh)
 {
 	CollisionMesh = InCollisionMesh;
 	MarkAsDirty(DIRTY_RENDERDATA);
@@ -157,7 +161,7 @@ void StaticMeshComponent::SetColor(const FColor& InColor) const
 		MeshData->GetMaterial()->SetBaseColor(InColor);
 }
 
-void StaticMeshComponent::SetMaterial(ObjectPtr<Material> InMaterial)
+void StaticMeshComponent::SetMaterial(const ObjectPtr<Material>& InMaterial)
 {
 	if (MeshData && InMaterial != nullptr)
 	{

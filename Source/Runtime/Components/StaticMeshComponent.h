@@ -76,12 +76,12 @@ public:
 	 */
 	virtual void Remesh();
 
-	ObjectPtr<StaticMesh> GetMeshData();
-	ObjectPtr<StaticMesh> GetStaticMesh();
-	ObjectPtr<StaticMesh> GetCollisionMesh();
+	ObjectPtr<StaticMesh> GetMeshData() const;
+	ObjectPtr<StaticMesh> GetStaticMesh() const;
+	ObjectPtr<StaticMesh> GetCollisionMesh() const;
 
 	void SetMeshData(ObjectPtr<StaticMesh> InMeshData);
-	void SetCollisionMeshData(ObjectPtr<StaticMesh> InCollisionMesh);
+	void SetCollisionMeshData(const ObjectPtr<StaticMesh>& InCollisionMesh);
 
 	void SmoothMesh(int Iteration = 5, bool UseUniform = false);
 
@@ -96,7 +96,7 @@ public:
 	 * Set the material of the mesh, this is a quick interface to set the material of the current mesh
 	 * @param InMaterial material to set
 	 */
-	void SetMaterial(ObjectPtr<Material> InMaterial);
+	void SetMaterial(const ObjectPtr<Material>& InMaterial);
 
 protected:
 	StaticMeshDirtyTag Dirty = DIRTY_RENDERDATA;

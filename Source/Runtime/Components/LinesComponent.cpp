@@ -33,22 +33,20 @@ void LinesComponent::AddCube(const FVector& Center, const FVector& Size, const F
 	auto HalfSize = Size / 2;
 	FVector Min = Center - HalfSize;
 	FVector Max = Center + HalfSize;
-	Min = Transform * Min;
-	Max = Transform * Max;
-	AddLine(Min, FVector(Min.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
-	AddLine(Min, FVector(Min.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
-	AddLine(Min, FVector(Max.x(), Min.y(), Min.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Min, Transform * FVector(Min.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Min, Transform * FVector(Min.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Min, Transform * FVector(Max.x(), Min.y(), Min.z()), Color, Thickness, LifeTime);
 	
-	AddLine(Max, FVector(Max.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
-	AddLine(Max, FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
-	AddLine(Max, FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Max, Transform * FVector(Max.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Max, Transform * FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * Max, Transform * FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
 
-	AddLine(FVector(Min.x(), Max.y(), Min.z()), FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
-	AddLine(FVector(Min.x(), Max.y(), Min.z()), FVector(Max.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
-	AddLine(FVector(Max.x(), Min.y(), Min.z()), FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Min.x(), Max.y(), Min.z()), Transform * FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Min.x(), Max.y(), Min.z()), Transform * FVector(Max.x(), Max.y(), Min.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Max.x(), Min.y(), Min.z()), Transform * FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
 
-	AddLine(FVector(Min.x(), Min.y(), Max.z()), FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
-	AddLine(FVector(Min.x(), Min.y(), Max.z()), FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
-	AddLine(FVector(Max.x(), Max.y(), Min.z()), FVector(Max.x(), Min.y(), Min.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Min.x(), Min.y(), Max.z()), Transform * FVector(Max.x(), Min.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Min.x(), Min.y(), Max.z()), Transform * FVector(Min.x(), Max.y(), Max.z()), Color, Thickness, LifeTime);
+	AddLine(Transform * FVector(Max.x(), Max.y(), Min.z()), Transform * FVector(Max.x(), Min.y(), Min.z()), Color, Thickness, LifeTime);
 
 }
