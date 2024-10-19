@@ -50,7 +50,7 @@ protected:
 	 * Render the main view, dispatch the render kernel
 	 * @param frame_index the index of the frame, should start from 0 and increase by 1
 	 */
-	void render_main_view(const UInt& frame_index);
+	void render_main_view(const UInt& frame_index, const UInt& time);
 
 	/**
 	 * Calculate the color of a pixel with a ray
@@ -60,7 +60,7 @@ protected:
 	 */
 	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos) const;
 
-	unique_ptr<Shader2D<uint>> MainShader;
+	unique_ptr<Shader2D<uint, uint>> MainShader;
 
 	virtual void CompileShader() override;
 };

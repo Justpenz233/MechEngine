@@ -9,7 +9,7 @@
 #include "Render/ViewportInterface.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/math_function.h"
-#include "Render/Core/random.h"
+#include "Render/Core/sample.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -89,7 +89,7 @@ void RayTracingScene::UploadRenderData()
 
 void RayTracingScene::Render()
 {
-	stream << (*MainShader)(FrameCounter++).dispatch(GetWindosSize());
+	stream << (*MainShader)(FrameCounter++, TimeCounter ++).dispatch(GetWindosSize());
 
 	if(ViewMode != ViewMode::FrameBuffer) [[unlikely]]
 		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
@@ -170,7 +170,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 			auto light = LightProxy->get_light_data(light_id);
 			LightProxy->light_virtual_call.dispatch(light.light_type,
 				[&](const light_base* light_type) {
-					auto light_sample = light_type->sample_li(light, x, normal, get_sampler()->generate_2d());
+					auto light_sample = light_type->sample_li(light, x, get_sampler()->generate_2d());
 					auto cos = dot(normalize(light_sample.w_i), normal);
 					$if(cos > 0.01f & !has_hit(make_ray(shadow_ray_origin, light_sample.w_i, 0.01f, 0.99f)))
 					{
@@ -184,7 +184,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 			// Sample brdf
 			MaterialProxy->shader_call.dispatch(
 			material_data.shader_id, [&](const shader_base* material) {
-				auto [wi, pdf] = material->sample(get_sampler()->generate_2d());
+				auto [wi, pdf] = material->sample(bxdf_parameters, w_o, get_sampler()->generate_2d());
 				wi = orthogonal_basis(normal, wi);
 				beta *= material->bxdf(bxdf_parameters, w_o, wi) * max(dot(wi, normal), 0.f) / pdf;
 				ray = make_ray(shadow_ray_origin, wi);
@@ -223,12 +223,12 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 	return pixel_radiance;
 }
 
-void RayTracingScene::render_main_view(const UInt& frame_index)
+void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
 {
 	auto view = CameraProxy->get_main_view();
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
-	get_sampler()->init(pixel_coord, frame_index);
+	get_sampler()->init(pixel_coord, time);
 
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
@@ -252,8 +252,8 @@ void RayTracingScene::CompileShader()
 	GPUSceneInterface::CompileShader();
 
 	// Main pass shader
-	MainShader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
-		[&](UInt frame_index) noexcept { render_main_view(frame_index); }));
+	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
+		[&](UInt frame_index, UInt time) noexcept { render_main_view(frame_index, time); }));
 
 }
 }

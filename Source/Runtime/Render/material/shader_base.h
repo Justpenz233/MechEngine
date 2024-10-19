@@ -6,7 +6,7 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
-#include "Render/Core/random.h"
+#include "Render/Core/sample.h"
 
 namespace MechEngine::Rendering
 {
@@ -30,16 +30,23 @@ public:
 
 	virtual ~shader_base() = default;
 
+	[[nodiscard]]
+	virtual Float pdf(const material_parameters& parameters, const Float3& w_i, const Float3& w_o) const
+	{
+		return pdf_cosine_hemisphere(w_i);
+	}
+
 	/**
 	 * Sample the brdf.
+	 * @param parameters The material parameters for the current material.
 	 * @param u The random number to sample the material.
 	 * @return The sampled direction and the pdf of the sample.
 	 */
 	[[nodiscard]]
-	virtual std::pair<Float3, Float> sample(const Float2& u) const
+	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const
 	{
-		auto w = sample_cosine_hemisphere(u);
-		return {w, pdf_cosine_hemisphere(w)};
+		auto w_i = sample_cosine_hemisphere(u);
+		return {w_i, pdf(parameters, w_i, w_o)};
 	}
 
 	/**

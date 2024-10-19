@@ -5,7 +5,7 @@
 #pragma once
 
 #include "light_base.h"
-#include "Render/Core/random.h"
+#include "Render/Core/sample.h"
 #include "Render/RayTracing/RayTracingScene.h"
 #include "Render/material/shading_function.h"
 
@@ -16,7 +16,7 @@ namespace MechEngine::Rendering
     public:
         using light_base::light_base;
 
-    	virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float2& u) const override
+    	virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const override
     	{
     		// Only consider the case when shading point outside the light source
     		auto light_transform = scene.get_instance_transform(data.instance_id);
@@ -53,7 +53,7 @@ namespace MechEngine::Rendering
 	public:
 		using light_base::light_base;
 
-		virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float2& u) const override
+		virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const override
 		{
 			auto light_transform = scene.get_instance_transform(data.instance_id);
 			const auto& size = data.size.xy();

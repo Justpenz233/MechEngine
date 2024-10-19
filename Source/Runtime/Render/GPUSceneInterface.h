@@ -267,8 +267,9 @@ namespace MechEngine::Rendering
 
 		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
 
-		// Frame counter, start from 0, increase by 1 each frame
+		// Frame counter, start from 0, increase by 1 each frame, refresh when the scene is updated
 		uint FrameCounter = 0;
+		uint TimeCounter = 0;
 
 		unique_ptr<Shader2D<uint>> ViewModePass;
 

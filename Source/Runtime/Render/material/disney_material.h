@@ -64,7 +64,29 @@ namespace MechEngine::Rendering
             return pow(x, 2.2f);
         }
 
+
+    	static FORCEINLINE Float3 sample_wh(const Float2& u, const Float& a)
+		{
+			auto phi = 2.f * pi * u.y;
+			auto theta = atan(a * sqrt(u.x / (1.f - u.x)));
+        	auto sin_theta = sin(theta);
+        	return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
+		}
+
+    	static FORCEINLINE Float3 sample_wi(const Float3& wo, const Float3& wh)
+        {
+        	return reflect(-wo, wh);
+        }
+
+
+    	static FORCEINLINE Float pdf(const Float3& wo, const Float3& wh, const Float& a)
+        {
+        	return GTR2(wh.z, a) * abs(dot(wh, wo)) / (4.f * dot(wo, wh));
+        }
+
+
     public:
+
         /**
          * disney's physically based shading model
          * @see https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf

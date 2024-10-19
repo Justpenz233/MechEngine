@@ -1,7 +1,7 @@
 //
 // Created by Mayn on 2024/9/20.
 //
-#include "random.h"
+#include "sample.h"
 
 
 namespace MechEngine::Rendering
@@ -95,6 +95,34 @@ Float pdf_cosine_hemisphere(Expr<float3> w) noexcept
 		return w.z * inv_pi;
 	};
 	return impl(w);
+}
+
+Float balance_heuristic(Expr<uint> nf, Expr<float> fPdf, Expr<uint> ng, Expr<float> gPdf) noexcept {
+	static Callable impl = [](UInt nf, Float fPdf, UInt ng, Float gPdf) noexcept {
+		auto sum_f = nf * fPdf;
+		auto sum = sum_f + ng * gPdf;
+		return ite(sum == 0.0f, 0.0f, sum_f / sum);
+	};
+	return impl(nf, fPdf, ng, gPdf);
+}
+
+Float power_heuristic(Expr<uint> nf, Expr<float> fPdf, Expr<uint> ng, Expr<float> gPdf) noexcept {
+	static Callable impl = [](UInt nf, Float fPdf, UInt ng, Float gPdf) noexcept {
+		Float f = nf * fPdf, g = ng * gPdf;
+		auto ff = f * f;
+		auto gg = g * g;
+		auto sum = ff + gg;
+		return ite(isinf(ff), 1.f, ite(sum == 0.f, 0.f, ff / sum));
+	};
+	return impl(nf, fPdf, ng, gPdf);
+}
+
+Float balance_heuristic(Expr<float> fPdf, Expr<float> gPdf) noexcept {
+	return balance_heuristic(1u, fPdf, 1u, gPdf);
+}
+
+Float power_heuristic(Expr<float> fPdf, Expr<float> gPdf) noexcept {
+	return power_heuristic(1u, fPdf, 1u, gPdf);
 }
 
 };

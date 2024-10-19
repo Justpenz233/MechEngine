@@ -73,7 +73,7 @@ namespace MechEngine::Rendering
     	* @param normal the shading normal at x
     	* @param u random number for sampling
     	 */
-    	[[nodiscard]] virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float2& u) const = 0;
+    	[[nodiscard]] virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const = 0;
 
 
     	/**
@@ -87,30 +87,6 @@ namespace MechEngine::Rendering
     	// [[nodiscard]] virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float3& w_i) const = 0;
 
 
-    	/**
-    	* If a ray happens to intersect an area light source, it is necessary to find the radiance that is emitted back along the ray
-    	* takes local information about the intersection point and the outgoing direction.
-    	* This method should never be called for any light that does not have geometry associated with it.
-    	* @param data light data
-    	* @param p_l the position of the light where the ray hit
-    	* @param n_l the normal of the light where the ray hit
-    	* @param w_o the direction of the ray
-    	 */
-    	[[nodiscard]] virtual Float3 l(Expr<light_data> data, const Float3& p_l, const Float3& n_l, const Float3& w_o) const
-    	{
-    		return make_float3(0.f);
-    	}
-
-		/**
-		 * Enables infinite area lights to contribute radiance to rays that do not hit any geometry in the scene
-		 * This method should only be called for lights without geometry associated with them.
-		 * @param data light data
-		 * @param ray the ray that did not hit any geometry
-		 */
-		[[nodiscard]] virtual Float3 l_e(Expr<light_data> data, const Ray& ray) const
-    	{
-    		return make_float3(0.f);
-    	}
 
     protected:
     	const RayTracingScene& scene;
