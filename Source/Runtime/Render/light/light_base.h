@@ -70,7 +70,6 @@ namespace MechEngine::Rendering
     	* Sample the light incident radiance at pos x with shading normal
     	* @param data light data
     	* @param x the position in the lighting surface which receives the light
-    	* @param normal the shading normal at x
     	* @param u random number for sampling
     	 */
     	[[nodiscard]] virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const = 0;

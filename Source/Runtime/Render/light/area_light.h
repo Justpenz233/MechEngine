@@ -60,12 +60,12 @@ namespace MechEngine::Rendering
 			auto pdf = 1.f / (size.x * size.y);
 
 			// resample from light source
-			auto p_l_obj = make_float3((u.x - 0.5f) * size.x, 0.f, (u.y - 0.5f) * size.y);
+			auto p_l_obj = make_float3((u.x - 0.5f) * size.x, (u.y - 0.5f) * size.y, 0.f);
 			auto p_l = (light_transform * make_float4(p_l_obj, 1.f)).xyz();
-			auto n_l = normalize((light_transform * make_float4(0.f, 0.f, 1.f, 0.f)).xyz());
+			auto n_l = -light_transform[2].xyz();   // -0,0,1
 
 			auto w_i = p_l - x;
-			auto l_i = data.intensity * data.light_color * max(dot(normalize(w_i), n_l), 0.f) / distance_squared(x, p_l);
+			auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_l), 0.f) / distance_squared(x, p_l);
 			return {l_i, w_i, p_l, pdf};
 		}
 	};

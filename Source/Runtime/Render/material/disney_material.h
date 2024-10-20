@@ -87,6 +87,14 @@ namespace MechEngine::Rendering
 
     public:
 
+   //  	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const override
+   //  	{
+   //  		auto a = max(.001f, sqr(parameters.roughness));
+			// auto wh = sample_wh(u, a);
+			// auto wi = sample_wi(w_o, wh);
+			// return {wi, pdf(w_o, wh, a)};
+   //  	}
+
         /**
          * disney's physically based shading model
          * @see https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf
@@ -95,7 +103,7 @@ namespace MechEngine::Rendering
         [[nodiscard]]
         virtual Float3 evaluate(const material_parameters& material_data, const Float3& w_o, const Float3& w_i) const override
         {
-            auto N = material_data.normal;
+            auto N = make_float3(0.f, 0.f, 1.f);
 
             auto NdotL = dot(N, w_i);
             auto NdotV = dot(N, w_o);

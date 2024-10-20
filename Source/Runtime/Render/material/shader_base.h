@@ -116,8 +116,7 @@ protected:
 			};
 			$case(1) // vertex normal
 			{
-			Normal = context.intersection.vertex_normal_world;
-
+				Normal = context.intersection.vertex_normal_world;
 			};
 			$case(2) // corner normal
 			{

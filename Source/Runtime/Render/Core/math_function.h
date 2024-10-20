@@ -5,8 +5,7 @@
 #pragma once
 
 #include <luisa/luisa-compute.h>
-#include "view.h"
-#include "Misc/Platform.h"
+
 
 namespace MechEngine::Rendering
 {
@@ -196,9 +195,12 @@ namespace MechEngine::Rendering
 	 */
 	FORCEINLINE std::array<Float3, 3> orthogonal_basis(const Float3& n)
 	{
-		Float3 t = normalize(cross(n, select(make_float3(1.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), abs(n.x) > 0.9f)));
-		Float3 b = cross(n, t);
-		return { cross(n, b), b, n};
+		auto sgn = sign(n.z);
+		auto a = -1.f / (sgn + n.z);
+		auto b = n.x * n.y * a;
+		auto s = make_float3(1.f + sgn * square(n.x) * a, sgn * b, -sgn * n.x);
+		auto t = make_float3(b, sgn + square(n.y) * a, -n.y);
+		return {normalize(s), normalize(t), n};
 	}
 	/**
 	 * Calculate the orthogonal basis of a given normal and a point mapping to normal space. Assume the normal is normalized, and is z axis.

@@ -117,7 +117,11 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 
 	$for(depth, 0, 2)
 	{
-		auto intersection = intersect(ray);
+		auto		intersection = intersect(ray);
+		const auto& frame = intersection.shading_frame;
+		const auto& x = intersection.position_world;
+		const auto& w_o = normalize(-ray->direction());
+
 		$if(depth == 0) {wireframe_intersection = intersection;}; // For wireframe pass
 		$if(intersection.shape->is_light() & depth == 0)
 		{
@@ -128,9 +132,6 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 		$elif (intersection.shape->is_surface()) // Surface shade
 		{
 			auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-
-			auto x = intersection.position_world;
-			auto w_o = normalize(-ray->direction());
 
 			// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
 			bxdf_context context{
@@ -145,6 +146,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 				});
 
 
+			// normal in world space
 			auto normal = bxdf_parameters.normal;
 
 			// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
@@ -184,10 +186,11 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 			// Sample brdf
 			MaterialProxy->shader_call.dispatch(
 			material_data.shader_id, [&](const shader_base* material) {
-				auto [wi, pdf] = material->sample(bxdf_parameters, w_o, get_sampler()->generate_2d());
-				wi = orthogonal_basis(normal, wi);
-				beta *= material->bxdf(bxdf_parameters, w_o, wi) * max(dot(wi, normal), 0.f) / pdf;
-				ray = make_ray(shadow_ray_origin, wi);
+				auto local_wo = frame.world_to_local(w_o);
+				auto [local_wi, pdf] = material->sample(bxdf_parameters, local_wo, get_sampler()->generate_2d());
+				auto world_wi = frame.local_to_world(local_wi);
+				beta *= material->bxdf(bxdf_parameters, local_wo, local_wi) * dot(world_wi, normal) / pdf;
+				ray = make_ray(shadow_ray_origin, world_wi);
 			});
 		};
 	};
@@ -231,7 +234,8 @@ void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time
 	get_sampler()->init(pixel_coord, time);
 
 	// Ray trace rasterization
-	auto pixel_pos = make_float2(pixel_coord) + .5f;
+	auto pixel_pos = make_float2(pixel_coord) + sampler->generate_2d();
+
 	auto ray = view->generate_ray(pixel_pos);
 
 	auto color = render_pixel(ray, pixel_pos);

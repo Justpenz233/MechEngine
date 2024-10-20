@@ -4,10 +4,8 @@
 
 
 #pragma once
+#include "frame.h"
 #include "shape.h"
-#include <luisa/core/basic_traits.h>
-#include <luisa/core/basic_types.h>
-#include "triangle_data.h"
 
 namespace MechEngine::Rendering
 {
@@ -43,6 +41,8 @@ struct ray_intersection
 	UInt primitive_id;
 	UInt material_id;
 	Bool back_face;
+
+	frame shading_frame;
 
 	ray_intersection(): instance_id(~0u) {}
 	[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }

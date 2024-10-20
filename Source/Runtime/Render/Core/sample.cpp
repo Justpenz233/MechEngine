@@ -112,7 +112,7 @@ Float power_heuristic(Expr<uint> nf, Expr<float> fPdf, Expr<uint> ng, Expr<float
 		auto ff = f * f;
 		auto gg = g * g;
 		auto sum = ff + gg;
-		return ite(isinf(ff), 1.f, ite(sum == 0.f, 0.f, ff / sum));
+		return ite(luisa::compute::isinf(ff), 1.f, ite(sum == 0.f, 0.f, ff / sum));
 	};
 	return impl(nf, fPdf, ng, gPdf);
 }
