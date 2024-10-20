@@ -45,6 +45,24 @@ namespace MechEngine::Rendering
     		auto l_i = data.intensity * data.light_color / distance_squared(x, p_l);
     		return {l_i, p_l - x, p_l, pdf};
     	}
+
+    	virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+    	{
+    		// TODO: Fix this function
+    		return 1.f / (4.f * pi * square(distance(x, p_l)));
+    	}
+
+    	virtual std::pair<Float3, Float> l_i(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+	    {
+    		// TODO: Fix this function
+    		auto light_transform = scene.get_instance_transform(data.instance_id);
+	    	auto dis = distance(x, p_l);
+	    	auto pdf = pdf_li(data, x, p_l);
+	    	auto w_i = p_l - x;
+	    	auto n_world = light_transform[2].xyz();
+	    	auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_world), 0.f) / square(dis);
+	    	return {l_i, pdf};
+	    }
     };
 
 
@@ -57,16 +75,30 @@ namespace MechEngine::Rendering
 		{
 			auto light_transform = scene.get_instance_transform(data.instance_id);
 			const auto& size = data.size.xy();
-			auto pdf = 1.f / (size.x * size.y);
 
 			// resample from light source
 			auto p_l_obj = make_float3((u.x - 0.5f) * size.x, (u.y - 0.5f) * size.y, 0.f);
 			auto p_l = (light_transform * make_float4(p_l_obj, 1.f)).xyz();
-			auto n_l = -light_transform[2].xyz();   // -0,0,1
-
 			auto w_i = p_l - x;
-			auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_l), 0.f) / distance_squared(x, p_l);
-			return {l_i, w_i, p_l, pdf};
+			auto [li, pdf] = l_i(data, x, p_l);
+			return {li, w_i, p_l, pdf};
+		}
+
+		virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+		{
+			const auto& size = data.size.xy();
+			return 1.f / (size.x * size.y);
+		}
+
+		virtual std::pair<Float3, Float> l_i(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+		{
+			auto light_transform = scene.get_instance_transform(data.instance_id);
+			auto dis = distance(x, p_l);
+			auto pdf = pdf_li(data, x, p_l);
+			auto w_i = p_l - x;
+			auto n_world = -light_transform[2].xyz();
+			auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_world), 0.f) / square(dis);
+			return {l_i, pdf};
 		}
 	};
 }

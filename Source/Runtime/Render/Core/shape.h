@@ -16,6 +16,8 @@ struct shape
 
 LUISA_STRUCT(MechEngine::Rendering::shape, mesh_id, light_id)
 {
-    [[nodiscard]] auto is_light() const noexcept { return light_id != ~0u; }
-	[[nodiscard]] auto is_surface() const noexcept { return mesh_id != ~0u;  }
+    [[nodiscard]] auto has_light() const noexcept { return light_id != ~0u; }
+	[[nodiscard]] auto is_light() const noexcept { return light_id != ~0u; }
+	[[nodiscard]] auto has_surface() const noexcept { return mesh_id != ~0u;  }
+	[[nodiscard]] auto is_mesh() const noexcept { return mesh_id != ~0u & light_id == ~0u; }
 };

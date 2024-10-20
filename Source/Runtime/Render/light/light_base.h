@@ -74,15 +74,16 @@ namespace MechEngine::Rendering
     	 */
     	[[nodiscard]] virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const = 0;
 
-
     	/**
-    	* Evaluate the pdf of the light incident radiance at pos x with shading normal
-    	* Used for MIS, when already sampled a ray direction to the light and there is no occlusion in between
-    	* @param data light data
-    	* @param x the position in the lighting surface which receives the light
-    	* @param normal the shading normal at x
-    	* @param w_i the direction
-    	 */
+		* Evaluate the pdf of the light incident radiance at pos x with intersection in light source p_l
+		* @param data light data
+		* @param x the position in the lighting surface which receives the light
+		* @param p_l the position in the light source where the light is emitted
+		 */
+    	[[nodiscard]] virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& p_l) const = 0;
+
+    	[[nodiscard]] virtual std::pair<Float3, Float> l_i(Expr<light_data> data, const Float3& x, const Float3& p_l) const = 0;
+
     	// [[nodiscard]] virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float3& w_i) const = 0;
 
 
