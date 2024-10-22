@@ -31,7 +31,7 @@ public:
 	virtual ~shader_base() = default;
 
 	[[nodiscard]]
-	virtual Float pdf(const material_parameters& parameters, const Float3& w_i, const Float3& w_o) const
+	virtual Float pdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const
 	{
 		return pdf_cosine_hemisphere(w_i);
 	}

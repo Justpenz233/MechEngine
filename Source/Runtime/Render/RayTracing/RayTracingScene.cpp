@@ -114,8 +114,9 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 	ray_intersection wireframe_intersection;
 	Float3 pixel_radiance = make_float3(0.f);
 	Float3 beta = make_float3(1.f);
+	auto pdf_bsdf = def(1e16f);
 
-	$for(depth, 0, 2)
+	$for(depth, 0, 16)
 	{
 		auto		intersection = intersect(ray);
 		const auto& frame = intersection.shading_frame;
@@ -124,13 +125,17 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 		auto local_wo = frame.world_to_local(w_o);
 
 		$if(depth == 0) {wireframe_intersection = intersection;}; // For wireframe pass
-		$if(intersection.shape->has_light() & depth == 0)
+		$if(intersection.shape->has_light())
 		{
-			auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
-			pixel_radiance = light_data.light_color;
+			auto light = LightProxy->get_light_data(intersection.shape.light_id);
+			LightProxy->light_virtual_call.dispatch(light.light_type,
+				[&](const light_base* light_type) {
+					auto eval = light_type->l_i(light,ray->origin(), x);
+					pixel_radiance += beta * eval.first * balance_heuristic(pdf_bsdf, eval.second);
+				});
 			$break;
-		}
-		$elif (intersection.shape->is_mesh()) // Surface shade
+		};
+		$if (intersection.shape->has_surface()) // Surface shade
 		{
 			auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 
@@ -176,13 +181,16 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 					auto light_sample = light_type->sample_li(light, x, get_sampler()->generate_2d());
 					auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, 0.99f));
 					auto cos = dot(normalize(light_sample.w_i), normal);
-					$if(cos > 0.01f & !occluded)
+					$if(cos > 0.01f & !occluded & light_sample.pdf > 0.f)
 					{
 						MaterialProxy->shader_call.dispatch(
-							material_data.shader_id, [&](const shader_base* material) {
-								pixel_radiance += beta * material->bxdf(bxdf_parameters, local_wo, frame.world_to_local(light_sample.w_i))
-									* light_sample.l_i / light_sample.pdf * cos;
-							});
+						material_data.shader_id, [&](const shader_base* material) {
+							auto local_wi = frame.world_to_local(light_sample.w_i);
+							auto brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
+							auto pdf = material->pdf(bxdf_parameters, local_wo, local_wi);
+							auto w = balance_heuristic(light_sample.pdf, pdf_bsdf) / light_sample.pdf;
+							pixel_radiance += w * beta * brdf * light_sample.l_i * cos;
+						});
 					};
 				});
 			// Sample brdf
@@ -190,8 +198,10 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 			material_data.shader_id, [&](const shader_base* material) {
 				auto [local_wi, pdf] = material->sample(bxdf_parameters, local_wo, get_sampler()->generate_2d());
 				auto world_wi = frame.local_to_world(local_wi);
-				beta *= material->bxdf(bxdf_parameters, local_wo, local_wi) * dot(world_wi, normal) / pdf;
 				ray = make_ray(shadow_ray_origin, world_wi);
+				pdf_bsdf = pdf;
+				auto w = ite(pdf > 0.f, 1.f / pdf, 0.f);
+				beta *= w * material->bxdf(bxdf_parameters, local_wo, local_wi);
 			});
 		};
 	};
@@ -225,131 +235,6 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 		};
 	};
 	return pixel_radiance;
-
-
-	// ray_intersection wireframe_intersection;
-	// Float3 pixel_radiance = make_float3(0.f);
-	// Float3 beta = make_float3(1.f);
-	// auto pdf_bsdf = def(1e16f);
-	//
-	// $for(depth, 0, 2)
-	// {
-	// 	auto		intersection = intersect(ray);
-	// 	const auto& frame = intersection.shading_frame;
-	// 	const auto& x = intersection.position_world;
-	// 	const auto& w_o = normalize(-ray->direction());
-	// 	auto local_wo = frame.world_to_local(w_o);
-	// 	$if(depth == 0) {wireframe_intersection = intersection;}; // For wireframe pass
-	// 	$if(intersection.shape->is_light())
-	// 	{
-	// 		auto light = LightProxy->get_light_data(intersection.shape.light_id);
-	// 		LightProxy->light_virtual_call.dispatch(light.light_type,
-	// 		[&](const light_base* light_type) {
-	// 			auto [li, pdf] = light_type->l_i(light, ray->origin(), x);
-	// 			pixel_radiance += beta * li * balance_heuristic(pdf_bsdf, pdf);
-	// 		});
-	// 	}
-	// 	$elif (intersection.shape->is_surface()) // Surface shade
-	// 	{
-	// 		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-	//
-	// 		// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-	// 		bxdf_context context{
-	// 			.intersection = intersection,
-	// 			.material_data = MaterialProxy->get_material_data(intersection.material_id),
-	// 		};
-	//
-	// 		material_parameters bxdf_parameters;
-	// 		MaterialProxy->shader_call.dispatch(
-	// 			material_data.shader_id, [&](const shader_base* material) {
-	// 				bxdf_parameters = material->calc_material_parameters(context);
-	// 			});
-	//
-	//
-	// 		// normal in world space
-	// 		auto normal = bxdf_parameters.normal;
-	//
-	// 		// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
-	// 		auto offset_ray = [&]() {
-	// 			auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
-	// 			auto tmpu = x - vps[0]->position();
-	// 			auto tmpv = x - vps[1]->position();
-	// 			auto tmpw = x - vps[2]->position();
-	//
-	// 			auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
-	// 			auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
-	// 			auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
-	//
-	// 			tmpu -= dotu * vps[0]->normal();
-	// 			tmpv -= dotv * vps[1]->normal();
-	// 			tmpw -= dotw * vps[2]->normal();
-	// 			return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
-	// 		};
-	// 		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
-	//
-	// 		// Sample light
-	// 		auto light_id = 0;
-	// 		auto light = LightProxy->get_light_data(light_id);
-	// 		LightProxy->light_virtual_call.dispatch(light.light_type,
-	// 			[&](const light_base* light_type) {
-	// 				auto light_sample = light_type->sample_li(light, x, get_sampler()->generate_2d());
-	// 				auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, 0.99f));
-	// 				auto cos = dot(normalize(light_sample.w_i), normal);
-	// 				$if(cos > 0.01f & !occluded)
-	// 				{
-	// 					MaterialProxy->shader_call.dispatch(
-	// 						material_data.shader_id, [&](const shader_base* material) {
-	// 							auto local_wi = frame.world_to_local(light_sample.w_i);
-	// 							auto bxdf_pdf = material->pdf(bxdf_parameters, local_wo, local_wi);
-	// 							auto f = material->bxdf(bxdf_parameters, local_wo, local_wi);
-	// 							auto w = balance_heuristic(light_sample.pdf, bxdf_pdf) /
-	// 								light_sample.pdf;
-	// 							pixel_radiance += w * beta * f * light_sample.l_i * cos;
-	// 						});
-	// 				};
-	// 			});
-	//
-	// 		// Sample brdf
-	// 		MaterialProxy->shader_call.dispatch(
-	// 		material_data.shader_id, [&](const shader_base* material) {
-	// 			auto [local_wi, pdf] = material->sample(bxdf_parameters, local_wo, get_sampler()->generate_2d());
-	// 			auto world_wi = frame.local_to_world(local_wi);
-	// 			ray = make_ray(x, world_wi);
-	// 			pdf_bsdf = pdf;
-	// 			beta *= material->bxdf(bxdf_parameters, local_wo, local_wi) * abs(dot(world_wi, normal)) / pdf;
-	// 		});
-	// 	};
-	// };
-	//
-	// // Draw wireframe pass, blend  with the pixel color as Anti-aliasing
-	// // Currently, we only draw the first intersection with the wireframe, which means
-	// // the wireframe would disappear in refractive or alpha blended surface
-	// //@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-	// //@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-	// $if(wireframe_intersection.shape->is_surface())
-	// {
-	// 	auto material_data = MaterialProxy->get_material_data(wireframe_intersection.material_id);
-	// 	$if(material_data->show_wireframe == 1)
-	// 	{
-	// 		auto view = CameraProxy->get_main_view();
-	// 		auto vertex_data = StaticMeshProxy->get_vertices(
-	// 			wireframe_intersection.shape->mesh_id,
-	// 			wireframe_intersection.primitive_id);
-	// 		auto transform = get_instance_transform(
-	// 			wireframe_intersection.instance_id);
-	//
-	// 		auto d = distance_to_triangle(pixel_pos,
-	// 			view->world_to_screen((transform * make_float4(vertex_data[0]->position(), 1.f)).xyz()),
-	// 			view->world_to_screen((transform * make_float4(vertex_data[1]->position(), 1.f)).xyz()),
-	// 			view->world_to_screen((transform * make_float4(vertex_data[2]->position(), 1.f)).xyz())
-	// 			);
-	//
-	// 		//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
-	// 		auto wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
-	// 		pixel_radiance = lerp(pixel_radiance, make_float3(0.f), wireframe_intensity);
-	// 	};
-	// };
-	// return pixel_radiance;
 }
 
 void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
