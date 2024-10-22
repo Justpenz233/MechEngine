@@ -46,7 +46,7 @@ public:
 	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const
 	{
 		auto w_i = sample_cosine_hemisphere(u);
-		return {w_i, pdf(parameters, w_i, w_o)};
+		return {w_i, pdf(parameters, w_o, w_i)};
 	}
 
 	/**

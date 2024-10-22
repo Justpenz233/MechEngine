@@ -116,7 +116,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 	Float3 beta = make_float3(1.f);
 	auto pdf_bsdf = def(1e16f);
 
-	$for(depth, 0, 16)
+	$for(depth, 0, 2)
 	{
 		auto		intersection = intersect(ray);
 		const auto& frame = intersection.shading_frame;
@@ -125,13 +125,20 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 		auto local_wo = frame.world_to_local(w_o);
 
 		$if(depth == 0) {wireframe_intersection = intersection;}; // For wireframe pass
-		$if(intersection.shape->has_light())
+		$if(!intersection.valid()){ $break; };
+		$if(intersection.shape->has_light() & depth == 0)
+		{
+			auto light = LightProxy->get_light_data(intersection.shape.light_id);
+			pixel_radiance = light->light_color;
+			$break;
+		};
+		$if(intersection.shape->has_light() & depth != 0)
 		{
 			auto light = LightProxy->get_light_data(intersection.shape.light_id);
 			LightProxy->light_virtual_call.dispatch(light.light_type,
 				[&](const light_base* light_type) {
-					auto eval = light_type->l_i(light,ray->origin(), x);
-					pixel_radiance += beta * eval.first * balance_heuristic(pdf_bsdf, eval.second);
+					auto [f, pdf] = light_type->l_i(light,ray->origin(), x);
+					pixel_radiance += beta * f * balance_heuristic(pdf_bsdf, pdf);
 				});
 			$break;
 		};
@@ -149,7 +156,7 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 			MaterialProxy->shader_call.dispatch(
 				material_data.shader_id, [&](const shader_base* material) {
 					bxdf_parameters = material->calc_material_parameters(context);
-				});
+			});
 
 
 			// normal in world space
@@ -188,8 +195,8 @@ Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) cons
 							auto local_wi = frame.world_to_local(light_sample.w_i);
 							auto brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
 							auto pdf = material->pdf(bxdf_parameters, local_wo, local_wi);
-							auto w = balance_heuristic(light_sample.pdf, pdf_bsdf) / light_sample.pdf;
-							pixel_radiance += w * beta * brdf * light_sample.l_i * cos;
+							auto w = balance_heuristic(light_sample.pdf, pdf) / light_sample.pdf;
+							pixel_radiance += w * beta * brdf * light_sample.l_i;
 						});
 					};
 				});

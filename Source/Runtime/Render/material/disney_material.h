@@ -73,27 +73,22 @@ namespace MechEngine::Rendering
         	return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
 		}
 
-    	static FORCEINLINE Float3 sample_wi(const Float3& wo, const Float3& wh)
-        {
-        	return reflect(-wo, wh);
-        }
-
-
-    	static FORCEINLINE Float pdf(const Float3& wo, const Float3& wh, const Float& a)
-        {
-        	return GTR2(wh.z, a) * abs(dot(wh, wo)) / (4.f * dot(wo, wh));
-        }
-
-
     public:
 
-   //  	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const override
-   //  	{
-   //  		auto a = max(.001f, sqr(parameters.roughness));
-			// auto wh = sample_wh(u, a);
-			// auto wi = sample_wi(w_o, wh);
-			// return {wi, pdf(w_o, wh, a)};
-   //  	}
+    	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const override
+    	{
+    		auto a = max(.001f, sqr(parameters.roughness));
+			auto wh = sample_wh(u, a);
+			auto wi = reflect(-w_o, wh);
+			return {wi, pdf(parameters, w_o, wi)};
+    	}
+
+    	virtual Float pdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const override
+    	{
+    		auto a = max(.001f, sqr(parameters.roughness));
+    		auto wh = normalize(w_o + w_i);
+    		return GTR2(wh.z, a) / (4.f * dot(w_o, wh));
+    	}
 
         /**
          * disney's physically based shading model
