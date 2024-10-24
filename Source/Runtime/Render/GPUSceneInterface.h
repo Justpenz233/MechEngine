@@ -271,6 +271,8 @@ namespace MechEngine::Rendering
 		uint FrameCounter = 0;
 		uint TimeCounter = 0;
 
+		uint SamplePerPixel = 1;
+
 		unique_ptr<Shader2D<uint>> ViewModePass;
 
 

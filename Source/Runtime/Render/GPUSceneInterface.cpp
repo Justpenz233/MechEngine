@@ -63,6 +63,7 @@ namespace MechEngine::Rendering
     	bRenderShadow = GConfig.Get<bool>("Render", "RenderShadow");
     	bShadowRayOffset = GConfig.Get<bool>("Render", "ShadowRayOffset");
     	bGlobalIllumination = GConfig.Get<bool>("Render", "GlobalIllumination");
+    	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
 	}
 
 	ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept

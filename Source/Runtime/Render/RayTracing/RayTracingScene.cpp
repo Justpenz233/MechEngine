@@ -109,7 +109,7 @@ uint2 RayTracingScene::GetWindosSize() const noexcept
 	return Window->framebuffer().size();
 }
 
-Float3 RayTracingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos) const
+Float3 RayTracingScene::render_path(Var<Ray> ray, const Float2& pixel_pos, const Float& weight) const
 {
 	ray_intersection wireframe_intersection;
 	Float3 pixel_radiance = make_float3(0.f);
@@ -254,9 +254,12 @@ void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + sampler->generate_2d();
 
-	auto ray = view->generate_ray(pixel_pos);
-
-	auto color = render_pixel(ray, pixel_pos);
+	auto ray = view->generate_ray(pixel_pos); Float3 color = make_float3(0.f);
+	for(int Sample = 0; Sample < SamplePerPixel; Sample ++)
+	{
+		color += render_path(ray, pixel_pos);
+	}
+	color = color / Float(SamplePerPixel);
 	auto pre_color = srgb_to_linear(frame_buffer()->read(pixel_coord).xyz());
 	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 0);
 
