@@ -17,6 +17,7 @@ struct geometry_buffer
     Image<uint> material_id;
     // The frame buffer to store the final image, ownership should managed by the window.
     Image<float>* frame_buffer{nullptr};
+	Image<float> linear_color;
 
 
     void set_default(const UInt2& pixel_coord,
@@ -27,6 +28,7 @@ struct geometry_buffer
         depth->write(flattend_index(pixel_coord), 1.f);
         instance_id->write(pixel_coord, make_uint4(~0u));
         material_id->write(pixel_coord, make_uint4(~0u));
+    	linear_color->write(pixel_coord, make_float4(0.f));
     }
 
 	void write(const UInt2& pixel_coord,

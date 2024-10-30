@@ -45,6 +45,8 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.frame_buffer = &Window->framebuffer();
+	g_buffer.linear_color = device.create_image<float>(PixelStorage::FLOAT4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
 
@@ -251,18 +253,17 @@ void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time
 	auto pixel_coord = dispatch_id().xy();
 	get_sampler()->init(pixel_coord, time);
 
-	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + sampler->generate_2d();
 
 	auto ray = view->generate_ray(pixel_pos); Float3 color = make_float3(0.f);
-	for(int Sample = 0; Sample < SamplePerPixel; Sample ++)
+	$for(Sample, 0u, def(SamplePerPixel))
 	{
 		color += render_path(ray, pixel_pos);
-	}
+	};
 	color = color / Float(SamplePerPixel);
-	auto pre_color = srgb_to_linear(frame_buffer()->read(pixel_coord).xyz());
-	auto now_color = select(pre_color + (color - pre_color) / Float(frame_index), color, frame_index == 0);
-
+	auto pre_color = ite(frame_index == 0, make_float3(0.f), g_buffer.linear_color->read(pixel_coord).xyz());
+	g_buffer.linear_color->write(pixel_coord, make_float4(color + pre_color, 1.f));
+	auto now_color = (pre_color + color) / Float(frame_index + 1.f);
 	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(now_color), 1.f));
 }
 
