@@ -11,6 +11,13 @@
 #include <CGAL/Surface_mesh_parameterization/parameterize.h>
 #include <CGAL/Surface_mesh_parameterization/Discrete_authalic_parameterizer_3.h>
 
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/boost/graph/Seam_mesh.h>
+#include <CGAL/Surface_mesh_parameterization/IO/File_off.h>
+#include <CGAL/Surface_mesh_parameterization/parameterize.h>
+#include <CGAL/Unique_hash_map.h>
+#include <CGAL/Polygon_mesh_processing/measure.h>
 
 #include <bvh/v2/default_builder.h>
 #include <bvh/v2/stack.h>

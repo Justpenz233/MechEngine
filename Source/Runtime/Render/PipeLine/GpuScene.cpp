@@ -2,7 +2,7 @@
 // Created by MarvelLi on 2024/3/27.
 //
 
-#include "RayTracingScene.h"
+#include "GpuScene.h"
 #include <luisa/runtime/rtx/accel.h>
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
@@ -23,8 +23,8 @@
 namespace MechEngine::Rendering
 {
 
-RayTracingScene::RayTracingScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept:
-GPUSceneInterface(stream, device), Window(InWindow)
+GpuScene::GpuScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept:
+GpuSceneInterface(stream, device), Window(InWindow)
 {
 	CameraProxy = luisa::make_unique<CameraSceneProxy>(*this);
 	LightProxy = luisa::make_unique<LightSceneProxy>(*this);
@@ -50,10 +50,10 @@ GPUSceneInterface(stream, device), Window(InWindow)
 	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
 
-	RayTracingScene::CompileShader();
+	GpuScene::CompileShader();
 }
 
-void RayTracingScene::UploadRenderData()
+void GpuScene::UploadRenderData()
 {
 	auto UpdateBindlessArrayIfDirty = [&]() {
 		if(bindlessArray.dirty())
@@ -89,7 +89,7 @@ void RayTracingScene::UploadRenderData()
 	if (rtAccel.dirty()) stream << rtAccel.build() << synchronize();
 }
 
-void RayTracingScene::Render()
+void GpuScene::Render()
 {
 	stream << (*MainShader)(FrameCounter++, TimeCounter ++).dispatch(GetWindosSize());
 
@@ -101,17 +101,17 @@ void RayTracingScene::Render()
 	stream << synchronize();
 }
 
-ImageView<float> RayTracingScene::frame_buffer() noexcept
+ImageView<float> GpuScene::frame_buffer() noexcept
 {
 	return Window->framebuffer();
 }
 
-uint2 RayTracingScene::GetWindosSize() const noexcept
+uint2 GpuScene::GetWindosSize() const noexcept
 {
 	return Window->framebuffer().size();
 }
 
-Float3 RayTracingScene::render_path(Var<Ray> ray, const Float2& pixel_pos, const Float& weight) const
+Float3 GpuScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const Float& weight) const
 {
 	ray_intersection wireframe_intersection;
 	Float3 pixel_radiance = make_float3(0.f);
@@ -246,7 +246,7 @@ Float3 RayTracingScene::render_path(Var<Ray> ray, const Float2& pixel_pos, const
 	return pixel_radiance;
 }
 
-void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
+void GpuScene::render_main_view(const UInt& frame_index, const UInt& time)
 {
 	auto view = CameraProxy->get_main_view();
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
@@ -258,7 +258,7 @@ void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time
 	auto ray = view->generate_ray(pixel_pos); Float3 color = make_float3(0.f);
 	$for(Sample, 0u, def(SamplePerPixel))
 	{
-		color += render_path(ray, pixel_pos);
+		color += render_path_tracing(ray, pixel_pos);
 	};
 	color = color / Float(SamplePerPixel);
 	auto pre_color = ite(frame_index == 0, make_float3(0.f), g_buffer.linear_color->read(pixel_coord).xyz());
@@ -267,7 +267,7 @@ void RayTracingScene::render_main_view(const UInt& frame_index, const UInt& time
 	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(now_color), 1.f));
 }
 
-void RayTracingScene::CompileShader()
+void GpuScene::CompileShader()
 {
 	LoadRenderSettings();
 
@@ -275,7 +275,7 @@ void RayTracingScene::CompileShader()
 	sampler = luisa::make_unique<independent_sampler>();
 
 	// Compile base shaders
-	GPUSceneInterface::CompileShader();
+	GpuSceneInterface::CompileShader();
 
 	// Main pass shader
 	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(

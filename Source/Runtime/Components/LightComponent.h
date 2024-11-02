@@ -5,7 +5,7 @@
 
 #include "RenderingComponent.h"
 #include "Components/ActorComponent.h"
-#include "Render/RendererInterface.h"
+#include "../Render/PipeLine/PipelineInterface.h"
 
 namespace MechEngine::Rendering {
 class LightSceneProxy;

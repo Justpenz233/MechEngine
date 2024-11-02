@@ -12,7 +12,7 @@ class Stream;
 }
 
 namespace MechEngine::Rendering {
-class RayTracingScene;
+class GpuScene;
 class CameraSceneProxy;
 class LightSceneProxy;
 class TransformSceneProxy;
@@ -30,7 +30,7 @@ class ENGINE_API SceneProxy
 public:
 	virtual ~SceneProxy() = default;
 
-	explicit SceneProxy(RayTracingScene& InScene);
+	explicit SceneProxy(GpuScene& InScene);
 
 	virtual void Init() {}
 	virtual bool IsDirty() { return false; }
@@ -43,7 +43,7 @@ protected:
 	template<typename T, typename I>
 	[[nodiscard]] auto bindelss_buffer(I &&i) const noexcept { return bindlessArray->buffer<T>(std::forward<I>(i)); }
 
-	RayTracingScene& Scene;
+	GpuScene& Scene;
 	luisa::compute::Accel& accel;
 	luisa::compute::BindlessArray& bindlessArray;
 };

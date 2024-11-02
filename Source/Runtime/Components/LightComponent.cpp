@@ -4,7 +4,7 @@
 
 #pragma once
 #include "LightComponent.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"

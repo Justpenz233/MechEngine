@@ -5,7 +5,7 @@
 #include "LinesComponent.h"
 
 #include "Game/TimerManager.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/LineSceneProxy.h"
 #include "Render/Core/TypeConvertion.h"
 

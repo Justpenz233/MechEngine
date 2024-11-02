@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "Delegate.h"
 #include "Game/World.h"
-#include "Render/RendererInterface.h"
+#include "Render/PipeLine/RenderPipeline.h"
 
 #define GEditor Editor::Get()
 
@@ -40,8 +40,6 @@ public:
 
 private:
 	float MaxFPS = -1;
-
-	RenderPipelineType PipelineType;
 
 	UniquePtr<RenderPipeline> Renderer = nullptr;
 

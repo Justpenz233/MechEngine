@@ -6,7 +6,7 @@
 
 #include "light_base.h"
 #include "Render/Core/sample.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 #include "Render/material/shading_function.h"
 
 namespace MechEngine::Rendering

@@ -7,11 +7,11 @@
 #include "StaticMeshSceneProxy.h"
 #include "Components/TransformComponent.h"
 #include "Render/Core/TypeConvertion.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
 {
-TransformSceneProxy::TransformSceneProxy(RayTracingScene& InScene)
+TransformSceneProxy::TransformSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
 	TransformDatas.resize(transform_matrix_buffer_size);

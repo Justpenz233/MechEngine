@@ -3,7 +3,7 @@
 //
 
 #include "Material.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/material/shader_base.h"
 

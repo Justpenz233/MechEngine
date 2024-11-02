@@ -15,6 +15,8 @@
 #include "Materials/Material.h"
 #include "Misc/Path.h"
 #include "igl/boundary_loop.h"
+#include "igl/edge_topology.h"
+#include "igl/edges.h"
 
 StaticMesh::StaticMesh()
 {
@@ -380,6 +382,22 @@ ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 		LOG_ERROR("Extension of file is not .obj or .OBJ: {0}", FileName.string());
 }
 
+TArray<TArray<int>> StaticMesh::GetBoundaryVertices() const
+{
+	TArray<TArray<int>> Result;
+	igl::boundary_loop(triM, Result);
+	return Result;
+}
+
+int StaticMesh::GetGenus()
+{
+	int B = GetBoundaryVertices().size();
+	int V = verM.rows();
+	int E = GetEdgeNum();
+	int F = triM.rows();
+	return 2 - (V - E + F + B) / 2;
+}
+
 StaticMesh* StaticMesh::SetGeometry(const MatrixX3d& InVerM, const MatrixX3i& InTriM)
 {
 	verM = InVerM; triM = InTriM; OnGeometryUpdate();
@@ -451,6 +469,13 @@ int StaticMesh::GetVertexNum() const
 int StaticMesh::GetFaceNum() const
 {
 	return triM.rows();
+}
+
+int StaticMesh::GetEdgeNum() const
+{
+	MatrixX2d E;
+	igl::edges(triM, E);
+	return E.rows();
 }
 
 void StaticMesh::CalcNormal()

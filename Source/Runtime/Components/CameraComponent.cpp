@@ -1,6 +1,6 @@
 #include "CameraComponent.h"
 #include "Game/World.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
 

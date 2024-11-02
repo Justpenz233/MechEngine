@@ -3,12 +3,12 @@
 //
 
 #include "ShapeSceneProxy.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
 {
 
-ShapeSceneProxy::ShapeSceneProxy(RayTracingScene& InScene)
+ShapeSceneProxy::ShapeSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
 	InstanceShapes.resize(MaxInstanceNum);

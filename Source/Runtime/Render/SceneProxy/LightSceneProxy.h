@@ -18,7 +18,7 @@ using namespace luisa::compute;
 class ENGINE_API LightSceneProxy: public SceneProxy
 {
 public:
-	explicit LightSceneProxy(RayTracingScene& InScene) noexcept;
+	explicit LightSceneProxy(GpuScene& InScene) noexcept;
 
 	/**
 	 * Add a new light to the scene and bind the corresponding transform

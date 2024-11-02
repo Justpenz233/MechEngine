@@ -9,7 +9,7 @@
 
 namespace MechEngine::Rendering
 {
-	class GPUSceneInterface;
+	class GpuSceneInterface;
 }
 
 /**
@@ -25,7 +25,7 @@ class ENGINE_API RenderingComponent : public ActorComponent
 public:
 	RenderingComponent() = default;
 
-	FORCEINLINE Rendering::GPUSceneInterface* GetScene() const
+	FORCEINLINE Rendering::GpuSceneInterface* GetScene() const
 	{
 		return World == nullptr ? nullptr :  World->GetScene();
 	}

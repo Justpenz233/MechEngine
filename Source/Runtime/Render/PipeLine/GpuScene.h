@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include <luisa/luisa-compute.h>
 
 class ViewportInterface;
@@ -27,10 +27,10 @@ class LuisaViewport;
  * GPU data and methods are names by lower_snake_case
  * The bridge between CPU and GPU data structure is named by lower_snake_case
  ************************************************************************************/
-class ENGINE_API RayTracingScene : public GPUSceneInterface
+class ENGINE_API GpuScene : public GpuSceneInterface
 {
 public:
-	RayTracingScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
+	GpuScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
 
 protected:
 	luisa::compute::ImGuiWindow* Window;
@@ -59,7 +59,7 @@ protected:
 	 * @param weight the weight of the pixel
 	 * @return pixel color
 	 */
-	Float3 render_path(Var<Ray> ray, const Float2& pixel_pos, const Float& weight = 1.f) const;
+	Float3 render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const Float& weight = 1.f) const;
 
 	unique_ptr<Shader2D<uint, uint>> MainShader;
 

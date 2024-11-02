@@ -10,7 +10,7 @@
 #include "Components/CameraComponent.h"
 #include "Actors/CameraActor.h"
 #include "Game/Actor.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "TimerManager.h"
 #include "Components/ConstPointLightComponent.h"
 #include "Components/LinesComponent.h"
@@ -221,7 +221,7 @@ void World::BindKeyPressedEvent(int Key, ObjectPtr<T> Object, void(T::* FuncPtr)
 	}
 }
 
-void World::Init(Rendering::GPUSceneInterface* InScene, class ViewportInterface* InViewport)
+void World::Init(Rendering::GpuSceneInterface* InScene, class ViewportInterface* InViewport)
 {
 	Viewport = InViewport;
 	GPUScene = InScene;

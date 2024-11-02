@@ -39,12 +39,12 @@ namespace MechEngine::Rendering
 	 * Also, should provide interface to manage GPU resources for render pipeline.
 	 * Each scene contains a set of stream and device to manage the resources, the renderer should access through the interface.
 	 */
-	class ENGINE_API GPUSceneInterface
+	class ENGINE_API GpuSceneInterface
 	{
 	public:
-		GPUSceneInterface(Stream& stream, Device& device) noexcept;
+		GpuSceneInterface(Stream& stream, Device& device) noexcept;
 
-		virtual ~GPUSceneInterface();
+		virtual ~GpuSceneInterface();
 
 		virtual void Init() {}
 		/**
@@ -302,7 +302,7 @@ namespace MechEngine::Rendering
 
 template<typename T>
 requires std::is_base_of_v<luisa::compute::Resource, T>
-bool GPUSceneInterface::destroy(T* resource)
+bool GpuSceneInterface::destroy(T* resource)
 {
 	for (auto iter = Resources.begin(); iter != Resources.end(); ++iter)
 	{

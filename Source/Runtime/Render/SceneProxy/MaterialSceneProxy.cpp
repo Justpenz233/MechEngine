@@ -6,9 +6,9 @@
 #include "Render/material/shader_base.h"
 #include "Render/material/blinn_phong_material.h"
 #include "Render/material/disney_material.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
-Rendering::MaterialSceneProxy::MaterialSceneProxy(RayTracingScene& InScene)
+Rendering::MaterialSceneProxy::MaterialSceneProxy(GpuScene& InScene)
 :SceneProxy(InScene)
 {
 	material_data_buffer = Scene.RegisterBuffer<material_data>(MaxMaterials);

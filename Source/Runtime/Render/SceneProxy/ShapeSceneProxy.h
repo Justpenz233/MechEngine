@@ -13,7 +13,7 @@ using namespace luisa::compute;
 class ENGINE_API ShapeSceneProxy : public SceneProxy
 {
 public:
-	ShapeSceneProxy(RayTracingScene& InScene);
+	ShapeSceneProxy(GpuScene& InScene);
 
 	void UploadDirtyData(Stream& stream) override;
 

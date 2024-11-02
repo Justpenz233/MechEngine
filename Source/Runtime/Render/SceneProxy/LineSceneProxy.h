@@ -54,7 +54,7 @@ namespace MechEngine::Rendering
     class ENGINE_API LineSceneProxy : public SceneProxy
     {
     public:
-        explicit LineSceneProxy(RayTracingScene& InScene) noexcept;
+        explicit LineSceneProxy(GpuScene& InScene) noexcept;
 
         virtual void UploadDirtyData(Stream& stream) override;
 

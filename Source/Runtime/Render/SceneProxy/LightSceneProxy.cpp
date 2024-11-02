@@ -10,11 +10,11 @@
 #include "Components/PointLightComponent.h"
 #include "Render/Core/TypeConvertion.h"
 #include "Render/light/area_light.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
 {
-LightSceneProxy::LightSceneProxy(RayTracingScene& InScene) noexcept
+LightSceneProxy::LightSceneProxy(GpuScene& InScene) noexcept
 	: SceneProxy(InScene)
 {
 	LightDatas.resize(light_max_number);

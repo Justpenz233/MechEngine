@@ -108,6 +108,12 @@ public:
 	int GetFaceNum() const;
 
 	/**
+	 * Get the edge number of the mesh
+	 * @return edge number of the mesh
+	 */
+	int GetEdgeNum() const;
+
+	/**
 	 * Explict calculate the normal of the mesh
 	 * Should called when the mesh is modified
 	 */
@@ -283,6 +289,19 @@ public:
 	FORCEINLINE void UpdateBoundingBox();
 
 	FORCEINLINE FOnGeometryUpdate GetOnGeometryUpdateDelegate();
+
+
+	/**
+	 * Get the boundary vertices of the mesh
+	 * @return boundary vertices indices, will be empty if the mesh does not have boundary
+	 */
+	TArray<TArray<int>> GetBoundaryVertices() const;
+
+	/**
+	 * Get the Genus of the mesh
+	 * @return Genus of the mesh
+	 */
+	int GetGenus();
 
 protected:
 	MatrixX2d UV; // UV matrix of the mesh, each row is a UV coordinate of a vertex

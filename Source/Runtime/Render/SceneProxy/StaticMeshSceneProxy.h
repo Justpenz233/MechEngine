@@ -59,7 +59,7 @@ using luisa::uint;
 class ENGINE_API StaticMeshSceneProxy : public SceneProxy
 {
 public:
-	explicit StaticMeshSceneProxy(RayTracingScene& InScene);
+	explicit StaticMeshSceneProxy(GpuScene& InScene);
 
 	virtual bool IsDirty() override;
 

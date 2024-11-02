@@ -11,7 +11,7 @@
 // #include <mimalloc.h>
 
 #include "EditorDefaultLayout.h"
-#include "Render/RayTracing/RayTracingPipeline.h"
+#include "Render/PipeLine/RenderPipeline.h"
 #include "GlobalSymbols.h"
 
 Editor &Editor::Get() {
@@ -48,23 +48,11 @@ void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
 		}
 	}
 	// ---------- Init Renderer ----------
-
-	// Init Renderer
-	PipelineType = static_cast<RenderPipelineType>(GConfig.Get<int>("Render", "RenderPipelineType"));
 	auto WindowName = GConfig.Get<String>("Basic", "WindowName");
 	auto Width = GConfig.Get<int>("Render", "ResolutionX");
 	auto Height = GConfig.Get<int>("Render", "ResolutionY");
 	MaxFPS = GConfig.Get<float>("Render", "MaxFPS");
-
-	if (PipelineType == RenderPipelineType::RAYTRACING)
-	{
-		Renderer = MakeUnique<RayTracingPipeline>(Width, Height, WindowName);
-	}
-	else
-	{
-		LOG_ERROR("Not support render pipeline type");
-	}
-
+	Renderer = MakeUnique<RenderPipeline>(Width, Height, WindowName);
 	//--------- Reflection meta infomation register ----------
 	Reflection::TypeMetaRegister::metaRegister();
 }

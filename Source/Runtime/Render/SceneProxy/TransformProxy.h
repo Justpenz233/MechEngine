@@ -17,7 +17,7 @@ namespace MechEngine::Rendering
 	class ENGINE_API TransformSceneProxy : public SceneProxy
 	{
 	public:
-		explicit TransformSceneProxy(RayTracingScene& InScene);
+		explicit TransformSceneProxy(GpuScene& InScene);
 
 		virtual void UploadDirtyData(luisa::compute::Stream& stream) override;
 

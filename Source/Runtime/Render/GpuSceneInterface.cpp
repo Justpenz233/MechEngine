@@ -2,7 +2,7 @@
 // Created by MarvelLi on 2024/4/25.
 //
 
-#include "GPUSceneInterface.h"
+#include "GpuSceneInterface.h"
 #include "Core/ray_tracing_hit.h"
 #include "Core/VertexData.h"
 #include "Core/view.h"
@@ -17,7 +17,7 @@
 
 namespace MechEngine::Rendering
 {
-    GPUSceneInterface::GPUSceneInterface(Stream& stream, Device& device) noexcept
+    GpuSceneInterface::GpuSceneInterface(Stream& stream, Device& device) noexcept
     : stream(stream), device(device)
     {
         rtAccel = device.create_accel({});
@@ -26,9 +26,9 @@ namespace MechEngine::Rendering
     }
 
     // empty detor here to make unqiue ptr happy
-    GPUSceneInterface::~GPUSceneInterface() {}
+    GpuSceneInterface::~GpuSceneInterface() {}
 
-    void GPUSceneInterface::CompileShader()
+    void GpuSceneInterface::CompileShader()
 	{
 		ASSERTMSG(sampler.get(), "Sampler should be created first in the derived class");
 
@@ -53,12 +53,12 @@ namespace MechEngine::Rendering
 
 		LineProxy->CompileShader();
 	}
-	void GPUSceneInterface::ResetFrameCounter() noexcept
+	void GpuSceneInterface::ResetFrameCounter() noexcept
 	{
     	FrameCounter = 0;
 	}
 
-	void GPUSceneInterface::LoadRenderSettings()
+	void GpuSceneInterface::LoadRenderSettings()
 	{
     	bRenderShadow = GConfig.Get<bool>("Render", "RenderShadow");
     	bShadowRayOffset = GConfig.Get<bool>("Render", "ShadowRayOffset");
@@ -66,24 +66,24 @@ namespace MechEngine::Rendering
     	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
 	}
 
-	ray_tracing_hit GPUSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
+	ray_tracing_hit GpuSceneInterface::trace_closest(const Var<Ray>& ray) const noexcept
     {
         auto hit = rtAccel->intersect(ray, {});
         return ray_tracing_hit {hit.inst, hit.prim, hit.bary};
     }
 
-    Bool GPUSceneInterface::has_hit(const Var<Ray>& ray) const noexcept
+    Bool GpuSceneInterface::has_hit(const Var<Ray>& ray) const noexcept
     {
         return rtAccel->intersect_any(ray, {});
     }
 
-    ray_intersection GPUSceneInterface::intersect(const Var<Ray>& ray) const noexcept
+    ray_intersection GpuSceneInterface::intersect(const Var<Ray>& ray) const noexcept
 	{
 		auto hit = trace_closest(ray);
     	return intersect(hit, ray);
 	}
 
-	ray_intersection GPUSceneInterface::intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept
+	ray_intersection GpuSceneInterface::intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept
 	{
     	ray_intersection it;
 		$if(!hit.miss())
@@ -133,22 +133,22 @@ namespace MechEngine::Rendering
 		return it;
 	}
 
-	Float4x4 GPUSceneInterface::get_instance_transform(Expr<uint> instance_index) const noexcept
+	Float4x4 GpuSceneInterface::get_instance_transform(Expr<uint> instance_index) const noexcept
     {
         return rtAccel->instance_transform(instance_index);
     }
 
-    Var<transform_data> GPUSceneInterface::get_transform(Expr<uint> transform_id) const noexcept
+    Var<transform_data> GpuSceneInterface::get_transform(Expr<uint> transform_id) const noexcept
     {
         return TransformProxy->get_transform_data(transform_id);
     }
 
-    Var<Triangle> GPUSceneInterface::get_triangle(const UInt& instance_id, const UInt& triangle_index) const
+    Var<Triangle> GpuSceneInterface::get_triangle(const UInt& instance_id, const UInt& triangle_index) const
     {
         return StaticMeshProxy->get_triangle(instance_id, triangle_index);
     }
 
-    Var<Vertex> GPUSceneInterface::get_vertex(const UInt& instance_id, const UInt& vertex_index) const
+    Var<Vertex> GpuSceneInterface::get_vertex(const UInt& instance_id, const UInt& vertex_index) const
     {
         return StaticMeshProxy->get_vertex(instance_id, vertex_index);
     }

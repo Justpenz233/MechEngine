@@ -10,8 +10,8 @@
 
 /**
  * This component support a bijective mapping from 3D position to UV coordinate
- * Require the original mesh is an open mesh
- * Support sample a UV cordiante and return the 3D position (UV coordinate maybe invalid)
+ * Require the original mesh is homeomorphism to disks
+ * Support sample a UV coordinate and return the 3D position (UV coordinate maybe invalid)
  */
 MCLASS(SCAFParametricMeshComponent)
 class ENGINE_API SCAFParametricMeshComponent : public ParametricAlgorithmComponent

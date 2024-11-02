@@ -8,11 +8,11 @@
 #include "Render/Core/transform_data.h"
 #include "Render/Core/view.h"
 #include "Render/Core/math_function.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
 {
-    LineSceneProxy::LineSceneProxy(RayTracingScene& InScene) noexcept
+    LineSceneProxy::LineSceneProxy(GpuScene& InScene) noexcept
 	: SceneProxy(InScene)
 	{
 		std::tie(lines_data_buffer, lines_data_bindless_id) = Scene.RegisterBindlessBuffer<lines_data>(MaxLinesCount);

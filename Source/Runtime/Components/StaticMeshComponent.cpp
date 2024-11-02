@@ -6,7 +6,7 @@
 #include "Game/Actor.h"
 #include "Game/World.h"
 #include "Materials/Material.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"

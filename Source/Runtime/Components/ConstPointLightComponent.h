@@ -5,7 +5,7 @@
 #pragma once
 #include "LightComponent.h"
 #include "Mesh/BasicShapesLibrary.h"
-#include "Render/GPUSceneInterface.h"
+#include "Render/GpuSceneInterface.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 

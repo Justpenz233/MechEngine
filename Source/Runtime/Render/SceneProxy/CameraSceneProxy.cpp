@@ -5,12 +5,12 @@
 #include "CameraSceneProxy.h"
 #include "Components/CameraComponent.h"
 #include "Render/Core/TypeConvertion.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
 {
 
-CameraSceneProxy::CameraSceneProxy(RayTracingScene& InScene)
+CameraSceneProxy::CameraSceneProxy(GpuScene& InScene)
 : SceneProxy(InScene)
 {
 	std::tie(view_buffer, buffer_id) = Scene.RegisterBindlessBuffer<view>(1);

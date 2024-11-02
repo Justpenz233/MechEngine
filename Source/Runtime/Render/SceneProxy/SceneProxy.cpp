@@ -3,10 +3,10 @@
 //
 
 #include "SceneProxy.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 namespace MechEngine::Rendering
 {
-SceneProxy::SceneProxy(RayTracingScene& InScene)
+SceneProxy::SceneProxy(GpuScene& InScene)
 	: Scene(InScene)
 	, accel(InScene.GetAccel()),
 	bindlessArray(InScene.GetBindlessArray())

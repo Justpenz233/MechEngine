@@ -7,7 +7,7 @@
 #include "Misc/Platform.h"
 #include "Math/MathType.h"
 #include "Render/Core/view.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 
 class CameraComponent;
 class TransformComponent;
@@ -21,7 +21,7 @@ using namespace luisa::compute;
 class ENGINE_API CameraSceneProxy : public SceneProxy
 {
 public:
-	explicit CameraSceneProxy(RayTracingScene& InScene);
+	explicit CameraSceneProxy(GpuScene& InScene);
 
 	~CameraSceneProxy() override = default;
 

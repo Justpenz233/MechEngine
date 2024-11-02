@@ -16,7 +16,7 @@ using namespace luisa::compute;
 class ENGINE_API MaterialSceneProxy : public SceneProxy
 {
 public:
-	MaterialSceneProxy(RayTracingScene& InScene);
+	MaterialSceneProxy(GpuScene& InScene);
 
 	/**
 	 * Add a material to the scene, return the material id

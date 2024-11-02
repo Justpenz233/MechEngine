@@ -38,7 +38,7 @@ namespace MechEngine::Rendering
     using namespace luisa;
     using namespace luisa::compute;
 	struct ray_intersection;
-	class RayTracingScene;
+	class GpuScene;
 
 	struct light_li_sample
 	{
@@ -57,7 +57,7 @@ namespace MechEngine::Rendering
     public:
 		virtual ~light_base() = default;
 
-		light_base(RayTracingScene& in_scene) : scene(in_scene) {}
+		light_base(GpuScene& in_scene) : scene(in_scene) {}
 
 		/**
 		 * Total emitted power.
@@ -89,6 +89,6 @@ namespace MechEngine::Rendering
 
 
     protected:
-    	const RayTracingScene& scene;
+    	const GpuScene& scene;
     };
 }

@@ -8,13 +8,13 @@
 #include "TransformProxy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Mesh/BasicShapesLibrary.h"
-#include "Render/RayTracing/RayTracingScene.h"
+#include "Render/PipeLine/GpuScene.h"
 #include "Core/Mesh/StaticMesh.h"
 
 namespace MechEngine::Rendering
 {
 
-StaticMeshSceneProxy::StaticMeshSceneProxy(RayTracingScene& InScene)
+StaticMeshSceneProxy::StaticMeshSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
 	StaticMeshData.resize(instance_max_number);

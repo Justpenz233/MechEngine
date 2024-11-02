@@ -2,16 +2,15 @@
 // Created by MarvelLi on 2024/3/28.
 //
 
-#include "RayTracingPipeline.h"
-#include "RayTracingScene.h"
+#include "RenderPipeline.h"
+#include "GpuScene.h"
 #include "Misc/Path.h"
 #include <luisa/dsl/syntax.h>
 #include "luisa/gui/imgui_window.h"
 #include "Render/Core/LuisaViewport.h"
 
-RayTracingPipeline::RayTracingPipeline(uint width, uint height, const String& title)
-	:
-RenderPipeline(width, height, title)
+RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
+: Width(width), Height(height), WindowName(title)
 {
 	static luisa::compute::Context Context{Path::BinPath().string()};
 	Device        = Context.create_device(BackEnd);
@@ -21,7 +20,7 @@ RenderPipeline(width, height, title)
 	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
 }
 
-RayTracingPipeline::~RayTracingPipeline()
+RenderPipeline::~RenderPipeline()
 {
 	// Release viewport first so ImGui context is still valid
 	Viewport.reset();
@@ -30,18 +29,18 @@ RayTracingPipeline::~RayTracingPipeline()
 	MainWindow->destroy();
 }
 
-Rendering::RayTracingScene* RayTracingPipeline::NewScene(World* InWorld)
+Rendering::GpuScene* RenderPipeline::NewScene(World* InWorld)
 {
-	Scene = MakeUnique<Rendering::RayTracingScene>(Stream, Device, MainWindow.get(), Viewport.get());
+	Scene = MakeUnique<Rendering::GpuScene>(Stream, Device, MainWindow.get(), Viewport.get());
 	return Scene.get();
 }
 
-void RayTracingPipeline::EraseScene(Rendering::GPUSceneInterface*)
+void RenderPipeline::EraseScene(Rendering::GpuSceneInterface*)
 {
 
 }
 
-void RayTracingPipeline::Init()
+void RenderPipeline::Init()
 {
 	if (BackEnd == "Dx")
 	{
@@ -54,12 +53,12 @@ void RayTracingPipeline::Init()
 	Viewport->LoadViewportStyle();
 }
 
-bool RayTracingPipeline::ShouldClose()
+bool RenderPipeline::ShouldClose()
 {
 	return MainWindow->should_close();
 }
 
-void RayTracingPipeline::PreRender()
+void RenderPipeline::PreRender()
 {
 	// Prepare frame
 	MainWindow->prepare_frame();
@@ -73,7 +72,7 @@ void RayTracingPipeline::PreRender()
 	Scene->UploadRenderData();
 }
 
-void RayTracingPipeline::Render()
+void RenderPipeline::Render()
 {
 	using namespace luisa::compute;
 
@@ -85,13 +84,13 @@ void RayTracingPipeline::Render()
 	Viewport->HandleInput();
 }
 
-void RayTracingPipeline::PostRender()
+void RenderPipeline::PostRender()
 {
 	MainWindow->render_frame();
 	Viewport->PostFrame();
 }
 
-luisa::compute::Image<float>& RayTracingPipeline::FrameBuffer() const noexcept
+luisa::compute::Image<float>& RenderPipeline::FrameBuffer() const noexcept
 {
 	return MainWindow->framebuffer();
 }

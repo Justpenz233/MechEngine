@@ -14,7 +14,7 @@
 class TimerManager;
 namespace MechEngine::Rendering
 {
-	class GPUSceneInterface;
+	class GpuSceneInterface;
 }
 
 DECLARE_MULTICAST_DELEGATE(KeyPressedEvent);
@@ -35,7 +35,7 @@ public:
 	 * @param InViewport Viewport of currenty window, used for handle input and add UI widgets
 	 * @param InScene GPU Scene for this world, used for create a new GPU scene for this world. For component to upload GPU data
 	 */
-	void Init(Rendering::GPUSceneInterface* InScene, class ViewportInterface* InViewport);
+	void Init(Rendering::GpuSceneInterface* InScene, class ViewportInterface* InViewport);
     
     TFunction<void(double, World&)> TickFunction;
     TFunction<void(World&)> BeginPlayScript;
@@ -87,7 +87,7 @@ public:
 	class CameraActor* GetCurrentCamera() const;
 
     FORCEINLINE Actor* GetSelectedActor() const;
-    FORCEINLINE Rendering::GPUSceneInterface* GetScene() const { return GPUScene; }
+    FORCEINLINE Rendering::GpuSceneInterface* GetScene() const { return GPUScene; }
 	FORCEINLINE class ViewportInterface* GetViewport() const { return Viewport; }
 
 	template<class T>
@@ -132,7 +132,7 @@ public:
 
 
 private:
-    Rendering::GPUSceneInterface* GPUScene = nullptr;
+    Rendering::GpuSceneInterface* GPUScene = nullptr;
 	ViewportInterface* Viewport = nullptr;
 	bool bDirty = true;
 
