@@ -49,8 +49,6 @@ GpuSceneInterface(stream, device), Window(InWindow)
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
-
-	GpuScene::CompileShader();
 }
 
 void GpuScene::UploadRenderData()
@@ -121,11 +119,11 @@ void GpuScene::CompileShader()
 	// Compile base shaders
 	GpuSceneInterface::CompileShader();
 
-	Kernel2D Temp = [&](UInt frame_index, UInt time) noexcept {
-		render_main_view(frame_index, time);
-	};
 	// Main pass shader
-	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(Temp));
+	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
+		[&](UInt frame_index, UInt time) noexcept {
+		render_main_view(frame_index, time);
+	}));
 
 }
 }

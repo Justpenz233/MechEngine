@@ -37,6 +37,8 @@ protected:
 	ViewportInterface* Viewport;
 
 public:
+	virtual void CompileShader() override;
+
 	void UploadRenderData();
 
 	virtual void Render() override;
@@ -54,6 +56,6 @@ protected:
 
 	unique_ptr<Shader2D<uint, uint>> MainShader;
 
-	virtual void CompileShader() override;
+
 };
 }

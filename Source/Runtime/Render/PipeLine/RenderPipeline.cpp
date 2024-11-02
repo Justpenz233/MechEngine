@@ -52,6 +52,7 @@ Rendering::GpuScene* RenderPipeline::NewScene(World* InWorld)
 			LOG_ERROR("Not support");
 		}
 	}
+	Scene->CompileShader();
 	return Scene.get();
 }
 

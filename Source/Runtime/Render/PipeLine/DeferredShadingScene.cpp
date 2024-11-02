@@ -22,14 +22,12 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 
 	// Fill with default
 	g_buffer.set_default(pixel_coord, make_float4(1.f));
-	// frame_buffer()->write(pixel_coord, make_float4(1.f));
 
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
 	auto color = render_pixel(ray, pixel_pos);
 	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color), 1.f));
-
 }
 
 std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
@@ -43,6 +41,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 	}
 	$elif (intersection.shape->is_mesh()) // Surface shade
 	{
+		const auto& frame = intersection.shading_frame;
 		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 		Alpha = material_data.alpha;
 		/************************************************************************
@@ -64,7 +63,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 			});
 		// g_buffer.write(pixel_coord, bxdf_parameters, intersection);
 
-		auto normal = bxdf_parameters.normal;
+		auto normal_world = bxdf_parameters.normal;
 
 		// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
 		auto offset_ray = [&]() {
@@ -80,9 +79,9 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 			tmpu -= dotu * vps[0]->normal();
 			tmpv -= dotv * vps[1]->normal();
 			tmpw -= dotw * vps[2]->normal();
-			return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
+			return x + frame.local_to_world(triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw));
 		};
-		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
+		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal_world);
 
 
 		$for(light_id, 128)
@@ -97,7 +96,9 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 				Float3 light_color = make_float3(0.f);
 				Float3 mesh_color = make_float3(0.f);
 				Float3 light_visibility = make_float3(1.);
-				$if(dot(w_i, normal) >= 0.f)
+				auto local_w_i = frame.world_to_local(w_i);
+				auto local_w_o = frame.world_to_local(w_o);
+				$if(dot(w_i, normal_world) >= 0.f)
 				{
 					if (calc_shadow)// Shadow ray
 					{
@@ -114,39 +115,40 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 
 					MaterialProxy->shader_call.dispatch(
 						material_data.shader_id, [&](const shader_base* material) {
-							mesh_color = material->bxdf(bxdf_parameters, w_o, w_i);
+							mesh_color = material->bxdf(bxdf_parameters, local_w_o, local_w_i);
 						});
 				};
-				return mesh_color * light_color * max(dot(w_i, normal), 0.001f) * light_visibility;
+				return mesh_color * light_color * max(dot(w_i, normal_world), 0.001f) * light_visibility;
 			};
 
 			auto lighting = calc_lighting(light_dir, bRenderShadow);
 
 			// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
 			// Cheaper method in the those machine not have hardware acceleration
-			// if (!bGlobalIllumination)
-				// lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal), false) * 0.05f;
+			if (!bGlobalIllumination)
+				lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal_world), false) * 0.05f;
 			pixel_radiance += lighting;
 		};
 		if(global_illumination)
 		{
 			$if(material_data.alpha == 1.f) // Only reflect for opaque surface
 			{
-				// Reflection by Orthonormal Basis
-				// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
-				auto reflect_dir = sample_uniform_hemisphere_surface(get_sampler()->generate_2d());
-				auto onb = orthogonal_basis(normal);
-				reflect_dir = normalize(reflect_dir.x * onb[0] + reflect_dir.y * onb[1] + reflect_dir.z * onb[2]);
-
-				auto reflect_ray = make_ray(offset_ray_origin(x, normal), reflect_dir);
-				auto reflect_intersection = intersect(reflect_ray);
-				$if(reflect_intersection.valid())
+				Float3 reflect = make_float3(0.f);
+				$for(spp, 0u, SamplePerPixel)
 				{
-					auto [reflect_radiance, alpha]
-					= calc_surface_point_color(reflect_ray, reflect_intersection, false);
-
-					pixel_radiance = pixel_radiance * 0.95f + reflect_radiance * 0.05f;
+					// Reflection by Orthonormal Basis
+					// See https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html#orthonormalbases
+					auto reflect_dir = frame.local_to_world(sample_uniform_hemisphere_surface(get_sampler()->generate_2d()));
+					auto reflect_ray = make_ray(offset_ray_origin(x, normal_world), reflect_dir);
+					auto reflect_intersection = intersect(reflect_ray);
+					$if(reflect_intersection.valid())
+					{
+						auto [reflect_radiance, alpha]
+						= calc_surface_point_color(reflect_ray, reflect_intersection, false);
+						reflect += reflect_radiance;
+					};
 				};
+				pixel_radiance = pixel_radiance * 0.95f + reflect / Float(SamplePerPixel) * 0.05f;
 			};
 		}
 	};
