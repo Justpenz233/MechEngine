@@ -3,11 +3,13 @@
 //
 
 #include "RenderPipeline.h"
+
+#include "DeferredShadingScene.h"
 #include "GpuScene.h"
 #include "Misc/Path.h"
-#include <luisa/dsl/syntax.h>
 #include "luisa/gui/imgui_window.h"
 #include "Render/Core/LuisaViewport.h"
+#include "Render/PipeLine/PathTracingScene.h"
 
 RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
 : Width(width), Height(height), WindowName(title)
@@ -18,6 +20,8 @@ RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
 	MainWindow    = luisa::make_unique<luisa::compute::ImGuiWindow>(Device, Stream, luisa::string(title),
 		luisa::compute::ImGuiWindow::Config{.size = {width, height}, .resizable = false, .multi_viewport = false});
 	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
+
+	RendererType = static_cast<RenderPipelineType>(GConfig.Get<int>("Render", "RenderPipelineType"));
 }
 
 RenderPipeline::~RenderPipeline()
@@ -31,7 +35,23 @@ RenderPipeline::~RenderPipeline()
 
 Rendering::GpuScene* RenderPipeline::NewScene(World* InWorld)
 {
-	Scene = MakeUnique<Rendering::GpuScene>(Stream, Device, MainWindow.get(), Viewport.get());
+	switch (RendererType)
+	{
+		case PathTracing:
+		{
+			Scene = MakeUnique<Rendering::PathTracingScene>(Stream, Device, MainWindow.get(), Viewport.get());
+			break;
+		}
+		case DeferredShading:
+		{
+			Scene = MakeUnique<Rendering::DeferredShadingScene>(Stream, Device, MainWindow.get(), Viewport.get());
+			break;
+		}
+		default:
+		{
+			LOG_ERROR("Not support");
+		}
+	}
 	return Scene.get();
 }
 

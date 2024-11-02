@@ -9,8 +9,9 @@
 
 enum RenderPipelineType
 {
-	RealTime = 0,
-	PathTracing = 1
+	DeferredShading = 0,
+	PathTracing = 1,
+	Null
 };
 
 namespace MechEngine::Rendering

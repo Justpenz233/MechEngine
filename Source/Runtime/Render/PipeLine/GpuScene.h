@@ -50,16 +50,7 @@ protected:
 	 * Render the main view, dispatch the render kernel
 	 * @param frame_index the index of the frame, should start from 0 and increase by 1
 	 */
-	void render_main_view(const UInt& frame_index, const UInt& time);
-
-	/**
-	 * Calculate the color of a pixel with a ray
-	 * @param ray the ray to calculate
-	 * @param pixel_pos the position of the pixel
-	 * @param weight the weight of the pixel
-	 * @return pixel color
-	 */
-	Float3 render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const Float& weight = 1.f) const;
+	virtual void render_main_view(const UInt& frame_index, const UInt& time) = 0;
 
 	unique_ptr<Shader2D<uint, uint>> MainShader;
 

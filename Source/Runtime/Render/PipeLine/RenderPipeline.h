@@ -62,4 +62,6 @@ protected:
 	int Width;
 	int Height;
 	String WindowName;
+
+	RenderPipelineType RendererType = Null;
 };
