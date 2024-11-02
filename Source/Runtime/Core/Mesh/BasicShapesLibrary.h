@@ -61,7 +61,7 @@ public:
 	static ObjectPtr<StaticMesh> GenerateCuboid(double size);
 
 
-	static ObjectPtr<StaticMesh> GeneratePlane();
+	static ObjectPtr<StaticMesh> GeneratePlane(const FVector2& Size = FVector2::Ones());
 
 	/**
 	 * Generate a fan shape, with a height in Z direction, as (sin(theta), cos(theta), z)

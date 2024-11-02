@@ -155,6 +155,26 @@ namespace MechEngine
 				ImGui::PopID();
 			};
 		}
+    	PropertyWidget CreateFVector2Widget()
+    	{
+    		return [](void* instance, Reflection::FieldAccessor& Field) {
+    			static float Value[2] = { 0, 0 };
+    			FVector2	CurrentVec = Field.get<FVector2>(instance);
+    			Value[0] = CurrentVec.x();
+    			Value[1] = CurrentVec.y();
+    			std::string Lable = Field.getFieldName();
+    			Lable = UI::PretifyUIName(Lable);
+    			ShowLableLeft(Lable);
+    			ImGui::PushID(Lable.c_str());
+    			ImGui::InputFloat2("", Value);
+    			if (ImGui::IsItemDeactivatedAfterEdit())
+    			{
+    				FVector2 Vec(Value[0], Value[1]);
+    				Field.set(instance, &Vec);
+    			}
+    			ImGui::PopID();
+    		};
+    	}
 		PropertyWidget CreateFColorWidget()
 		{
 			return [](void* instance, Reflection::FieldAccessor& Field) {

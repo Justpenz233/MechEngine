@@ -76,6 +76,7 @@ void CameraSceneProxy::UploadDirtyData(Stream& stream)
 	{
 		auto Data = GetCurrentViewData();
 		stream << view_buffer.copy_from(&Data);
+		Scene.ResetFrameCounter();
 	}
 	bDirty = false;
 }

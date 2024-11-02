@@ -43,6 +43,12 @@ void RayTracingPipeline::EraseScene(Rendering::GPUSceneInterface*)
 
 void RayTracingPipeline::Init()
 {
+	if (BackEnd == "Dx")
+	{
+		Stream.set_log_callback([](luisa::string_view str) {
+			LOG_TEMP(str);
+		});
+	}
 	MainWindow->prepare_frame();
 	MainWindow->render_frame();
 	Viewport->LoadViewportStyle();

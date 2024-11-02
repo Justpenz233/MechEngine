@@ -96,7 +96,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCuboid(double size)
 	return GenerateCuboid({size, size, size});
 }
 
-ObjectPtr<StaticMesh> BasicShapesLibrary::GeneratePlane()
+ObjectPtr<StaticMesh> BasicShapesLibrary::GeneratePlane(const FVector2& Size)
 {
 	TArray<Vector3d> verList;
 	TArray<Vector3i> triList;
@@ -104,10 +104,10 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GeneratePlane()
 	/////////////////////////////////////////////////////////////////////////
 	/// 1. Computer vertices of the cuboid
 
-	double minX = -0.5f;
-	double minY = -0.5f;
-	double maxX = 0.5f;
-	double maxY = 0.5f;
+	double minX = -0.5 * Size[0];
+	double minY = -0.5 * Size[1];
+	double maxX = 0.5 * Size[0];
+	double maxY = 0.5 * Size[1];
 
 	verList.emplace_back(minX, minY, 0);
 	verList.emplace_back(maxX, minY, 0);

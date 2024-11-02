@@ -6,7 +6,7 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
-
+#include "Render/Core/sample.h"
 
 namespace MechEngine::Rendering
 {
@@ -30,15 +30,35 @@ public:
 
 	virtual ~shader_base() = default;
 
+	[[nodiscard]]
+	virtual Float pdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const
+	{
+		return pdf_cosine_hemisphere(w_i);
+	}
+
+	/**
+	 * Sample the brdf.
+	 * @param parameters The material parameters for the current material.
+	 * @param u The random number to sample the material.
+	 * @return The sampled direction and the pdf of the sample.
+	 */
+	[[nodiscard]]
+	virtual std::pair<Float3, Float> sample(const material_parameters& parameters, const Float3& w_o, const Float2& u) const
+	{
+		auto w_i = sample_cosine_hemisphere(u);
+		return {w_i, pdf(parameters, w_o, w_i)};
+	}
+
 	/**
 	 * Evaluate the BxDF of the material at the given intersection point.
-	 * @param context  The context for the current bxdf evaluation.
 	 * @param parameters The material parameters for the current material.
+	 * @param w_o The direction from the intersection point to the camera.  Output irradiance direction.
+	 * @param w_i The direction to the intersection point. Input irradiance direction.
 	 * @return The color of the material at the given intersection point.
 	 */
-	[[nodiscard]] Float3 bxdf(const bxdf_context& context, const material_parameters& parameters) const
+	[[nodiscard]] Float3 bxdf(const material_parameters& parameters, const Float3& w_o, const Float3& w_i) const
 	{
-		return evaluate(parameters, context.intersection, context.w_o, context.w_i);
+		return evaluate(parameters, w_o, w_i);
 	}
 
 	/**
@@ -64,11 +84,10 @@ protected:
 	* Evaluate the material color at the given intersection point.
 	* This should calculate the color of the material at the given point.
 	* @param material_data  The material data for the current material, Contains textures and other material properties.
-	* @param intersection  The intersection data for the surface point. Contatins the position, normal, uv.
 	* @param w_o The direction from the intersection point to the camera.  Output irradiance direction.
 	* @param w_i The direction to the intersection point. Input irradiance direction.
 	*/
-	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const = 0;
+	[[nodiscard]] virtual Float3 evaluate(const material_parameters& material_data, const Float3& w_o, const Float3& w_i) const = 0;
 
 	/**
 	 * Sample the diffuse property at the given intersection point.
@@ -97,8 +116,7 @@ protected:
 			};
 			$case(1) // vertex normal
 			{
-			Normal = context.intersection.vertex_normal_world;
-
+				Normal = context.intersection.vertex_normal_world;
 			};
 			$case(2) // corner normal
 			{

@@ -25,7 +25,7 @@ namespace MechEngine::Rendering
 		 * @see https://www.zhihu.com/question/48050245/answer/108902674
 		 */
 		[[nodiscard]]
-		virtual Float3 evaluate(const material_parameters& material_data, const ray_intersection& intersection, const Float3& w_o, const Float3& w_i) const override
+		virtual Float3 evaluate(const material_parameters& material_data, const Float3& w_o, const Float3& w_i) const override
 		{
 			auto normal = material_data.normal;
 			auto half = normalize(w_i + w_o);

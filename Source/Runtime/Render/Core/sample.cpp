@@ -1,7 +1,7 @@
 //
 // Created by Mayn on 2024/9/20.
 //
-#include "random.h"
+#include "sample.h"
 
 
 namespace MechEngine::Rendering
@@ -67,6 +67,62 @@ Float3 sample_uniform_hemisphere_surface(Expr<float2> u) noexcept
 		return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
 	};
 	return impl(u);
+}
+Float2 sample_uniform_disk(Expr<float2> u) noexcept
+{
+	static Callable impl = [](const Float2& u) noexcept {
+		auto r = sqrt(u.x);
+		auto theta = 2.f * pi * u.y;
+		return make_float2(r * cos(theta), r * sin(theta));
+	};
+	return impl(u);
+}
+
+Float3 sample_cosine_hemisphere(Expr<float2> u) noexcept
+{
+	static Callable impl = [](const Float2& u) noexcept {
+		auto theta = acos(sqrt(u.x));
+		auto phi = 2.f * pi * u.y;
+		auto sin_theta = sin(theta);
+		return make_float3(sin_theta * cos(phi), sin_theta * sin(phi), cos(theta));
+	};
+	return impl(u);
+}
+
+Float pdf_cosine_hemisphere(Expr<float3> w) noexcept
+{
+	static Callable impl = [](const Float3& w) noexcept {
+		return w.z * inv_pi;
+	};
+	return impl(w);
+}
+
+Float balance_heuristic(Expr<uint> nf, Expr<float> fPdf, Expr<uint> ng, Expr<float> gPdf) noexcept {
+	static Callable impl = [](UInt nf, Float fPdf, UInt ng, Float gPdf) noexcept {
+		auto sum_f = nf * fPdf;
+		auto sum = sum_f + ng * gPdf;
+		return ite(sum == 0.0f, 0.0f, sum_f / sum);
+	};
+	return impl(nf, fPdf, ng, gPdf);
+}
+
+Float power_heuristic(Expr<uint> nf, Expr<float> fPdf, Expr<uint> ng, Expr<float> gPdf) noexcept {
+	static Callable impl = [](UInt nf, Float fPdf, UInt ng, Float gPdf) noexcept {
+		Float f = nf * fPdf, g = ng * gPdf;
+		auto ff = f * f;
+		auto gg = g * g;
+		auto sum = ff + gg;
+		return ite(luisa::compute::isinf(ff), 1.f, ite(sum == 0.f, 0.f, ff / sum));
+	};
+	return impl(nf, fPdf, ng, gPdf);
+}
+
+Float balance_heuristic(Expr<float> fPdf, Expr<float> gPdf) noexcept {
+	return balance_heuristic(1u, fPdf, 1u, gPdf);
+}
+
+Float power_heuristic(Expr<float> fPdf, Expr<float> gPdf) noexcept {
+	return power_heuristic(1u, fPdf, 1u, gPdf);
 }
 
 };

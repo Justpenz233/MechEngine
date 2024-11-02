@@ -64,13 +64,15 @@ namespace MechEngine::Rendering
 	public:
 		virtual void CompileShader();
 
+  		/** Reset the frame counter to 0, used to clear integrator */
+		void ResetFrameCounter() noexcept;
 
 		auto& get_stream() { return stream; }
 
 
 		/**
 		 * Create a resource and register it to the scene
-		 * the scene holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
+		 * holding the ownership of the resource by unique_ptr and return a raw pointer to the resource
 		 * @tparam T Resource type
 		 * @tparam Args Resource constructor arguments
 		 * @param args Resource constructor arguments
@@ -189,6 +191,7 @@ namespace MechEngine::Rendering
 		* @return Instersection of primitve information of the ray
 		*/
 		ray_intersection intersect(const Var<Ray>& ray) const noexcept;
+		ray_intersection intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept;
 
 		/**
 		* Get the transform data of a transform by instance id
@@ -264,8 +267,11 @@ namespace MechEngine::Rendering
 
 		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
 
-		// Frame counter, start from 0, increase by 1 each frame
-		uint FrameCounter;
+		// Frame counter, start from 0, increase by 1 each frame, refresh when the scene is updated
+		uint FrameCounter = 0;
+		uint TimeCounter = 0;
+
+		uint SamplePerPixel = 1;
 
 		unique_ptr<Shader2D<uint>> ViewModePass;
 

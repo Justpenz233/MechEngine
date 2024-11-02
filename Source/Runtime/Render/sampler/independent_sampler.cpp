@@ -3,7 +3,7 @@
 //
 
 #include "independent_sampler.h"
-#include "Render/Core/random.h"
+#include "Render/Core/sample.h"
 #include "luisa/dsl/sugar.h"
 
 namespace MechEngine::Rendering
