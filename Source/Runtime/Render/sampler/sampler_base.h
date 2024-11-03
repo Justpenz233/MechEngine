@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include "Render/PipeLine/GpuScene.h"
+
 #include <luisa/dsl/syntax.h>
 namespace MechEngine::Rendering
 {
@@ -16,6 +18,7 @@ using luisa::uint2;
 class sampler_base
 {
 public:
+	sampler_base(GpuScene* Scene, Stream &stream) noexcept {}
 	virtual ~sampler_base() = default;
 	// interfaces
 	// virtual void reset(CommandBuffer& command_buffer, uint2 resolution, uint state_count, uint spp) noexcept = 0;

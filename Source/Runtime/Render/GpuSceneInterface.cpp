@@ -14,6 +14,7 @@
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/LineSceneProxy.h"
 #include "SceneProxy/ShapeSceneProxy.h"
+#include "sampler/sampler_base.h"
 
 namespace MechEngine::Rendering
 {
@@ -26,9 +27,11 @@ namespace MechEngine::Rendering
     }
 
     // empty detor here to make unqiue ptr happy
-    GpuSceneInterface::~GpuSceneInterface() {}
+    GpuSceneInterface::~GpuSceneInterface() = default;
+	// GpuSceneInterface:: GpuSceneInterface(const GpuSceneInterface&) = default;
+ // 	GpuSceneInterface:: GpuSceneInterface(GpuSceneInterface&&) noexcept = default;
 
-    void GpuSceneInterface::CompileShader()
+	void GpuSceneInterface::CompileShader()
 	{
 		ASSERTMSG(sampler.get(), "Sampler should be created first in the derived class");
 

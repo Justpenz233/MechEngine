@@ -19,7 +19,8 @@
 #include "Render/SceneProxy/LineSceneProxy.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/sampler/independent_sampler.h"
-
+#include "Render/sampler/sobol.h"
+#include "Render/sampler/sampler_base.h"
 namespace MechEngine::Rendering
 {
 
@@ -33,21 +34,6 @@ GpuSceneInterface(stream, device), Window(InWindow)
 	MaterialProxy = luisa::make_unique<MaterialSceneProxy>(*this);
 	LineProxy = luisa::make_unique<LineSceneProxy>(*this);
 	ShapeProxy = luisa::make_unique<ShapeSceneProxy>(*this);
-	auto size = Window->framebuffer().size();
-	LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
-	g_buffer.base_color = device.create_image<float>(PixelStorage::BYTE4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.normal = device.create_image<float>(PixelStorage::BYTE4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
-	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.frame_buffer = &Window->framebuffer();
-	g_buffer.linear_color = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	LOG_INFO("Init render frame buffer: {} {}",Window->framebuffer().size().x, Window->framebuffer().size().y);
 	Viewport = InViewport;
 }
 
@@ -111,19 +97,53 @@ uint2 GpuScene::GetWindosSize() const noexcept
 
 void GpuScene::CompileShader()
 {
-	LoadRenderSettings();
-
-	// Initialize the sampler
-	sampler = luisa::make_unique<independent_sampler>();
-
 	// Compile base shaders
 	GpuSceneInterface::CompileShader();
 
 	// Main pass shader
 	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
 		[&](UInt frame_index, UInt time) noexcept {
-		render_main_view(frame_index, time);
-	}));
+			render_main_view(frame_index, time);
+		}));
+}
 
+void GpuScene::Init()
+{
+	GpuSceneInterface::Init();
+
+	LoadRenderSettings();
+
+	InitGBuffers();
+	InitSamplers();
+
+	CompileShader();
 }
+void GpuScene::InitGBuffers()
+{
+	auto size = Window->framebuffer().size();
+	LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
+	g_buffer.base_color = device.create_image<float>(PixelStorage::BYTE4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.normal = device.create_image<float>(PixelStorage::BYTE4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
+	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.frame_buffer = &Window->framebuffer();
+	g_buffer.linear_color = device.create_image<float>(PixelStorage::FLOAT4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	LOG_INFO("Init render frame buffer: {} {}", Window->framebuffer().size().x, Window->framebuffer().size().y);
 }
+
+
+
+void GpuScene::InitSamplers()
+{
+	// Initialize the sampler
+	sampler = luisa::make_unique<sobol_sampler>(this, stream);
+	stream << synchronize();
+}
+
+} // namespace MechEngine::Rendering

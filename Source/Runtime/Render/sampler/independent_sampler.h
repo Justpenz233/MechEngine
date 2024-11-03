@@ -16,6 +16,7 @@ protected:
 	luisa::optional<UInt> state;
 
 public:
+	using sampler_base::sampler_base;
 	virtual ~independent_sampler() = default;
 
 	virtual void init(Expr<uint2> pixel, Expr<uint> sample_index) noexcept override;

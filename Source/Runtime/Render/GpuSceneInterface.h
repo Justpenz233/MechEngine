@@ -9,7 +9,6 @@
 #include "Core/view.h"
 #include "luisa/luisa-compute.h"
 #include "Misc/Platform.h"
-#include "sampler/sampler_base.h"
 
 class Material;
 class StaticMeshComponent;
@@ -20,6 +19,7 @@ class LightComponent;
 
 namespace MechEngine::Rendering
 {
+	class sampler_base;
 	struct transform_data;
 	class MaterialSceneProxy;
 	class LightSceneProxy;

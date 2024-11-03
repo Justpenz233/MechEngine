@@ -39,6 +39,19 @@ protected:
 public:
 	virtual void CompileShader() override;
 
+	/**
+	 * Initialize the render scene
+	 * Create resources and upload initial data to GPU
+	 * Compile shader
+	 */
+	void Init() override;
+
+	/** Init GBuffer, create buffers of GBuffer	 */
+	virtual void InitGBuffers();
+
+	/** Init and create Sampler */
+	virtual void InitSamplers();
+
 	void UploadRenderData();
 
 	virtual void Render() override;

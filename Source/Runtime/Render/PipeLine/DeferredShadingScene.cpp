@@ -9,6 +9,7 @@
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/material/shading_function.h"
+#include "Render/sampler/sampler_base.h"
 
 namespace MechEngine::Rendering
 {

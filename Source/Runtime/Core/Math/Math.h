@@ -106,4 +106,26 @@ Vector4d MakeVector4d(Eigen::Vector3<T1> XYZ, T2 W = 0.)
 	return {XYZ[0], XYZ[1], XYZ[2], W};
 }
 
+/**
+ * @brief Find next 2^n of v
+ * @tparam uint32 or uint64
+ * @param v input number
+ * @return same as v
+ */
+template<typename T, std::enable_if_t<std::is_unsigned_v<T> && (sizeof(T) == 4u || sizeof(T) == 8u), int> = 0>
+[[nodiscard]] constexpr auto next_pow2(T v) noexcept {
+	#ifdef __cpp_lib_int_pow2
+	return std::bit_ceil(v);
+	#else
+	v--;
+	v |= v >> 1u;
+	v |= v >> 2u;
+	v |= v >> 4u;
+	v |= v >> 8u;
+	v |= v >> 16u;
+	if constexpr (sizeof(T) == 8u) { v |= v >> 32u; }
+	return v + 1u;
+	#endif
+}
+
 }
