@@ -59,10 +59,22 @@ namespace MechEngine::Rendering
 	    	auto dis = distance(x, p_l);
 	    	auto pdf = pdf_li(data, x, p_l);
 	    	auto w_i = p_l - x;
-	    	auto n_world = light_transform[2].xyz();
+	    	auto n_world = p_l - light_transform[2].xyz();
 	    	auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_world), 0.f) / square(dis);
 	    	return {l_i, pdf};
 	    }
+
+    	virtual Float3 l_i_rt(Expr<light_data> data, const Float3& x) const override
+    	{
+    		auto light_transform = scene.get_instance_transform(data.instance_id);
+    		auto& radius = data.size.x;
+    		auto dis = distance(x, light_transform[3].xyz());
+    		auto a = dis / radius;
+    		auto a2 = a * a;
+    		auto a4 = a2 * a2;
+    		auto smooth = saturate(square(1.f - a4));
+    		return data.intensity * data.light_color * smooth / square(dis);
+    	}
     };
 
 
@@ -99,6 +111,14 @@ namespace MechEngine::Rendering
 			auto n_world = -light_transform[2].xyz();
 			auto l_i = data.intensity * data.light_color * max(dot(normalize(-w_i), n_world), 0.f) / square(dis);
 			return {l_i, pdf};
+		}
+
+		// TODO : Implement LTC
+		virtual Float3 l_i_rt(Expr<light_data> data, const Float3& x) const override
+		{
+			auto light_transform = scene.get_instance_transform(data.instance_id);
+			auto [l, pdf] = l_i(data, x, light_transform[3].xyz());
+			return l / pdf;
 		}
 	};
 }

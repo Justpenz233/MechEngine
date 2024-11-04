@@ -84,9 +84,16 @@ namespace MechEngine::Rendering
 
     	[[nodiscard]] virtual std::pair<Float3, Float> l_i(Expr<light_data> data, const Float3& x, const Float3& p_l) const = 0;
 
-    	// [[nodiscard]] virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& normal, const Float3& w_i) const = 0;
+    	/** real time l_i */
+		[[nodiscard]] virtual Float3 l_i_rt(Expr<light_data> data, const Float3& x) const {return make_float3(0.f);}
 
-
+    	/**
+    	* Calculate an intersection point of the light source regardless of occlusion
+    	* @param data light data
+    	* @param x the position in the lighting surface which receives the light
+    	* @param w_i the direction along which light arrives at the point
+    	*/
+    	// [[nodiscard]] virtual Float3 intersect(Expr<light_data> data, const Float3& x, const Float3& w_i) const = 0;
 
     protected:
     	const GpuScene& scene;

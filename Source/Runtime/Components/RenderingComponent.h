@@ -34,6 +34,8 @@ public:
 
 	FORCEINLINE virtual void TickComponent(double DeltaTime) override;
 
+	virtual void SetVisible(bool bInVisible) { bVisible = bInVisible; MarkAsDirty(); }
+
 protected:
 	MPROPERTY()
 	bool bVisible = true;

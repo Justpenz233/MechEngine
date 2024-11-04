@@ -94,11 +94,10 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 			auto light_dir = normalize(light_location - x);
 
 			auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
-				Float3 light_color = make_float3(0.f);
-				Float3 mesh_color = make_float3(0.f);
 				Float3 light_visibility = make_float3(1.);
 				auto local_w_i = frame.world_to_local(w_i);
 				auto local_w_o = frame.world_to_local(w_o);
+				auto shading = def(make_float3(0.f));
 				$if(dot(w_i, normal_world) >= 0.f)
 				{
 					if (calc_shadow)// Shadow ray
@@ -111,15 +110,15 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 					// Dispatch light evaluate polymorphic, so that we can have different light type
 					LightProxy->light_virtual_call.dispatch(
 						light_data.light_type, [&](const light_base* light) {
-							light_color = light->l_i(light_data, x, light_location).first;
-						});
-
-					MaterialProxy->shader_call.dispatch(
-						material_data.shader_id, [&](const shader_base* material) {
-							mesh_color = material->bxdf(bxdf_parameters, local_w_o, local_w_i);
+							auto light_color  = light->l_i_rt(light_data, x);
+							MaterialProxy->shader_call.dispatch(
+							material_data.shader_id, [&](const shader_base* material) {
+								auto mesh_color = material->bxdf(bxdf_parameters, local_w_o, local_w_i);
+								shading = mesh_color * light_color * max(dot(w_i, normal_world), 0.001f) * light_visibility;
+							});
 						});
 				};
-				return mesh_color * light_color * max(dot(w_i, normal_world), 0.001f) * light_visibility;
+				return shading;
 			};
 
 			auto lighting = calc_lighting(light_dir, bRenderShadow);

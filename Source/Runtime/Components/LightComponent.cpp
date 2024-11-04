@@ -11,7 +11,6 @@
 
 void LightComponent::UploadRenderingData()
 {
-
 	if (InstanceId == ~0u)
 		InstanceId = GetScene()->GetShapeProxy()->RegisterInstance();
 	if (LightId == ~0u)
@@ -19,6 +18,7 @@ void LightComponent::UploadRenderingData()
 	else
 		GetScene()->GetLightProxy()->UpdateLight(this, LightId, InstanceId);
 	GetScene()->GetShapeProxy()->SetInstanceLightID(InstanceId, LightId);
+	GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceId, bVisible);
 
 	auto TransformId = GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
 	GetScene()->GetTransformProxy()->BindTransform(InstanceId, TransformId);
