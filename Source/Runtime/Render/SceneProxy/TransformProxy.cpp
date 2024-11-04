@@ -23,20 +23,40 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 	if (DirtyTransforms.empty())
 		return;
 
+	for (TransformComponent* Component : NewTransforms)
+	{
+		auto TransformId = TransformIdMap[Component];
+		transform_data& data = TransformDatas[TransformId];
+
+		data.transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix());
+		data.last_transform_matrix = data.transform_matrix; // New transform, last frame's transform matrix the same as the current frame
+
+		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix().inverse().eval());
+		data.scale = ToLuisaVector(Component->GetScale());
+		data.rotation_quaternion = ToLuisaVector(Component->GetRotation().coeffs());
+		if (TransformToInstanceId.count(TransformId))
+		{
+			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transform_matrix);
+		}
+	}
+
 	for (TransformComponent* Component : DirtyTransforms)
 	{
 		auto TransformId = TransformIdMap[Component];
 		transform_data& data = TransformDatas[TransformId];
-		data.transformMatrix = ToLuisaMatrix(Component->GetTransformMatrix());
+		data.last_transform_matrix = data.transform_matrix;
+		data.transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix());
+		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix().inverse().eval());
 		data.scale = ToLuisaVector(Component->GetScale());
-		data.rotationQuaternion = ToLuisaVector(Component->GetRotation().coeffs());
+		data.rotation_quaternion = ToLuisaVector(Component->GetRotation().coeffs());
 		if (TransformToInstanceId.count(TransformId))
 		{
-			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transformMatrix);
+			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transform_matrix);
 		}
 	}
 	stream << transform_buffer.subview(0, GetTransformCount()).copy_from(TransformDatas.data());
 	DirtyTransforms.clear();
+	NewTransforms.clear();
 }
 
 uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
@@ -50,7 +70,7 @@ uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
 		return TransformIdMap[InTransform];
 	uint NewId = Id++;
 	TransformIdMap[InTransform] = NewId;
-	DirtyTransforms.insert(InTransform);
+	NewTransforms.insert(InTransform);
 	return NewId;
 }
 void TransformSceneProxy::BindTransform(uint InstanceID, uint TransformID)
@@ -66,7 +86,7 @@ void TransformSceneProxy::BindTransform(uint InstanceID, uint TransformID)
 		return;
 	}
 	TransformToInstanceId[TransformID] = InstanceID;
-	accel.set_transform_on_update(InstanceID, TransformDatas[TransformID].transformMatrix);
+	accel.set_transform_on_update(InstanceID, TransformDatas[TransformID].transform_matrix);
 }
 
 bool TransformSceneProxy::IsExist(TransformComponent* InTransform) const

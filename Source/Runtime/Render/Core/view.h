@@ -29,11 +29,13 @@ namespace MechEngine::Rendering
 
         float4x4 view_projection_matrix;
         float4x4 inverse_view_projection_matrix;
+    	float4x4 last_view_projection_matrix; // Last frame's view projection matrix, used for motion vector calculation
     };
 };
 
 LUISA_STRUCT(MechEngine::Rendering::view,
-    projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix, projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix)
+    projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix,
+    projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix, last_view_projection_matrix)
 {
     [[nodiscard]] auto generate_ray(const luisa::compute::Float2& pixel_pos)
     {

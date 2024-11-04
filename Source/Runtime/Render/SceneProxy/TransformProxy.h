@@ -62,7 +62,10 @@ namespace MechEngine::Rendering
 		uint Id = 0;
 		vector<transform_data> TransformDatas;
 		map<TransformComponent*, uint> TransformIdMap;
+
 		set<TransformComponent*> DirtyTransforms;
+		set<TransformComponent*> NewTransforms;
+
 		map<uint, uint> TransformToInstanceId;
 
 		uint bindless_id;

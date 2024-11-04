@@ -12,17 +12,21 @@ using namespace luisa::compute;
 
 struct transform_data
 {
-	luisa::float4x4 transformMatrix{};
-	luisa::float4 rotationQuaternion{};
+	luisa::float4x4 transform_matrix{};
+	luisa::float4x4 inverse_transform_matrix{};
+
+	luisa::float4x4 last_transform_matrix{}; // Last frame's transform matrix, used for motion vector calculation
+
+	luisa::float4 rotation_quaternion{};
 	luisa::float3 scale{};
 };
 }
 
-LUISA_STRUCT(MechEngine::Rendering::transform_data, transformMatrix, rotationQuaternion, scale)
+LUISA_STRUCT(MechEngine::Rendering::transform_data, transform_matrix, inverse_transform_matrix, last_transform_matrix, rotation_quaternion, scale)
 {
 	[[nodiscard]] luisa::compute::Float3 get_location() const noexcept
 	{
-		return transformMatrix[3].xyz();
+		return transform_matrix[3].xyz();
 	}
 
 	[[nodiscard]] luisa::compute::Float3 get_scale() const noexcept
@@ -32,7 +36,13 @@ LUISA_STRUCT(MechEngine::Rendering::transform_data, transformMatrix, rotationQua
 
 	[[nodiscard]] luisa::compute::Float4x4 get_matrix() const noexcept
 	{
-		return transformMatrix;
+		return transform_matrix;
 	}
+
+	[[nodiscard]] luisa::compute::Float4x4 get_inverse_matrix() const noexcept
+	{
+		return inverse_transform_matrix;
+	}
+
 
 };

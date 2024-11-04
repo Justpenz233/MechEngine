@@ -68,10 +68,15 @@ protected:
 	/** Get main camera's view data */
 	[[nodiscard]] view GetCurrentViewData() const;
 
+	bool bFirstFrame = true;
 	bool bDirty = true;
 	uint buffer_id = ~0u;
 	BufferView<view> view_buffer;
 	uint TransformID = 0;
 	CameraComponent* MainCameraComponent = nullptr;
+
+
+	view CurrentView;
+	view PreView;
 };
 }

@@ -16,14 +16,15 @@ CameraSceneProxy::CameraSceneProxy(GpuScene& InScene)
 	std::tie(view_buffer, buffer_id) = Scene.RegisterBindlessBuffer<view>(1);
 }
 
-void CameraSceneProxy::AddCamera(::CameraComponent* InCameraComponent, uint InTransformID)
+void CameraSceneProxy::AddCamera(CameraComponent* InCameraComponent, uint InTransformID)
 {
 	MainCameraComponent = InCameraComponent;
 	TransformID = InTransformID;
 	bDirty = true;
+	bFirstFrame = true;
 }
 
-void CameraSceneProxy::UpdateCamera(::CameraComponent* InCameraComponent)
+void CameraSceneProxy::UpdateCamera(CameraComponent* InCameraComponent)
 {
 	ASSERTMSG(InCameraComponent == MainCameraComponent, "CameraComponent is not the same");
 	bDirty = true;
@@ -74,8 +75,16 @@ void CameraSceneProxy::UploadDirtyData(Stream& stream)
 	}
 	if (bDirty)
 	{
-		auto Data = GetCurrentViewData();
-		stream << view_buffer.copy_from(&Data);
+		PreView = CurrentView;
+		CurrentView = GetCurrentViewData();
+		CurrentView.last_view_projection_matrix = PreView.view_projection_matrix;
+		if(bFirstFrame)
+		{
+			PreView = CurrentView;
+			CurrentView.last_view_projection_matrix = CurrentView.view_projection_matrix;
+			bFirstFrame = false;
+		}
+		stream << view_buffer.copy_from(&CurrentView);
 		Scene.ResetFrameCounter();
 	}
 	bDirty = false;
