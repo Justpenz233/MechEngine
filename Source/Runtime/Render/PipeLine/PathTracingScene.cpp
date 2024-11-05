@@ -31,7 +31,7 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 	color = color / Float(SamplePerPixel);
 	auto pre_color = ite(frame_index == 0, make_float3(0.f), g_buffer.linear_color->read(pixel_coord).xyz());
 	g_buffer.linear_color->write(pixel_coord, make_float4(color + pre_color, 1.f));
-	auto now_color = (pre_color + color) / Float(frame_index + 1.f);
+	auto now_color = tone_mapping_aces((pre_color + color) / Float(frame_index + 1.f));
 	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(now_color), 1.f));
 }
 

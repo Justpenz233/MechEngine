@@ -60,6 +60,29 @@ public:
 	[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept override;
 
 	uint2 GetWindosSize() const noexcept;
+
+	[[nodiscard]] auto tone_mapping_uncharted2(Expr<float3> color) noexcept {
+		static constexpr auto a = 0.15f;
+		static constexpr auto b = 0.50f;
+		static constexpr auto c = 0.10f;
+		static constexpr auto d = 0.20f;
+		static constexpr auto e = 0.02f;
+		static constexpr auto f = 0.30f;
+		static constexpr auto white = 11.2f;
+		auto op = [](auto x) noexcept {
+			return (x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f) - e / f;
+		};
+		return op(1.6f * color) / op(white);
+	}
+	
+	[[nodiscard]] auto tone_mapping_aces(Expr<float3> color) noexcept {
+		constexpr auto a = 2.51f;
+		constexpr auto b = 0.03f;
+		constexpr auto c = 2.43f;
+		constexpr auto d = 0.59f;
+		constexpr auto e = 0.14f;
+		return (color * (a * color + b)) / (color * (c * color + d) + e);
+	}
 protected:
 	/**
 	 * Render the main view, dispatch the render kernel
