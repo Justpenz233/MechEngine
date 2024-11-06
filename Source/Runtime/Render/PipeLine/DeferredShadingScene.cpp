@@ -110,7 +110,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 					// Dispatch light evaluate polymorphic, so that we can have different light type
 					LightProxy->light_virtual_call.dispatch(
 						light_data.light_type, [&](const light_base* light) {
-							auto light_color  = light->l_i_rt(light_data, x);
+							auto light_color  = light->l_i_rt(light_data, x, w_i, w_o, normal_world);
 							MaterialProxy->shader_call.dispatch(
 							material_data.shader_id, [&](const shader_base* material) {
 								auto mesh_color = material->bxdf(bxdf_parameters, local_w_o, local_w_i);

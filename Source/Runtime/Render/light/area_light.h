@@ -5,6 +5,7 @@
 #pragma once
 
 #include "light_base.h"
+#include "ltc_area_light.h"
 #include "Render/Core/sample.h"
 #include "Render/PipeLine/GpuScene.h"
 #include "Render/material/shading_function.h"
@@ -64,7 +65,7 @@ namespace MechEngine::Rendering
 	    	return {l_i, pdf};
 	    }
 
-    	virtual Float3 l_i_rt(Expr<light_data> data, const Float3& x) const override
+    	Float3 l_i_rt(Expr<light_data> data, const Float3& x, const Float3& w_i, const Float3& w_o, const Float3& n) const override
     	{
     		auto light_transform = scene.get_instance_transform(data.instance_id);
     		auto& radius = data.size.x;
@@ -113,12 +114,16 @@ namespace MechEngine::Rendering
 			return {l_i, pdf};
 		}
 
-		// TODO : Implement LTC
-		virtual Float3 l_i_rt(Expr<light_data> data, const Float3& x) const override
+		Float3 l_i_rt(Expr<light_data> data, const Float3& x, const Float3& w_i, const Float3& w_o, const Float3& n) const override
 		{
 			auto light_transform = scene.get_instance_transform(data.instance_id);
-			auto [l, pdf] = l_i(data, x, light_transform[3].xyz());
-			return l / pdf;
+			auto& size_x = data.size.x; auto& size_y = data.size.y;
+			std::array<Float3, 4> p;
+			p[0] = (light_transform * make_float4(-size_x * 0.5f, -size_y * 0.5f, 0.f, 1.f)).xyz();
+			p[1] = (light_transform * make_float4(size_x * 0.5f, -size_y * 0.5f, 0.f, 1.f)).xyz();
+			p[2] = (light_transform * make_float4(size_x * 0.5f, size_y * 0.5f, 0.f, 1.f)).xyz();
+			p[3] = (light_transform * make_float4(-size_x * 0.5f, size_y * 0.5f, 0.f, 1.f)).xyz();
+			return data.intensity * data.light_color * LTC_Evaluate(n, w_o, x, make_float3x3(1.f), p);
 		}
 	};
 }
