@@ -75,8 +75,6 @@ protected:
 	uint TransformID = 0;
 	CameraComponent* MainCameraComponent = nullptr;
 
-
 	view CurrentView;
-	view PreView;
 };
 }

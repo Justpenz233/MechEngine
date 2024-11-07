@@ -73,20 +73,20 @@ void CameraSceneProxy::UploadDirtyData(Stream& stream)
 		exit(0);
 		return;
 	}
+	CurrentView.last_view_projection_matrix = CurrentView.view_projection_matrix;
 	if (bDirty)
 	{
-		PreView = CurrentView;
+		auto last_vp = CurrentView.view_projection_matrix;
 		CurrentView = GetCurrentViewData();
-		CurrentView.last_view_projection_matrix = PreView.view_projection_matrix;
+		CurrentView.last_view_projection_matrix = last_vp;
 		if(bFirstFrame)
 		{
-			PreView = CurrentView;
 			CurrentView.last_view_projection_matrix = CurrentView.view_projection_matrix;
 			bFirstFrame = false;
 		}
-		stream << view_buffer.copy_from(&CurrentView);
 		Scene.ResetFrameCounter();
 	}
+	stream << view_buffer.copy_from(&CurrentView);
 	bDirty = false;
 }
 

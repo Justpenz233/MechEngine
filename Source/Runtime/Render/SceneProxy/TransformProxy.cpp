@@ -20,8 +20,11 @@ TransformSceneProxy::TransformSceneProxy(GpuScene& InScene)
 
 void TransformSceneProxy::UploadDirtyData(Stream& stream)
 {
-	if (DirtyTransforms.empty())
-		return;
+	for (int i = 0; i < Id;i ++)
+	{
+		transform_data& data = TransformDatas[i];
+		data.last_transform_matrix = data.transform_matrix;
+	}
 
 	for (TransformComponent* Component : NewTransforms)
 	{

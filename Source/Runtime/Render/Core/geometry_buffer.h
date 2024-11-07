@@ -12,7 +12,7 @@ struct geometry_buffer
 {
     Image<float> base_color;
     Image<float> normal;
-	Buffer<float> depth;
+	Buffer<float> depth; // For atomic operation
     Image<uint> instance_id;
     Image<uint> material_id;
     // The frame buffer to store the final image, ownership should managed by the window.
@@ -32,13 +32,11 @@ struct geometry_buffer
     }
 
 	void write(const UInt2& pixel_coord,
-		const material_parameters& material,
-		const ray_intersection& intersection) noexcept
+		const ray_intersection& intersection) const noexcept
     {
     	instance_id->write(pixel_coord, make_uint4(intersection.instance_id));
     	material_id->write(pixel_coord, make_uint4(intersection.material_id));
-    	base_color->write(pixel_coord, make_float4(material.base_color, 1.f));
-    	normal->write(pixel_coord, make_float4(material.normal, 1.f));
+    	normal->write(pixel_coord, make_float4(intersection.corner_normal_world, 1.f));
     	depth->write(flattend_index(pixel_coord), intersection.depth);
     }
 
