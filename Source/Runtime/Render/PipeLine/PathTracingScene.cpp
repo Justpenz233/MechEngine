@@ -32,7 +32,7 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 	};
 	color = color / Float(SamplePerPixel);
 	g_buffer.linear_color->write(pixel_coord, make_float4(color, 1.f));
-	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color)), 1.f));
+	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color), 1.f));
 }
 
 Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
@@ -143,8 +143,7 @@ Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_p
 				});
 		};
 	};
-
-
+	pixel_radiance = tone_mapping_aces(pixel_radiance);
 	$if(first_intersection.valid())
 	{
 		pixel_radiance = reproject_last_frame(first_intersection, pixel_coord, pixel_radiance);
@@ -188,8 +187,12 @@ Float PathTracingScene::wireframe_intensity(const ray_intersection& intersection
 	return wireframe_intensity;
 }
 
+// @see https://github.com/TheVaffel/spatiotemporal-variance-guided-filtering/blob/master/svgf.cl#L93
 Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersection, const UInt2& pixel_coord, const Float3& pixel_color)
 {
+	const float NORMAL_TOLERANCE = 5.0e-2;
+	const float POSITION_TOLERANCE = 1e-2;
+
 	auto transform_data = TransformProxy->get_transform_data(intersection.instance_id);
 	auto& x = intersection.position_world;
 	auto& pre_t = transform_data->last_transform_matrix;;
@@ -198,23 +201,44 @@ Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersecti
 	auto pre_x = pre_t * t_inv * make_float4(x, 1.f);
 	auto pre_clip_position = CameraProxy->get_main_view().last_view_projection_matrix * pre_x;
 	auto pre_ndc_position = (pre_clip_position / pre_clip_position.w).xyz();
-	UInt2 pre_pixel_coord = CameraProxy->get_main_view()->ndc_to_screen(pre_ndc_position);
-	auto pre_color = g_buffer.linear_color->read(pre_pixel_coord);
 
-	Float mixRate = 0.f;
-	// Float3 result = pixel_color;
-	$if (pre_ndc_position.x > -1.f & pre_ndc_position.x < 1.0f & pre_ndc_position.y > -1.f & pre_ndc_position.y < 1.0f)
+	Float2 pre_pixel_pos = CameraProxy->get_main_view()->ndc_to_screen(pre_ndc_position) - 0.5f;
+	UInt2 pre_pixel_coord = UInt2(pre_pixel_pos);
+
+	auto pixel_pos_frac = pre_pixel_pos - make_float2(pre_pixel_coord);
+	auto inv_pixel_pos_frac = 1.f - pixel_pos_frac;
+	Float weights[4];
+	weights[0] = inv_pixel_pos_frac.x * inv_pixel_pos_frac.y;
+	weights[1] = pixel_pos_frac.x * inv_pixel_pos_frac.y;
+	weights[2] = inv_pixel_pos_frac.x * pixel_pos_frac.y;
+	weights[3] = pixel_pos_frac.x * pixel_pos_frac.y;
+
+	Float3 sum_val = make_float3(0.f);
+	Float sum_weight = 0.f;
+	auto WinSize = GetWindosSize();
+	for(int dy = 0; dy <= 1; dy += 1)
 	{
-		mixRate = ite(g_buffer.instance_id->read(pre_pixel_coord).x == intersection.instance_id, 0.8f, 0.0f);
-		// result = lerp(pixel_color, pre_color.xyz(), mixRate);
-		// $if(all(pre_pixel_coord == pixel_coord))
-		// {
-			// result = make_float3(1.f, 0.f, 0.f);
-		// };
-	};
-
-	// return result;
-	return lerp(pixel_color, pre_color.xyz(), mixRate);
+		for (int dx = 0; dx <= 1; dx += 1)
+		{
+			auto p = make_uint2(dx, dy) + pre_pixel_coord;
+			$if (all(p >= make_uint2(0, 0)) & all(p < WinSize))
+			{
+				auto pre_instance = g_buffer.instance_id->read(p).x;
+				auto pre_world_pos = g_buffer.world_position->read(p).xyz();
+				auto pre_normal = g_buffer.normal->read(p).xyz();
+				$if(pre_instance == intersection.instance_id &
+					distance_squared(pre_world_pos, x) < POSITION_TOLERANCE &
+					distance_squared(pre_normal, intersection.corner_normal_world) < NORMAL_TOLERANCE)
+				{
+					auto pre_color = g_buffer.linear_color->read(p);
+					sum_weight += weights[dx + dy * 2];
+					sum_val += pre_color.xyz() * weights[dx + dy * 2];
+				};
+			};
+		}
+	}
+	sum_val /= ite(sum_weight > 0.f, sum_weight, 1.f);
+	return lerp(pixel_color, sum_val, 0.8f);
 }
 
 };

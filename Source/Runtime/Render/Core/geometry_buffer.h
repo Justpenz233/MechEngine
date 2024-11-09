@@ -12,6 +12,7 @@ struct geometry_buffer
 {
     Image<float> base_color;
     Image<float> normal;
+	Image<float> world_position;
 	Buffer<float> depth; // For atomic operation
     Image<uint> instance_id;
     Image<uint> material_id;
@@ -38,6 +39,7 @@ struct geometry_buffer
     	material_id->write(pixel_coord, make_uint4(intersection.material_id));
     	normal->write(pixel_coord, make_float4(intersection.corner_normal_world, 1.f));
     	depth->write(flattend_index(pixel_coord), intersection.depth);
+    	world_position->write(pixel_coord, make_float4(intersection.position_world, 1.f));
     }
 
 	/**
