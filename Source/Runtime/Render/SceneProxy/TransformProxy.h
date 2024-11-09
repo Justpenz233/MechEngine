@@ -52,24 +52,36 @@ namespace MechEngine::Rendering
 
 		[[nodiscard]] FORCEINLINE uint GetTransformCount() const noexcept;
 
+		[[nodiscard]] UInt get_instance_transform_id(Expr<uint> instance_id) const
+		{
+			return bindelss_buffer<uint>(instance_to_transform_bid)->read(instance_id);
+		}
+
 		[[nodiscard]] Var<transform_data> get_transform_data(Expr<uint> transform_id) const
 		{
-			return bindelss_buffer<transform_data>(bindless_id)->read(transform_id);
+			return bindelss_buffer<transform_data>(transform_data_bid)->read(transform_id);
+		}
+
+		[[nodiscard]] Var<transform_data> get_instance_transform_data(Expr<uint> instance_id) const
+		{
+			return get_transform_data(get_instance_transform_id(instance_id));
 		}
 
 	protected:
-		static constexpr auto transform_matrix_buffer_size = 65536u;
 		uint Id = 0;
+		vector<uint> Instance2Transformid;
 		vector<transform_data> TransformDatas;
 		map<TransformComponent*, uint> TransformIdMap;
 
 		set<TransformComponent*> DirtyTransforms;
 		set<TransformComponent*> NewTransforms;
 
-		map<uint, uint> TransformToInstanceId;
+		map<uint, uint> TransformToInstanceId;// should be one to many
 
-		uint bindless_id;
+		uint transform_data_bid;
+		uint instance_to_transform_bid;
 		BufferView<transform_data> transform_buffer;
+		BufferView<uint> instance_to_transform_buffer;
 	};
 
 	uint TransformSceneProxy::GetTransformCount() const noexcept

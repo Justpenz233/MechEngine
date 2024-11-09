@@ -11,8 +11,8 @@ namespace MechEngine::Rendering
 ShapeSceneProxy::ShapeSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
-	InstanceShapes.resize(MaxInstanceNum);
-	std::tie(instance_shape, buffer_bindless_id) = InScene.RegisterBindlessBuffer<shape>(MaxInstanceNum);
+	InstanceShapes.resize(InScene.MaxInstanceNum);
+	std::tie(instance_shape, buffer_bindless_id) = InScene.RegisterBindlessBuffer<shape>(InScene.MaxInstanceNum);
 }
 
 void ShapeSceneProxy::UploadDirtyData(Stream& stream)

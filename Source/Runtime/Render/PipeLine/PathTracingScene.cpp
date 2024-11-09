@@ -32,7 +32,7 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 	};
 	color = color / Float(SamplePerPixel);
 	g_buffer.linear_color->write(pixel_coord, make_float4(color, 1.f));
-	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color), 1.f));
+	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color)), 1.f));
 }
 
 Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
@@ -49,11 +49,10 @@ Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_p
 		const auto& x = intersection.position_world;
 		const auto& w_o = normalize(-ray->direction());
 		auto		local_wo = frame.world_to_local(w_o);
-
 		$if(depth == 0)
 		{
-			first_intersection = intersection;
-		}; // For wireframe pass
+			first_intersection = intersection; // For wireframe pass
+		};
 		$if(!intersection.valid())
 		{
 			$break;
@@ -143,7 +142,6 @@ Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_p
 				});
 		};
 	};
-	pixel_radiance = tone_mapping_aces(pixel_radiance);
 	$if(first_intersection.valid())
 	{
 		pixel_radiance = reproject_last_frame(first_intersection, pixel_coord, pixel_radiance);
@@ -188,12 +186,13 @@ Float PathTracingScene::wireframe_intensity(const ray_intersection& intersection
 }
 
 // @see https://github.com/TheVaffel/spatiotemporal-variance-guided-filtering/blob/master/svgf.cl#L93
+// re-project then bi-linear interpolate the last frame color
 Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersection, const UInt2& pixel_coord, const Float3& pixel_color)
 {
 	const float NORMAL_TOLERANCE = 5.0e-2;
 	const float POSITION_TOLERANCE = 1e-2;
 
-	auto transform_data = TransformProxy->get_transform_data(intersection.instance_id);
+	auto transform_data = TransformProxy->get_instance_transform_data(intersection.instance_id);
 	auto& x = intersection.position_world;
 	auto& pre_t = transform_data->last_transform_matrix;;
 	auto& t_inv = transform_data->inverse_transform_matrix;
@@ -221,7 +220,7 @@ Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersecti
 		for (int dx = 0; dx <= 1; dx += 1)
 		{
 			auto p = make_uint2(dx, dy) + pre_pixel_coord;
-			$if (all(p >= make_uint2(0, 0)) & all(p < WinSize))
+			$if (all(p > make_uint2(0, 0)) & all(p < WinSize))
 			{
 				auto pre_instance = g_buffer.instance_id->read(p).x;
 				auto pre_world_pos = g_buffer.world_position->read(p).xyz();
@@ -238,7 +237,7 @@ Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersecti
 		}
 	}
 	sum_val /= ite(sum_weight > 0.f, sum_weight, 1.f);
-	return lerp(pixel_color, sum_val, 0.8f);
+	return ite(sum_weight > 0.f, lerp(pixel_color, sum_val, 0.8f), pixel_color);
 }
 
 };

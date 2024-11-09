@@ -17,10 +17,10 @@ namespace MechEngine::Rendering
 StaticMeshSceneProxy::StaticMeshSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
-	StaticMeshData.resize(instance_max_number);
-	MeshResources.resize(instance_max_number);
-	MeshInstances.resize(instance_max_number);
-	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(instance_max_number);
+	StaticMeshData.resize(InScene.MaxInstanceNum);
+	MeshResources.resize(InScene.MaxInstanceNum);
+	MeshInstances.resize(InScene.MaxInstanceNum);
+	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(InScene.MaxInstanceNum);
 }
 
 bool StaticMeshSceneProxy::IsDirty()

@@ -228,6 +228,10 @@ namespace MechEngine::Rendering
 		FORCEINLINE LineSceneProxy* GetLineProxy() { return LineProxy.get(); }
 		FORCEINLINE ShapeSceneProxy* GetShapeProxy() { return ShapeProxy.get(); }
 
+	public:
+		const uint MaxInstanceNum = 1048576u;
+		const uint MaxTransformNum = 65536u;
+
 	protected:
 		// Instance shape management
 		unique_ptr<ShapeSceneProxy> ShapeProxy;

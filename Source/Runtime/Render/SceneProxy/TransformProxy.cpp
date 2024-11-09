@@ -14,8 +14,11 @@ namespace MechEngine::Rendering
 TransformSceneProxy::TransformSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
-	TransformDatas.resize(transform_matrix_buffer_size);
-	std::tie(transform_buffer, bindless_id) = Scene.RegisterBindlessBuffer<transform_data>(transform_matrix_buffer_size);
+	TransformDatas.resize(InScene.MaxTransformNum);
+	std::tie(transform_buffer, transform_data_bid) = Scene.RegisterBindlessBuffer<transform_data>(InScene.MaxTransformNum);
+
+	Instance2Transformid.resize(InScene.MaxInstanceNum);
+	std::tie(instance_to_transform_buffer, instance_to_transform_bid) = Scene.RegisterBindlessBuffer<uint>(InScene.MaxInstanceNum);
 }
 
 void TransformSceneProxy::UploadDirtyData(Stream& stream)
@@ -58,6 +61,8 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 		}
 	}
 	stream << transform_buffer.subview(0, GetTransformCount()).copy_from(TransformDatas.data());
+	if(!DirtyTransforms.empty() || !NewTransforms.empty())
+		stream << instance_to_transform_buffer.copy_from(Instance2Transformid.data());
 	DirtyTransforms.clear();
 	NewTransforms.clear();
 }
@@ -89,6 +94,7 @@ void TransformSceneProxy::BindTransform(uint InstanceID, uint TransformID)
 		return;
 	}
 	TransformToInstanceId[TransformID] = InstanceID;
+	Instance2Transformid[InstanceID] = TransformID;
 	accel.set_transform_on_update(InstanceID, TransformDatas[TransformID].transform_matrix);
 }
 

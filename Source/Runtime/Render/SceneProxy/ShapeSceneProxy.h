@@ -58,9 +58,6 @@ public:
 
 protected:
 	bool bDirty = true;
-	// instance shape information, e.g. mesh id and light id
-	const uint MaxInstanceNum = 1048576u;
-
 	uint buffer_bindless_id;
 	BufferView<shape> instance_shape;
 	vector<shape> InstanceShapes;
