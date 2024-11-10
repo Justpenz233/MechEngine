@@ -37,6 +37,12 @@ protected:
 	ViewportInterface* Viewport;
 
 public:
+	/** Create and Init buffers */
+	virtual void InitBuffers();
+
+	/** Init and create Sampler */
+	virtual void InitSamplers();
+
 	virtual void CompileShader() override;
 
 	/**
@@ -45,13 +51,7 @@ public:
 	 * Compile shader
 	 */
 	void Init() override;
-
-	/** Init GBuffer, create buffers of GBuffer	 */
-	virtual void InitGBuffers();
-
-	/** Init and create Sampler */
-	virtual void InitSamplers();
-
+	
 	void UploadRenderData();
 
 	virtual void Render() override;

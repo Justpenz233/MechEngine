@@ -16,6 +16,15 @@
 namespace MechEngine::Rendering
 {
 
+void PathTracingScene::InitBuffers()
+{
+	GpuScene::InitBuffers();
+	pre_linear_color = device.create_image<float>(PixelStorage::FLOAT4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	pre_world_position = device.create_image<float>(PixelStorage::FLOAT4,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+}
+
 void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
 {
 	auto view = CameraProxy->get_main_view();
@@ -28,14 +37,14 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 	auto ray = view->generate_ray(pixel_pos); Float3 color = make_float3(0.f);
 	$for(Sample, 0u, def(SamplePerPixel))
 	{
-		color += render_path_tracing(ray, pixel_pos, pixel_coord);
+		color += mis_path_tracing(ray, pixel_pos, pixel_coord);
 	};
 	color = color / Float(SamplePerPixel);
-	g_buffer.linear_color->write(pixel_coord, make_float4(color, 1.f));
+	pre_linear_color->write(pixel_coord, make_float4(color, 1.f));
 	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color)), 1.f));
 }
 
-Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
+Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
 {
 	ray_intersection first_intersection;
 	Float3			 pixel_radiance = make_float3(0.f);
@@ -146,6 +155,7 @@ Float3 PathTracingScene::render_path_tracing(Var<Ray> ray, const Float2& pixel_p
 	{
 		pixel_radiance = reproject_last_frame(first_intersection, pixel_coord, pixel_radiance);
 		g_buffer.write(pixel_coord, first_intersection);
+		pre_world_position->write(pixel_coord, make_float4(first_intersection.position_world, 1.f));
 		auto wireframe = wireframe_intensity(first_intersection, pixel_pos);
 		pixel_radiance = lerp(pixel_radiance, wireframe_color, wireframe);
 	};
@@ -223,13 +233,13 @@ Float3 PathTracingScene::reproject_last_frame(const ray_intersection& intersecti
 			$if (all(p > make_uint2(0, 0)) & all(p < WinSize))
 			{
 				auto pre_instance = g_buffer.instance_id->read(p).x;
-				auto pre_world_pos = g_buffer.world_position->read(p).xyz();
+				auto pre_world_pos = pre_world_position->read(p).xyz();
 				auto pre_normal = g_buffer.normal->read(p).xyz();
 				$if(pre_instance == intersection.instance_id &
 					distance_squared(pre_world_pos, x) < POSITION_TOLERANCE &
 					distance_squared(pre_normal, intersection.corner_normal_world) < NORMAL_TOLERANCE)
 				{
-					auto pre_color = g_buffer.linear_color->read(p);
+					auto pre_color = pre_linear_color->read(p);
 					sum_weight += weights[dx + dy * 2];
 					sum_val += pre_color.xyz() * weights[dx + dy * 2];
 				};

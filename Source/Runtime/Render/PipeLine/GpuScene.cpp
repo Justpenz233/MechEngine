@@ -113,12 +113,12 @@ void GpuScene::Init()
 
 	LoadRenderSettings();
 
-	InitGBuffers();
+	InitBuffers();
 	InitSamplers();
 
 	CompileShader();
 }
-void GpuScene::InitGBuffers()
+void GpuScene::InitBuffers()
 {
 	auto size = Window->framebuffer().size();
 	LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
@@ -129,13 +129,7 @@ void GpuScene::InitGBuffers()
 	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
 	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.material_id = device.create_image<uint>(PixelStorage::INT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.frame_buffer = &Window->framebuffer();
-	g_buffer.linear_color = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.world_position = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	LOG_INFO("Init render frame buffer: {} {}", Window->framebuffer().size().x, Window->framebuffer().size().y);
 }
 
@@ -144,7 +138,7 @@ void GpuScene::InitGBuffers()
 void GpuScene::InitSamplers()
 {
 	// Initialize the sampler
-	sampler = luisa::make_unique<independent_sampler>(this, stream);
+	sampler = luisa::make_unique<sobol_sampler>(this, stream);
 	stream << synchronize();
 }
 
