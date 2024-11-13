@@ -5,11 +5,11 @@
 #include "LightSceneProxy.h"
 #include "ShapeSceneProxy.h"
 #include "Components/AreaLightComponent.h"
-#include "Components/ConstPointLightComponent.h"
+#include "Components/ConstLightComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Render/Core/TypeConvertion.h"
-#include "Render/light/area_light.h"
+#include "Render/light/lights.h"
 #include "Render/PipeLine/GpuScene.h"
 
 namespace MechEngine::Rendering
@@ -22,13 +22,14 @@ LightSceneProxy::LightSceneProxy(GpuScene& InScene) noexcept
 
 	point_light_tag = light_virtual_call.create<point_light>(Scene);
 	rectangle_light_tag = light_virtual_call.create<rectangle_light>(Scene);
+	const_light_tag = light_virtual_call.create<const_light>(Scene);
 }
 
 uint LightSceneProxy::GetLightTypeTag(LightComponent* InLight) const
 {
 	if (InLight->IsA<PointLightComponent>())
 		return point_light_tag;
-	else if (InLight->IsA<ConstPointLightComponent>())
+	else if (InLight->IsA<ConstLightComponent>())
 		return const_light_tag;
 	else if (InLight->IsA<AreaLightComponent>())
 		return rectangle_light_tag;
@@ -90,7 +91,7 @@ light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
 		LightData.light_type = point_light_tag;
 		LightData.size = {Ptr->GetRadius(), Ptr->GetRadius()};
 	}
-	else if (Cast<ConstPointLightComponent>(InLight))
+	else if (Cast<ConstLightComponent>(InLight))
 	{
 		LightData.light_type = const_light_tag;
 	}

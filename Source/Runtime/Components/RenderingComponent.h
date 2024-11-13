@@ -34,6 +34,12 @@ public:
 
 	FORCEINLINE virtual void TickComponent(double DeltaTime) override;
 
+	virtual void BeginPlay() override
+	{
+		ActorComponent::BeginPlay();
+		UploadRenderingData();
+	}
+
 	virtual void SetVisible(bool bInVisible) { bVisible = bInVisible; MarkAsDirty(); }
 
 protected:

@@ -24,19 +24,21 @@ target_compile_definitions(MechEngineRuntime PUBLIC _USE_MATH_DEFINES)
 target_compile_definitions(MechEngineRuntime PRIVATE ENGINE_API_EXPORT)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
     # Set debug-specific options
-    set(SANITIZE_FLAGS "-fsanitize=undefined,return")
+    # remove sanitize flags for now, should be set to user's project
+
+#    set(SANITIZE_FLAGS "-fsanitize=undefined,return")
     target_compile_options(MechEngineRuntime PUBLIC -w)
     target_compile_options(MechEngineRuntime PUBLIC -Wno-shadow)
     target_compile_options(MechEngineRuntime PUBLIC -fms-extensions)
 
-    target_compile_options(MechEngineRuntime PUBLIC
-            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
-    )
-
-    # Apply link options publicly as well
-    target_link_options(MechEngineRuntime PUBLIC
-            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
-    )
+#    target_compile_options(MechEngineRuntime PUBLIC
+#            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
+#    )
+#
+#    # Apply link options publicly as well
+#    target_link_options(MechEngineRuntime PUBLIC
+#            $<$<CONFIG:Debug>:${SANITIZE_FLAGS}>
+#    )
 endif()
 
 if(MSVC)

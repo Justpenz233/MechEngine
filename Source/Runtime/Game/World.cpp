@@ -12,8 +12,8 @@
 #include "Game/Actor.h"
 #include "Render/GpuSceneInterface.h"
 #include "TimerManager.h"
-#include "Components/ConstPointLightComponent.h"
 #include "Components/LinesComponent.h"
+#include "Components/PointLightComponent.h"
 #include <spdlog/fmt/fmt.h>
 
 ENGINE_API World* GWorld = nullptr;
@@ -75,7 +75,7 @@ void World::BeginPlay()
 		}
 	}
 	if (!HasLight) {
-		Camera->AddComponent<ConstPointLightComponent>();
+		Camera->AddComponent<PointLightComponent>();
 	}
 
 	for(auto actor : Actors)

@@ -6,6 +6,7 @@
 #include "Game/Actor.h"
 #include "Components/PointLightComponent.h"
 #include "Components/AreaLightComponent.h"
+#include "Components/ConstLightComponent.h"
 
 MCLASS(PointLightActor)
 class PointLightActor : public Actor
@@ -42,4 +43,23 @@ public:
 	}
 protected:
 	AreaLightComponent* Component;
+};
+
+
+MCLASS(ConstLightActor)
+class ConstLightActor : public Actor
+{
+	REFLECTION_BODY(ConstLightActor)
+public:
+	ConstLightActor()
+	{
+		Component = AddComponent<ConstLightComponent>().get();
+	}
+
+	FORCEINLINE ConstLightComponent* GetLightComponent() const
+	{
+		return Component;
+	}
+protected:
+	ConstLightComponent* Component;
 };

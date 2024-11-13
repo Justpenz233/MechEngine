@@ -78,7 +78,6 @@ namespace MechEngine::Rendering
     	}
     };
 
-
 	class rectangle_light : public light_base
 	{
 	public:
@@ -126,4 +125,28 @@ namespace MechEngine::Rendering
 			return data.intensity * data.light_color * LTC_Evaluate(n, w_o, x, make_float3x3(1.f), p);
 		}
 	};
+
+	// light up the whole scene
+	class const_light : public light_base
+	{
+	public:
+		using light_base::light_base;
+		virtual Float pdf_li(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+		{
+			return 1.f;
+		}
+		virtual std::pair<Float3, Float> l_i(Expr<light_data> data, const Float3& x, const Float3& p_l) const override
+		{
+			return {data.intensity * data.light_color, 1.f};
+		}
+		virtual light_li_sample sample_li(Expr<light_data> data, const Float3& x, const Float2& u) const override
+		{
+			return {data.intensity * data.light_color, make_float3(0.f), x, 1.f};
+		}
+		Float3 l_i_rt(Expr<light_data> data, const Float3& x, const Float3& w_i, const Float3& w_o, const Float3& n) const override
+		{
+			return data.intensity * data.light_color;
+		}
+	};
+
 }

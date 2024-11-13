@@ -10,15 +10,17 @@
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 
 /**
- * A point light component that emits light from a single point equally in all directions.
- * With no attenuation, the light would not attenuate with distance.
- * Not physically correct, useful for debugging geometry.
+ * A point that illuminates the scene uniformly in all directions without attenuation and visibility
  */
-MCLASS(ConstPointLightComponent)
-class ConstPointLightComponent : public LightComponent
+MCLASS(ConstLightComponent)
+class ConstLightComponent : public LightComponent
 {
-	REFLECTION_BODY(ConstPointLightComponent)
-
+	REFLECTION_BODY(ConstLightComponent)
+public:
+	ConstLightComponent() : LightComponent()
+	{
+		bVisible = false; // always invisible
+	}
 protected:
 	virtual void UploadRenderingData() override
 	{
@@ -36,7 +38,6 @@ protected:
 			GetWorld()->GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceId, MeshId);
 			GetWorld()->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceId, false);
 			GetWorld()->GetScene()->GetStaticMeshProxy()->BindInstance(MeshId, InstanceId);
-
 		}
 		bDirty = false;
 	}

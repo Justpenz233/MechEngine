@@ -122,11 +122,6 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 			};
 
 			auto lighting = calc_lighting(light_dir, bRenderShadow);
-
-			// If pipeline not using global illumination, we sample a lighting by the normal direction to gain more realistic result
-			// Cheaper method in the those machine not have hardware acceleration
-			if (!bGlobalIllumination)
-				lighting = lighting * 0.95f + calc_lighting(reflect(-w_o, normal_world), false) * 0.05f;
 			pixel_radiance += lighting;
 		};
 		if(global_illumination)
