@@ -4,6 +4,7 @@
 
 #pragma once
 #include "GpuScene.h"
+#include "ris_reservoir.h"
 namespace MechEngine::Rendering
 {
 class ENGINE_API PathTracingScene : public GpuScene
@@ -36,15 +37,24 @@ public:
 	 */
 	Float3 ris_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight = 1.f);
 
-
 	Float wireframe_intensity(const ray_intersection& intersection, const Float2& pixel_pos) const;
 
 	Float3 reproject_last_frame(const ray_intersection& intersection, const UInt2& pixel_coord, const Float3& pixel_color);
 
+	auto get_reservoir(const UInt2& pixel_coord) const
+	{
+		return reservoirs->read(pixel_coord.x + pixel_coord.y * GetWindosSize().x);
+	}
+
+	auto set_reservoir(const UInt2& pixel_coord, Expr<ris_reservoir> reservoir)
+	{
+		reservoirs->write(pixel_coord.x + pixel_coord.y * GetWindosSize().x, reservoir);
+	}
 
 protected:
 	Image<float> pre_linear_color;
 	Image<float> pre_world_position;
 
+	BufferView<ris_reservoir> reservoirs;
 };
 };

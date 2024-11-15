@@ -50,12 +50,6 @@ public:
 	virtual void UploadDirtyData(Stream& stream) override;
 
 public:
-
-	[[nodiscard]] Var<material_data> get_material_data(Expr<uint> material_index) const
-	{
-		return material_data_buffer->read(material_index);
-	}
-
 	/**
 	 * Create a shader and return the pointer to the shader
 	 * @tparam T Shader type
@@ -90,6 +84,37 @@ public:
 	MaterialSceneProxy(MaterialSceneProxy&&) = delete;
 
 	Polymorphic<shader_base> shader_call;
+
+
+public:
+	[[nodiscard]] Var<material_data> get_material_data(Expr<uint> material_index) const
+	{
+		return material_data_buffer->read(material_index);
+	}
+
+
+	/**
+	 * Calculate material parameters for shading
+	 * @param intersection the intersection point
+	 * @return shader_id the shader id of the material, material_parameters calculated material parameters
+	 */
+	[[nodiscard]] std::pair<UInt, material_parameters>
+	get_material_parameters(const ray_intersection& intersection) const noexcept;
+
+	[[nodiscard]] Float3 brdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const;
+
+	[[nodiscard]] std::pair<Float3, Float> brdf_pdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const;
+
+	/**
+	 * Sample the brdf
+	 * @param shader_id the shader id
+	 * @param bxdf_parameters the material parameters
+	 * @param local_wo the local wo
+	 * @param u the random number
+	 * @return the sampled direction w_i(in local), brdf, pdf
+	 */
+	[[nodiscard]] std::tuple<Float3, Float3, Float> sample_brdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float2& u) const;
+
 protected:
 	static constexpr uint MaxMaterials = 8192;
 	vector<material_data> MaterialDataVector;

@@ -8,7 +8,9 @@
 #include "Render/material/disney_material.h"
 #include "Render/PipeLine/GpuScene.h"
 
-Rendering::MaterialSceneProxy::MaterialSceneProxy(GpuScene& InScene)
+namespace MechEngine::Rendering
+{
+MaterialSceneProxy::MaterialSceneProxy(GpuScene& InScene)
 :SceneProxy(InScene)
 {
 	material_data_buffer = Scene.RegisterBuffer<material_data>(MaxMaterials);
@@ -20,7 +22,7 @@ Rendering::MaterialSceneProxy::MaterialSceneProxy(GpuScene& InScene)
 	ASSERT(blinn_phong_id == 1);
 }
 
-uint Rendering::MaterialSceneProxy::AddMaterial(Material* InMaterial)
+uint MaterialSceneProxy::AddMaterial(Material* InMaterial)
 {
 	ASSERTMSG(InMaterial != nullptr, "Material is nullptr!");
 	if (MaterialIDMap.contains(InMaterial))
@@ -38,7 +40,7 @@ uint Rendering::MaterialSceneProxy::AddMaterial(Material* InMaterial)
 	return id;
 }
 
-void Rendering::MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
+void MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
 {
 	ASSERTMSG(InMaterial != nullptr, "Material is nullptr!");
 	if(!MaterialIDMap.contains(InMaterial)) return;
@@ -48,7 +50,7 @@ void Rendering::MaterialSceneProxy::UpdateMaterial(Material* InMaterial)
 	MaterialDataVector[ID] = material_data(ShaderID, InMaterial);
 }
 
-void Rendering::MaterialSceneProxy::UploadDirtyData(Stream& stream)
+void MaterialSceneProxy::UploadDirtyData(Stream& stream)
 {
 	if (!bNeedUpdate)
 		return;
@@ -57,7 +59,58 @@ void Rendering::MaterialSceneProxy::UploadDirtyData(Stream& stream)
 				  .copy_from(MaterialDataVector.data());
 }
 
-uint Rendering::MaterialSceneProxy::RegisterShader(luisa::unique_ptr<shader_base>&& Shader)
+uint MaterialSceneProxy::RegisterShader(luisa::unique_ptr<shader_base>&& Shader)
 {
 	return shader_call.emplace(std::move(Shader));
 }
+
+std::pair<UInt, material_parameters> MaterialSceneProxy::get_material_parameters(const ray_intersection& intersection) const noexcept
+{
+	auto material_data = get_material_data(intersection.material_id);
+
+	bxdf_context context{
+		.intersection = intersection,
+		.material_data = material_data,
+	};
+
+	material_parameters bxdf_parameters;
+	shader_call.dispatch(
+		material_data.shader_id, [&](const shader_base* material) {
+			bxdf_parameters = material->calc_material_parameters(context);
+		});
+
+	return { material_data.shader_id, bxdf_parameters };
+}
+
+Float3 MaterialSceneProxy::brdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const
+{
+	Float3 brdf;
+	shader_call.dispatch(shader_id, [&](const shader_base* material) {
+		 brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
+	});
+	return brdf;
+}
+
+std::pair<Float3, Float> MaterialSceneProxy::brdf_pdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const
+{
+	Float3 brdf; Float pdf;
+	shader_call.dispatch(shader_id, [&](const shader_base* material) {
+		brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
+		pdf = material->pdf(bxdf_parameters, local_wo, local_wi);
+	});
+	return { brdf, pdf };
+}
+
+std::tuple<Float3, Float3, Float> MaterialSceneProxy::sample_brdf
+(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float2& u) const
+{
+	Float3 local_wi, brdf; Float pdf;
+	shader_call.dispatch(shader_id,
+		[&](const shader_base* material) {
+			std::tie(local_wi, pdf) = material->sample(bxdf_parameters, local_wo, u);
+			brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
+	});
+	return { local_wi, brdf, pdf };
+}
+
+} // namespace MechEngine::Rendering

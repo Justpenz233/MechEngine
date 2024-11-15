@@ -4,6 +4,7 @@
 
 #include "PathTracingScene.h"
 
+#include "Render/Core/shadow_terminator.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
@@ -15,14 +16,16 @@
 
 namespace MechEngine::Rendering
 {
-
 void PathTracingScene::InitBuffers()
 {
 	GpuScene::InitBuffers();
+	auto WindowSize = Window->framebuffer().size();
 	pre_linear_color = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
+		WindowSize.x, WindowSize.y);
 	pre_world_position = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
+		WindowSize.x, WindowSize.y);
+
+	reservoirs = device.create_buffer<ris_reservoir>(WindowSize.x * WindowSize.y);
 }
 
 void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
@@ -84,40 +87,12 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		};
 		$if(intersection.shape->has_surface()) // Surface shade
 		{
-			auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-
 			// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
-			bxdf_context context{
-				.intersection = intersection,
-				.material_data = MaterialProxy->get_material_data(intersection.material_id),
-			};
-
-			material_parameters bxdf_parameters;
-			MaterialProxy->shader_call.dispatch(
-				material_data.shader_id, [&](const shader_base* material) {
-					bxdf_parameters = material->calc_material_parameters(context);
-				});
+			auto [shader_id, bxdf_parameters] = MaterialProxy->get_material_parameters(intersection);
 
 			// normal in world space
 			auto normal = bxdf_parameters.normal;
-
-			// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
-			auto offset_ray = [&]() {
-				auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
-				auto tmpu = x - vps[0]->position();
-				auto tmpv = x - vps[1]->position();
-				auto tmpw = x - vps[2]->position();
-
-				auto dotu = min(0.f, dot(tmpu, vps[0]->normal()));
-				auto dotv = min(0.f, dot(tmpv, vps[1]->normal()));
-				auto dotw = min(0.f, dot(tmpw, vps[2]->normal()));
-
-				tmpu -= dotu * vps[0]->normal();
-				tmpv -= dotv * vps[1]->normal();
-				tmpw -= dotw * vps[2]->normal();
-				return x + triangle_interpolate(intersection.barycentric, tmpu, tmpv, tmpw);
-			};
-			auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal);
+			auto shadow_ray_origin = offset_ray_origin(x, normal);
 
 			// Sample light
 			auto light_id = 0;
@@ -129,26 +104,23 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 					auto cos = dot(normalize(light_sample.w_i), normal);
 					$if(cos > 0.01f & !occluded & light_sample.pdf > 0.f)
 					{
-						MaterialProxy->shader_call.dispatch(
-							material_data.shader_id, [&](const shader_base* material) {
-								auto local_wi = frame.world_to_local(light_sample.w_i);
-								auto brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
-								auto pdf = material->pdf(bxdf_parameters, local_wo, local_wi);
-								auto w = balance_heuristic(light_sample.pdf, pdf) / light_sample.pdf;
-								pixel_radiance += w * beta * brdf * light_sample.l_i;
-							});
+						auto local_wi = frame.world_to_local(light_sample.w_i);
+						auto [brdf, pdf] = MaterialProxy->brdf_pdf(shader_id, bxdf_parameters, local_wo, local_wi);
+						auto w = balance_heuristic(light_sample.pdf, pdf) / light_sample.pdf;
+						pixel_radiance += w * beta * brdf * light_sample.l_i;
 					};
 				});
+
 			// Sample brdf
-			MaterialProxy->shader_call.dispatch(
-				material_data.shader_id, [&](const shader_base* material) {
-					auto [local_wi, pdf] = material->sample(bxdf_parameters, local_wo, get_sampler()->generate_2d());
-					auto world_wi = frame.local_to_world(local_wi);
-					ray = make_ray(shadow_ray_origin, world_wi);
-					pdf_bsdf = pdf;
-					auto w = ite(pdf > 0.f, 1.f / pdf, 0.f);
-					beta *= w * material->bxdf(bxdf_parameters, local_wo, local_wi);
-				});
+			{
+				auto [local_wi, brdf, pdf]
+				= MaterialProxy->sample_brdf(shader_id, bxdf_parameters, local_wo, get_sampler()->generate_2d());
+				auto world_wi = frame.local_to_world(local_wi);
+				ray = make_ray(shadow_ray_origin, world_wi);
+				pdf_bsdf = pdf;
+				auto w = ite(pdf > 0.f, 1.f / pdf, 0.f);
+				beta *= w * brdf;
+			}
 		};
 	};
 	$if(first_intersection.valid())
