@@ -55,6 +55,14 @@ public:
 	}
 
 	Polymorphic<light_base> light_virtual_call;
+
+public:
+
+	[[nodiscard]] light_li_sample sample_li(const UInt& light_id, const Float3& x, const Float2& u) const;
+
+	[[nodiscard]] std::pair<Float3, Float> l_i(const UInt& light_id, const Float3& x, const Float3& p_l) const;
+
+
 protected:
 	light_data GetFlatLightData(LightComponent* InLight) const;
 

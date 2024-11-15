@@ -77,12 +77,8 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		};
 		$if(intersection.shape->has_light() & depth != 0)
 		{
-			auto light = LightProxy->get_light_data(intersection.shape.light_id);
-			LightProxy->light_virtual_call.dispatch(light.light_type,
-				[&](const light_base* light_type) {
-					auto [f, pdf] = light_type->l_i(light, ray->origin(), x);
-					pixel_radiance += beta * f * balance_heuristic(pdf_bsdf, pdf);
-				});
+			auto [li, pdf] = LightProxy->l_i(intersection.shape.light_id, ray->origin(), x);
+			pixel_radiance += beta * li * balance_heuristic(pdf_bsdf, pdf);
 			$break;
 		};
 		$if(intersection.shape->has_surface()) // Surface shade
@@ -95,21 +91,19 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			auto shadow_ray_origin = offset_ray_origin(x, normal);
 
 			// Sample light
-			auto light_id = 0;
-			auto light = LightProxy->get_light_data(light_id);
-			LightProxy->light_virtual_call.dispatch(light.light_type,
-				[&](const light_base* light_type) {
-					auto light_sample = light_type->sample_li(light, x, get_sampler()->generate_2d());
-					auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, 0.99f));
-					auto cos = dot(normalize(light_sample.w_i), normal);
-					$if(cos > 0.01f & !occluded & light_sample.pdf > 0.f)
-					{
-						auto local_wi = frame.world_to_local(light_sample.w_i);
-						auto [brdf, pdf] = MaterialProxy->brdf_pdf(shader_id, bxdf_parameters, local_wo, local_wi);
-						auto w = balance_heuristic(light_sample.pdf, pdf) / light_sample.pdf;
-						pixel_radiance += w * beta * brdf * light_sample.l_i;
-					};
-				});
+			{
+				auto light_id = 0;
+				auto light_sample = LightProxy->sample_li(light_id, x, get_sampler()->generate_2d());
+				auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, 0.99f));
+				auto cos = dot(normalize(light_sample.w_i), normal);
+				$if(cos > 0.01f & !occluded & light_sample.pdf > 0.f)
+				{
+					auto local_wi = frame.world_to_local(light_sample.w_i);
+					auto [brdf, pdf] = MaterialProxy->brdf_pdf(shader_id, bxdf_parameters, local_wo, local_wi);
+					auto w = balance_heuristic(light_sample.pdf, pdf) / light_sample.pdf;
+					pixel_radiance += w * beta * brdf * light_sample.l_i;
+				};
+			}
 
 			// Sample brdf
 			{

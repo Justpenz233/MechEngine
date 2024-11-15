@@ -76,9 +76,34 @@ void LightSceneProxy::UpdateLight(LightComponent* InLight, uint LightId, uint In
 
 void LightSceneProxy::UploadDirtyData(Stream& stream)
 {
-	if (!bDirty) return;
+	if (!bDirty)
+		return;
 	bDirty = false;
 	stream << light_buffer.copy_from(LightDatas.data());
+}
+
+light_li_sample LightSceneProxy::sample_li(const UInt& light_id, const Float3& x, const Float2& u) const
+{
+	auto			light = get_light_data(light_id);
+	light_li_sample sample;
+
+	light_virtual_call.dispatch(light.light_type,
+		[&](const light_base* light_type) {
+			sample = light_type->sample_li(light, x, u);
+		});
+
+	return sample;
+}
+
+std::pair<Float3, Float> LightSceneProxy::l_i(const UInt& light_id, const Float3& x, const Float3& p_l) const
+{
+	Float3 li; Float pdf;
+	auto light = get_light_data(light_id);
+	light_virtual_call.dispatch(light.light_type,
+	[&](const light_base* light_type) {
+		std::tie(li, pdf) = light_type->l_i(light, x, p_l);
+	});
+	return {li, pdf};
 }
 
 light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
