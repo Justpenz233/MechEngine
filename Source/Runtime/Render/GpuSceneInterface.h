@@ -34,10 +34,11 @@ namespace MechEngine::Rendering
 	using namespace luisa;
 	using namespace luisa::compute;
 	/**
-	 * GPU scene interface provides the interface to control the rendering scene.
-	 * Basically provide interface to register, update, and delete rendering components.
-	 * Also, should provide interface to manage GPU resources for render pipeline.
-	 * Each scene contains a set of stream and device to manage the resources, the renderer should access through the interface.
+	 * GPU scene interface provides the interface to control the rendering scene sources.
+	 * Basically provide interface to register, update, and delete rendering components,
+	 * and provide interfaces to manage GPU resources for render pipeline.
+	 * Each scene contains a set of stream and device to manage the resources,
+	 * the renderer could access device through the interface.
 	 */
 	class ENGINE_API GpuSceneInterface
 	{
@@ -153,65 +154,6 @@ namespace MechEngine::Rendering
 		FORCEINLINE BindlessArray& GetBindlessArray() noexcept { return bindlessArray; }
 		FORCEINLINE Accel& GetAccel() { return rtAccel; }
 		FORCEINLINE Stream& GetStream() noexcept { return stream; }
-
-
-
-	public:
-
-		/***********************************************************************************************
-		*									Basic scene shader functions							   *
-		*	            				Provide basic query throughout each proxy				       *
-		***********************************************************************************************/
-
-		geometry_buffer& get_gbuffer() { return g_buffer; }
-
-		/**
-		 * get the sampler of the thread
-		 * @return the sampler of the scene
-		 */
-		sampler_base* get_sampler() const { return sampler.get(); }
-
-		/**
-		 * Calculate the closest hit information of a ray in the scene.
-		 * @param ray Ray to trace
-		 * @return Hit information of the closest object hit by the ray
-		 */
-		[[nodiscard]] ray_tracing_hit trace_closest(const Var<Ray> &ray) const noexcept;
-
-		/**
-		 * Test whether a ray has hit any object in the scene.
-		 * @param ray Ray to trace
-		 * @return Whether the ray has hit any object in the scene
-		 */
-		[[nodiscard]] Bool has_hit(const Var<Ray> &ray) const noexcept;
-
-		/**
-		 * Calaculate the hit position shading information
-		* @param ray Ray to trace
-		* @return Instersection of primitve information of the ray
-		*/
-		ray_intersection intersect(const Var<Ray>& ray) const noexcept;
-		ray_intersection intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept;
-
-		/**
-		* Get the transform data of a transform by instance id
-		* @param instance_index instance ID
-		* @return Transform matrix
-		*/
-		Float4x4 get_instance_transform(Expr<uint> instance_index) const noexcept;
-
-		/**
-		* Get the transform data of a transform by id
-		* @param transform_id Transform ID
-		* @return Transform data
-		*/
-		Var<transform_data> get_transform(Expr<uint> transform_id) const noexcept;
-
-		Var<Triangle> get_triangle(const UInt& instance_id, const UInt& triangle_index) const;
-
-		Var<Vertex> get_vertex(const UInt& instance_id, const UInt& vertex_index) const;
-
-
 
 		/***********************************************************************************************
 		 *								Scene proxy management									       *

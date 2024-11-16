@@ -95,6 +95,109 @@ uint2 GpuScene::GetWindosSize() const noexcept
 	return Window->framebuffer().size();
 }
 
+ray_tracing_hit GpuScene::trace_closest(const Var<Ray>& ray) const noexcept
+{
+	auto hit = rtAccel->intersect(ray, {});
+	return ray_tracing_hit {hit.inst, hit.prim, hit.bary};
+}
+
+Bool GpuScene::has_hit(const Var<Ray>& ray) const noexcept
+{
+	return rtAccel->intersect_any(ray, {});
+}
+
+ray_intersection GpuScene::intersect(const Var<Ray>& ray) const noexcept
+{
+	auto hit = trace_closest(ray);
+	return intersect(hit, ray);
+}
+
+ray_intersection GpuScene::intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept
+{
+	ray_intersection it;
+	$if(!hit.miss())
+	{
+		it.instance_id = hit.instance_id;
+		it.shape = ShapeProxy->get_instance_shape(hit.instance_id);
+		auto mesh_id = it.shape->mesh_id;
+		auto TriangleId = hit.primitive_id;
+		auto object_transform = get_instance_transform(it.instance_id);
+		auto Tri = StaticMeshProxy->get_triangle(mesh_id, TriangleId);
+		auto bary = hit.barycentric;
+		auto v_buffer = StaticMeshProxy->get_static_mesh_data(mesh_id).vertex_buffer_id;
+		auto v0 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i0);
+		auto v1 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i1);
+		auto v2 = bindlessArray->buffer<Vertex>(v_buffer).read(Tri.i2);
+
+		auto p0_local = v0->position();
+		auto p1_local = v1->position();
+		auto p2_local = v2->position();
+
+		auto dp0_local = p1_local - p0_local;
+		auto dp1_local = p2_local - p0_local;
+
+		auto m = make_float3x3(object_transform);
+		auto t = make_float3(object_transform[3]);
+		auto p = m * triangle_interpolate(bary, p0_local, p1_local, p2_local) + t;
+
+		auto c = cross(m * dp0_local, m * dp1_local);
+		auto normal_world = normalize(c);
+
+		it.primitive_id = TriangleId;
+		it.position_world = p;
+		it.barycentric = bary;
+		it.uv = triangle_interpolate(bary, v0->uv(), v1->uv(), v2->uv());
+		it.motion_vector = motion_vector(it);
+
+		it.triangle_normal_world = normal_world;
+		it.vertex_normal_world = normalize(m * normalize(triangle_interpolate(bary, v0->normal(), v1->normal(), v2->normal())));
+		Float3 cornel_normal[3] = { StaticMeshProxy->get_corner_normal(mesh_id, TriangleId, 0),
+			StaticMeshProxy->get_corner_normal(mesh_id, TriangleId, 1),
+			StaticMeshProxy->get_corner_normal(mesh_id, TriangleId, 2) };
+		it.corner_normal_world = normalize(m * normalize(triangle_interpolate(bary, cornel_normal[0], cornel_normal[1], cornel_normal[2])));
+		it.depth = dot(p - ray->origin(), ray->direction());
+		it.back_face = dot(normal_world, ray->direction()) > 0.f;
+		it.material_id = StaticMeshProxy->get_static_mesh_data(mesh_id).material_id;
+		it.shading_frame = frame::make(it.corner_normal_world);
+		// .......
+	};
+	return it;
+}
+
+Float4x4 GpuScene::get_instance_transform(Expr<uint> instance_index) const noexcept
+{
+	return rtAccel->instance_transform(instance_index);
+}
+
+Var<transform_data> GpuScene::get_transform(Expr<uint> transform_id) const noexcept
+{
+	return TransformProxy->get_transform_data(transform_id);
+}
+
+Var<Triangle> GpuScene::get_triangle(const UInt& instance_id, const UInt& triangle_index) const
+{
+	return StaticMeshProxy->get_triangle(instance_id, triangle_index);
+}
+
+Var<Vertex> GpuScene::get_vertex(const UInt& instance_id, const UInt& vertex_index) const
+{
+	return StaticMeshProxy->get_vertex(instance_id, vertex_index);
+}
+
+Float2 GpuScene::motion_vector(const ray_intersection& intersection) const
+{
+	auto transform_data = TransformProxy->get_instance_transform_data(intersection.instance_id);
+	auto& x = intersection.position_world;
+	auto& pre_t = transform_data->last_transform_matrix;;
+	auto& t_inv = transform_data->inverse_transform_matrix;
+
+	auto pre_x = pre_t * t_inv * make_float4(x, 1.f);
+	auto pre_clip_position = CameraProxy->get_main_view().last_view_projection_matrix * pre_x;
+	auto pre_ndc_position = (pre_clip_position / pre_clip_position.w).xyz();
+
+	return CameraProxy->get_main_view()->ndc_to_screen(pre_ndc_position) - 0.5f;
+}
+
 void GpuScene::CompileShader()
 {
 	// Compile base shaders
@@ -128,6 +231,8 @@ void GpuScene::InitBuffers()
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
 	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.motion_vector = device.create_image<float>(PixelStorage::FLOAT2,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.frame_buffer = &Window->framebuffer();
 	LOG_INFO("Init render frame buffer: {} {}", Window->framebuffer().size().x, Window->framebuffer().size().y);

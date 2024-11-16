@@ -5,6 +5,8 @@
 #pragma once
 #include "GpuScene.h"
 #include "ris_reservoir.h"
+#include "svgf/svgf.h"
+
 namespace MechEngine::Rendering
 {
 class ENGINE_API PathTracingScene : public GpuScene
@@ -13,6 +15,8 @@ public:
 	float3 wireframe_color = make_float3(0.f);
 
 	using GpuScene::GpuScene;
+
+	virtual void LoadRenderSettings() override;
 
 	virtual void InitBuffers() override;
 
@@ -35,11 +39,16 @@ public:
 	 * @param weight the weight of the pixel
 	 * @return
 	 */
-	Float3 ris_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight = 1.f);
+	// Float3 ris_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight = 1.f);
 
+	/**
+	 * Draw wireframe pass, blend  with the pixel color as Anti-aliasing
+	 * Currently, we only draw the first intersection with the wireframe, which means
+	 * the wireframe would disappear in refractive or alpha blended surface
+	 * @see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
+	 * @see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
+	*/
 	Float wireframe_intensity(const ray_intersection& intersection, const Float2& pixel_pos) const;
-
-	Float3 reproject_last_frame(const ray_intersection& intersection, const UInt2& pixel_coord, const Float3& pixel_color);
 
 	auto get_reservoir(const UInt2& pixel_coord) const
 	{
@@ -52,9 +61,11 @@ public:
 	}
 
 protected:
-	Image<float> pre_linear_color;
-	Image<float> pre_world_position;
+	bool bUseSVGF = true;
+	bool bUseRIS = true;
 
 	BufferView<ris_reservoir> reservoirs;
+
+	unique_ptr<svgf> svgf;
 };
 };

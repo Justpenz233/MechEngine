@@ -35,6 +35,7 @@ struct ray_intersection
 	Float3 position_world;
 	Float2 barycentric;
 	Float2 uv;
+	Float2 motion_vector;
 
 	Var<shape> shape;
 	UInt instance_id;
