@@ -19,14 +19,18 @@ public:
 	svgf(Device& device, const uint2& size):
 	buffer(device, size) {}
 
-
-	Float3 temporal_filter(const ray_intersection& intersection, const Float3& pixel_color) const;
-
-	void fill_history_buffer(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const
-	{
-		buffer.fill(pixel_coord, intersection, pixel_color);
+	static inline Float luminance(const Float3& c) {
+		return c.x * 0.2126f + c.y * 0.7152f + c.z * 0.0722f;
 	}
 
+	/**
+	 * Run the temporal filter, store the history buffer
+	 * @param pixel_coord the coordination of the pixel
+	 * @param intersection the intersection of the ray
+	 * @param pixel_color the noised color of the pixel
+	 * @return the filtered color
+	 */
+	Float3 temporal_filter(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const;
 protected:
 	svgf_buffer buffer;
 };

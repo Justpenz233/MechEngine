@@ -130,8 +130,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		g_buffer.write(pixel_coord, first_intersection);
 		if (bUseSVGF)
 		{
-			pixel_radiance = svgf->temporal_filter(first_intersection, pixel_radiance);
-			svgf->fill_history_buffer(pixel_coord, first_intersection, pixel_radiance);
+			pixel_radiance = svgf->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
 		}
 		auto wireframe = wireframe_intensity(first_intersection, pixel_pos);
 		pixel_radiance = lerp(pixel_radiance, wireframe_color, wireframe);

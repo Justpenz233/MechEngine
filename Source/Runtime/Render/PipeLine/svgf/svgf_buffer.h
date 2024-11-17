@@ -14,9 +14,9 @@ namespace MechEngine::Rendering
 	struct svgf_buffer
 	{
 		Image<uint> instance_id;
-		Image<float> color;
-		Image<float> depth;
-		Image<float> normal;
+		Image<float> color; // color xyz and spp w
+		Image<float> normal; // normal xyz and depth w
+		Image<float> moment; // second raw moment of luminance
 		svgf_buffer() = default;
 
 		svgf_buffer(Device& device, const uint2& size)
@@ -28,19 +28,8 @@ namespace MechEngine::Rendering
 		{
 			instance_id = device.create_image<uint>(PixelStorage::INT1, size.x, size.y);
 			color = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
-			depth = device.create_image<float>(PixelStorage::FLOAT1, size.x, size.y);
 			normal = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
-		}
-
-		/**
-		 * fill the svgf buffer with the intersection data
-		 */
-		void fill(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const
-		{
-			instance_id->write(pixel_coord, make_uint4(intersection.instance_id));
-			color->write(pixel_coord, make_float4(pixel_color, 1.f));
-			depth->write(pixel_coord, make_float4(intersection.depth));
-			normal->write(pixel_coord, make_float4(intersection.corner_normal_world, 1.f));
+			moment = device.create_image<float>(PixelStorage::FLOAT1, size.x, size.y);
 		}
 	};
 }
