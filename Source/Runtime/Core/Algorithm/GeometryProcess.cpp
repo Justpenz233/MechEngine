@@ -9,6 +9,7 @@
 #include "Mesh/MeshBoolean.h"
 #include "igl/vertex_components.h"
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Surface_mesh.h>
@@ -18,9 +19,44 @@
 
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
+#include <CGAL/Polygon_mesh_processing/self_intersections.h>
 
 namespace MechEngine::Algorithm::GeometryProcess
 {
+
+	auto ToCGALMesh(const ObjectPtr<StaticMesh>& Mesh)
+	{
+		typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
+		typedef Kernel::Point_3										Point_3;
+		typedef std::array<int, 3>									Facet;
+
+		auto verM = Mesh->GetVertices();
+		auto triM = Mesh->GetTriangles();
+		std::vector<Point_3> vertices(verM.rows());
+		for (int i = 0; i < verM.rows(); i++)
+		{
+			vertices[i] = { verM(i, 0), verM(i, 1), verM(i, 2) };
+		}
+		std::vector<Facet> facets(triM.rows());
+		for (int i = 0; i < triM.rows(); i++)
+		{
+			facets[i] = { triM(i, 0), triM(i, 1), triM(i, 2) };
+		}
+		CGAL::Surface_mesh<Point_3> mesh;
+		CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(vertices, facets, mesh);
+		return mesh;
+	}
+
+	bool IsSelfIntersect(const ObjectPtr<StaticMesh>& Mesh)
+	{
+		typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+		typedef CGAL::Surface_mesh<K::Point_3>                      SurfaceMesh;
+		typedef boost::graph_traits<SurfaceMesh>::face_descriptor          face_descriptor;
+		namespace PMP = CGAL::Polygon_mesh_processing;
+		auto mesh = ToCGALMesh(Mesh);
+		return PMP::does_self_intersect<CGAL::Parallel_if_available_tag>(mesh, CGAL::parameters::vertex_point_map(get(CGAL::vertex_point, mesh)));
+	}
+
 	bool FillSmallestHole(Eigen::MatrixX3d& verM, Eigen::MatrixX3i& triM)
 	{
 		return true;

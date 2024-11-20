@@ -6,14 +6,22 @@
 namespace Random
 {
     template<class T>
-    T RandomInterval(T&& L, T&& R)
+    T RandomInterval(const T& L, const T& R)
     {
         srand(std::time(0));
-        std::random_device rd;
-        std::mt19937 gen(rd());  //here you could set the seed, but std::random_device already does that
-        std::uniform_real_distribution<T> dis(L, R);
-        return dis(gen);
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+    	if constexpr (std::is_integral_v<T>) {
+    		std::uniform_int_distribution<T> dis(L, R); // Integer range
+    		return dis(gen);
+    	} else if constexpr (std::is_floating_point_v<T>) {
+    		std::uniform_real_distribution<T> dis(L, R); // Floating-point range
+    		return dis(gen);
+    	} else {
+    		throw std::invalid_argument("Unsupported type for RandomInterval");
+    	}
     }
+
 
     inline double Random()
     {

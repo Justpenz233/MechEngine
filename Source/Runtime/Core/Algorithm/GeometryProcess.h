@@ -10,6 +10,10 @@ class StaticMesh;
 
 namespace MechEngine::Algorithm::GeometryProcess
 {
+
+	// Test if the mesh is self-intersect
+	ENGINE_API bool IsSelfIntersect(const ObjectPtr<StaticMesh>& Mesh);
+
 	// Fill the smallest hole in the mesh, return false if there is no hole
 	ENGINE_API bool FillSmallestHole(Eigen::MatrixX3d& Vertices, Eigen::MatrixX3i& Triangles);
 
