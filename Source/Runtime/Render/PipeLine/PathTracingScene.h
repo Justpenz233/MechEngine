@@ -20,6 +20,10 @@ public:
 
 	virtual void InitBuffers() override;
 
+	virtual void CompileShader() override;
+
+	virtual void PostPass(Stream& stream) override;
+
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) override;
 
 	/**

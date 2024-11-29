@@ -16,8 +16,8 @@ namespace MechEngine::Rendering
 class svgf
 {
 public:
-	svgf(Device& device, const uint2& size):
-	buffer(device, size) {}
+	svgf(Device& device, const uint2& size, ImageView<float> in_frame_buffer) :
+	frame_buffer(in_frame_buffer), buffer(device, size), WinSize(size) {}
 
 	static inline Float luminance(const Float3& c) {
 		return c.x * 0.2126f + c.y * 0.7152f + c.z * 0.0722f;
@@ -31,8 +31,20 @@ public:
 	 * @return the filtered color
 	 */
 	Float3 temporal_filter(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const;
+
+	void PostProcess(Stream& stream) const;
+
+	void CompileShader(Device& device);
 protected:
+	ImageView<float> frame_buffer;
+	uint2 WinSize;
+
 	svgf_buffer buffer;
+
+	unique_ptr<Shader2D<uint>> spacial_filter_shader;
+	unique_ptr<Shader2D<>> write_frame_buffer_shader;
+
+	Float3 atrous_filter(const UInt2& pixel_coord, const UInt& step_size) const;
 };
 
 

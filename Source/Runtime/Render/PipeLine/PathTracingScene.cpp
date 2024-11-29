@@ -33,8 +33,20 @@ void PathTracingScene::InitBuffers()
 	if (bUseRIS)
 		reservoirs = device.create_buffer<ris_reservoir>(WindowSize.x * WindowSize.y);
 
-	if(bUseSVGF)
-		svgf = make_unique<class svgf>(device, WindowSize);
+	if (bUseSVGF)
+		svgf = make_unique<class svgf>(device, WindowSize, frame_buffer());
+}
+
+void PathTracingScene::CompileShader()
+{
+	GpuScene::CompileShader();
+	if (bUseSVGF) svgf->CompileShader(device);
+}
+
+void PathTracingScene::PostPass(Stream& stream)
+{
+	if (bUseSVGF) svgf->PostProcess(stream);
+	GpuScene::PostPass(stream);
 }
 
 void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
@@ -52,7 +64,7 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 		color += mis_path_tracing(ray, pixel_pos, pixel_coord);
 	};
 	color = color / Float(SamplePerPixel);
-	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color)), 1.f));
+	frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
 }
 
 Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)

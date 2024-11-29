@@ -55,7 +55,16 @@ public:
 	
 	void UploadRenderData();
 
+	virtual void PrePass(Stream& stream) {};
+
 	virtual void Render() override;
+
+	/**
+	 * Post pass, do some post process after the main pass
+	 * Here we implement tone mapping and gamma correction for frame buffer
+	 * @param stream
+	 */
+	virtual void PostPass(Stream& stream);
 
 
 public:
@@ -154,7 +163,7 @@ protected:
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) = 0;
 
 	unique_ptr<Shader2D<uint, uint>> MainShader;
-
+	unique_ptr<Shader2D<>> ToneMappingPass;
 
 };
 }

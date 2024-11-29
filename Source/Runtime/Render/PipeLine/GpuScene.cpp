@@ -75,14 +75,18 @@ void GpuScene::UploadRenderData()
 
 void GpuScene::Render()
 {
-	stream << (*MainShader)(FrameCounter++, TimeCounter ++).dispatch(GetWindosSize());
+	PrePass(stream);
+	stream << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
+	PostPass(stream);
+}
 
-	if(ViewMode != ViewMode::FrameBuffer) [[unlikely]]
-		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+void GpuScene::PostPass(Stream& stream)
+{
+	if (ViewMode != ViewMode::FrameBuffer) [[unlikely]]
+	stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
 
 	LineProxy->PostRenderPass(stream);
-
-	stream << synchronize();
+	stream << (*ToneMappingPass)().dispatch(GetWindosSize());
 }
 
 ImageView<float> GpuScene::frame_buffer() noexcept
@@ -207,6 +211,13 @@ void GpuScene::CompileShader()
 	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
 		[&](UInt frame_index, UInt time) noexcept {
 			render_main_view(frame_index, time);
+		}));
+
+	ToneMappingPass = luisa::make_unique<Shader2D<>>(device.compile<2>(
+		[&]() noexcept {
+			auto pixel_coord = dispatch_id().xy();
+			auto color = frame_buffer()->read(pixel_coord);
+			frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color.xyz())), 1.f));
 		}));
 }
 
