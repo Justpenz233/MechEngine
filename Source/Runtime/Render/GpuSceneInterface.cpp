@@ -67,5 +67,6 @@ namespace MechEngine::Rendering
     	bShadowRayOffset = GConfig.Get<bool>("Render", "ShadowRayOffset");
     	bGlobalIllumination = GConfig.Get<bool>("Render", "GlobalIllumination");
     	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
+		bHDR = GConfig.Get<bool>("Render", "HDR");
 	}
 }

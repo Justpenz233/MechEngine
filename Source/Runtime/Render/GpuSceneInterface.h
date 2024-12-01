@@ -202,6 +202,9 @@ namespace MechEngine::Rendering
 	protected:
 		// ---------------------Render setting-------------------------------
 
+		/** Whether to use HDR rendering */
+		bool bHDR;
+
 		/** Whether to render shadow */
 		bool bRenderShadow;
 

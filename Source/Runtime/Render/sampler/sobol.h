@@ -30,7 +30,7 @@ using namespace luisa::compute;
 
 // Sobol Matrix Declarations
 
-
+using luisa::ulong;
 
 
 class ENGINE_API sobol_sampler : public sampler_base {
