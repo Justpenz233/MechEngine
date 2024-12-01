@@ -55,7 +55,6 @@ Float3 svgf::temporal_filter(const UInt2& pixel_coord, const ray_intersection& i
 		sum_moment /= sum_weight;
 	};
 	auto new_color = ite(sum_weight > 0.f, lerp(sum_val, pixel_color, 0.15f), pixel_color);
-	// auto new_color = pixel_color;
 
 	auto moment_a = max(1.0f / (sum_spp + 1.0f), 0.2f);
 	auto new_moment = lerp(sum_moment, square(luminance(pixel_color)), moment_a);
@@ -72,14 +71,14 @@ Float3 svgf::atrous_filter(const UInt2& pixel_coord, const UInt& step_size) cons
 	const float NORMAL_PHI = 128;
 	const float DEPTH_PHI = 1;
 	const float LUMINANCE_PHI = 4;
-	const Float3 kernel_weights = make_float3( 1.0, 2.0 / 3.0, 1.0 / 6.0 );
+	const Float3 kernel_weights = make_float3( 1.0f, 2.0f / 3.0f, 1.0f / 6.0f );
 
 	auto WinSize = buffer.color.size();
 
 
 	// First fetch current information
 	auto normal = buffer.normal->read(pixel_coord).xyz();
-	auto color = buffer.color->read(pixel_coord).xyz();
+	auto color = buffer.color_1->read(pixel_coord).xyz();
 	auto moment = buffer.moment->read(pixel_coord).x;
 	auto depth = buffer.normal->read(pixel_coord).w;
 	auto l = luminance(color);
@@ -96,7 +95,7 @@ Float3 svgf::atrous_filter(const UInt2& pixel_coord, const UInt& step_size) cons
 			$if (buffer.instance_id->read(p_coord).x != buffer.instance_id->read(pixel_coord).x){$continue;};
 			auto kernel_weight = kernel_weights[Int(abs(dx))] * kernel_weights[Int(abs(dy))];
 			auto p_normal = buffer.normal->read(p_coord).xyz();
-			auto p_color = buffer.color->read(p_coord).xyz();
+			auto p_color = buffer.color_1->read(p_coord).xyz();
 			auto p_l = luminance(p_color);
 			auto p_moment = buffer.moment->read(p_coord).x;
 			auto p_depth = buffer.normal->read(p_coord).w;
@@ -111,6 +110,8 @@ Float3 svgf::atrous_filter(const UInt2& pixel_coord, const UInt& step_size) cons
 			Float kx = kernel_weights[Int(abs(dx))];
 			Float ky = kernel_weights[Int(abs(dy))];
 			auto w_i = w_normal * w_z * kernel_weight;
+			// auto w_i =  kernel_weight;
+
 			w_i *= kx * ky;
 
 			new_color += p_color * w_i;
@@ -125,9 +126,14 @@ void svgf::CompileShader(Device& device)
 	spacial_filter_shader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
 		[&](UInt step_size) noexcept {
 			auto pixel_coord = dispatch_id().xy();
+			buffer.color_1->write(pixel_coord, buffer.color->read(pixel_coord));
+			synchronize();
+
 			auto new_color = atrous_filter(pixel_coord, step_size);
 			buffer.color->write(pixel_coord, make_float4(new_color, 1.f));
 		}));
+
+
 
 	write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(device.compile<2>(
 		[&]() noexcept {

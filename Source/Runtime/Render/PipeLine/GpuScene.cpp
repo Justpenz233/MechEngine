@@ -83,10 +83,12 @@ void GpuScene::Render()
 void GpuScene::PostPass(Stream& stream)
 {
 	if (ViewMode != ViewMode::FrameBuffer) [[unlikely]]
-	stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
-
-	LineProxy->PostRenderPass(stream);
-	stream << (*ToneMappingPass)().dispatch(GetWindosSize());
+		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+	else
+	{
+		LineProxy->PostRenderPass(stream);
+		stream << (*ToneMappingPass)().dispatch(GetWindosSize());
+	}
 }
 
 ImageView<float> GpuScene::frame_buffer() noexcept

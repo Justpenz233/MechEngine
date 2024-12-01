@@ -15,6 +15,8 @@ namespace MechEngine::Rendering
 	{
 		Image<uint> instance_id;
 		Image<float> color; // color xyz and spp w
+		Image<float> color_1; // swap color buffer for filtering
+
 		Image<float> normal; // normal xyz and depth w
 		Image<float> moment; // second raw moment of luminance
 		svgf_buffer() = default;
@@ -30,6 +32,7 @@ namespace MechEngine::Rendering
 			color = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 			normal = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 			moment = device.create_image<float>(PixelStorage::FLOAT1, size.x, size.y);
+			color_1 = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 		}
 	};
 }
