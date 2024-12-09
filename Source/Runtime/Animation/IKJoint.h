@@ -54,10 +54,10 @@ public:
 	virtual void CalcGlobal() override;
 
     FVector AddRotationRange[2] = 
-    {FVector::Constant(-std::numeric_limits<double>::max()), FVector::Constant(std::numeric_limits<double>::max())};
+    {FVector::Constant(std::numeric_limits<double>::lowest()), FVector::Constant(std::numeric_limits<double>::max())};
 
     FVector AddTranslationRange[2] = 
-    {FVector::Constant(-std::numeric_limits<double>::max()), FVector::Constant(std::numeric_limits<double>::max())};
+    {FVector::Constant(std::numeric_limits<double>::lowest()), FVector::Constant(std::numeric_limits<double>::max())};
 
     ObjectPtr<IKJoint> GetParentJoint() { return Cast<IKJoint>(ParentJoint.lock()); }
 

@@ -25,7 +25,7 @@ namespace Random
 
     inline double Random()
     {
-        return RandomInterval<double>(0, 1);
+        return RandomInterval<double>(0., 1.);
     }
 
     inline FVector RandomFVector(double L = 0., double R = 1.)
