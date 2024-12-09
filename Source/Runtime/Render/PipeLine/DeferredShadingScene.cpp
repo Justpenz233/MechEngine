@@ -27,8 +27,7 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	// Ray trace rasterization
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
-	auto color = tone_mapping_aces(render_pixel(ray, pixel_pos));
-	frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color), 1.f));
+	frame_buffer()->write(pixel_coord, make_float4(render_pixel(ray, pixel_pos), 1.f));
 }
 
 std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
