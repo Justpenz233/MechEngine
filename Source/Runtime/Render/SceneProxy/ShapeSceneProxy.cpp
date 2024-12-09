@@ -37,7 +37,7 @@ void ShapeSceneProxy::SetInstanceMeshID(uint InstanceID, uint MeshID)
 
 uint ShapeSceneProxy::RegisterInstance() const
 {
-	accel.emplace_back(0);
+	accel.emplace_back_handle(0, {}, {}, false, 0);
 	return accel.size() - 1;
 }
 

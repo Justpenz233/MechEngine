@@ -10,7 +10,7 @@
 #include "Math/Math.h"
 #include <IconsFontAwesome6.h>
 
-#include "ImguiToggle/imgui_toggle.h"
+#include "imgui_toggle/imgui_toggle.h"
 
 namespace MechEngine
 {

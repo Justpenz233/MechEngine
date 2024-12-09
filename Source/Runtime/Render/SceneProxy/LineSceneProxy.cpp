@@ -118,8 +118,8 @@ namespace MechEngine::Rendering
     		};
     		$if(screen_start.x > screen_end.x)
     		{
-    			swap(ndc_start, ndc_end);
-    			swap(screen_start, screen_end);
+    			compute::swap(ndc_start, ndc_end);
+    			compute::swap(screen_start, screen_end);
     		};
     		Int dx = screen_end.x - screen_start.x;
     		Int dy = screen_end.y - screen_start.y;

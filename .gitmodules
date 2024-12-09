@@ -7,3 +7,6 @@
 [submodule "ThirdParty/libigl"]
 	path = ThirdParty/libigl
 	url = git@github.com:MechanEngine/libigl.git
+[submodule "Source/Runtime/UI/imgui_toggle"]
+	path = Source/Runtime/UI/imgui_toggle
+	url = git@github.com:MechanEngine/imgui_toggle.git
