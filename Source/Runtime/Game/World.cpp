@@ -80,9 +80,6 @@ void World::BeginPlay()
 
 	for(auto actor : Actors)
 		actor->BeginPlay();
-
-	if(SelectedActor.expired() && !Actors.empty())
-		SelectActor(Actors[0]);
 }
 
 void World::Tick(double DeltaTime)
@@ -117,22 +114,25 @@ void World::EndPlay()
 
 	Actors.clear();
 }
-void World::RemoveActor(Actor* ToRemoveActor)
+
+void World::DestroyActor(Actor* ToDestroyActor)
 {
-	for (auto i = Actors.begin(); i != Actors.end(); i++)
+	if(ToDestroyActor->IsA<CameraActor>())
 	{
-		if (i->get() == ToRemoveActor)
+		LOG_WARNING("Trying to destroy the camera actor, this is not allowed");
+		// Should support in future when multiple camera supported
+		return;
+	}
+	ToDestroyActor->Destroy();
+
+	for (auto i = Actors.begin(); i != Actors.end(); ++ i)
+	{
+		if (i->get() == ToDestroyActor)
 		{
 			Actors.erase(i);
 			break;
 		}
 	}
-}
-
-void World::DestroyActor(Actor* ToDestroyActor)
-{
-	ToDestroyActor->UnregisterAllComponents();
-	RemoveActor(ToDestroyActor);
 }
 
 void World::SelectActor(const ObjectPtr<Actor>& InActor)

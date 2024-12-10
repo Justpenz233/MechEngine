@@ -60,6 +60,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(double DeltaTime) override;
 	virtual void EndPlay() override;
+	virtual void Destroy() override;
 
 	virtual void OnSelected() override;
 

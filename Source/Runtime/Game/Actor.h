@@ -17,7 +17,7 @@ class ENGINE_API Actor : public Object
 	REFLECTION_BODY(Actor)
 public:
 	Actor(const FVector& InitLocation = FVector::Zero(), const FQuat& InitRotation = FQuat::Identity(), const FVector& InitScale = FVector::Ones());
-	Actor(const FTransform& InitTransfrom);
+	Actor(const FTransform& InitTransform);
 
     //After Constructor and before BeginPlay
     virtual void Init();
@@ -32,6 +32,9 @@ public:
 
 	std::function<void()> EndPlayFunction;
 	virtual void EndPlay();
+
+	// Destroy this actor
+	virtual void Destroy();
 
 	FORCEINLINE class World* GetWorld() const;
 
@@ -63,7 +66,7 @@ public:
 	FORCEINLINE Actor* SetScale(const FVector& InScale);
 	FORCEINLINE Actor* AddScale(const FVector& DeltaScale);
 
-	void AddChild (ObjectPtr<Actor> InChild);
+	void AddChild (const ObjectPtr<Actor>& InChild);
 
 	WeakObjectPtr<Actor> GetRootActor();
 
@@ -300,7 +303,7 @@ TArray<ObjectPtr<T>> Actor::GetComponentsFromChild()
 	auto ComponentFromSelf = GetAllComponentsOfClass<T>();
 	Result.insert(Result.end(), ComponentFromSelf.begin(), ComponentFromSelf.end());
 
-	for(auto i : Children)
+	for(const auto& i : Children)
 	{
 		if(!i.expired())
 		{

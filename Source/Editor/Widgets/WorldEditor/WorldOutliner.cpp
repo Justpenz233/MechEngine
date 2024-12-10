@@ -31,7 +31,7 @@ void WorldOutliner::Draw()
 			ImGui::TableSetupColumn("Type");
 			ImGui::TableHeadersRow();
 
-			for (auto Actor : World->GetAllActors())
+			for (const auto& Actor : World->GetAllActors())
 			{
 				std::string DisplayName = UI::GetObjectDisplayName(Cast<Object>(Actor));
 				ImGui::TableNextRow();
@@ -52,6 +52,14 @@ void WorldOutliner::Draw()
 			ImGui::EndTable();
 		}
 		if(SelectedActor) UI::DrawActorPanel(SelectedActor);
+
+		if(ImGui::IsKeyPressed(ImGuiKey_Delete))
+		{
+			if (SelectedActor)
+			{
+				World->DestroyActor(SelectedActor.get());
+			}
+		}
 		ImGui::End();
 	}
 

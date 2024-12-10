@@ -60,17 +60,28 @@ void Actor::Tick(double DeltaTime)
 
 void Actor::EndPlay()
 {
-	if(EndPlayFunction) EndPlayFunction();
-	for(auto Component: Components)
+	if (EndPlayFunction)
+		EndPlayFunction();
+	for (const auto& Component : Components)
 	{
-		if(Component)
+		if (Component)
 		{
 			Component->EndPlay();
 		}
 	}
 }
 
-void Actor::AddChild(ObjectPtr<Actor> InChild)
+void Actor::Destroy()
+{
+	// Call components destroy
+	for(const auto& Component: GetAllComponents())
+		Component->Destroy();
+
+	// Clear ownership of all components
+	Components.clear();
+}
+
+void Actor::AddChild(const ObjectPtr<Actor>& InChild)
 {
 	if(InChild)
 	{

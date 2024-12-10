@@ -21,6 +21,13 @@ StaticMeshSceneProxy::StaticMeshSceneProxy(GpuScene& InScene)
 	MeshResources.resize(InScene.MaxInstanceNum);
 	MeshInstances.resize(InScene.MaxInstanceNum);
 	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(InScene.MaxInstanceNum);
+
+	{
+		// Create a null mesh
+		auto VBuffer = Scene.create<Buffer<Vertex>>(3);
+		auto TBuffer = Scene.create<Buffer<Triangle>>(1);
+		NullMesh = Scene.create<Mesh>(*VBuffer, *TBuffer, AccelOption{});
+	}
 }
 
 bool StaticMeshSceneProxy::IsDirty()
@@ -65,10 +72,15 @@ void StaticMeshSceneProxy::RemoveStaticMesh(uint MeshId)
 	CommandQueue.emplace_back(Delete, MeshId, 0, nullptr);
 }
 
-
 void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 {
 	bFrameUpdated = false;
+
+	static std::once_flag init_null_mesh_flag;
+	std::call_once(init_null_mesh_flag, [&]()
+	{
+		stream << NullMesh->build();
+	});
 
 	for (auto& Command : CommandQueue)
 	{
@@ -160,15 +172,21 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 			case Delete:
 			{
 				for (auto Instance : MeshInstances[Id1])
+				{
 					accel.set_visibility_on_update(Instance, false);
-				auto PreVBuffer = MeshResources[Id1].VertexBuffer;
-				auto PreTBuffer = MeshResources[Id1].TriangleBuffer;
-				auto PreCNBuffer = MeshResources[Id1].CornerNormalBuffer;
-				auto PreMesh = MeshResources[Id1].AccelMesh;
-				Scene.destroy(PreVBuffer);
-				Scene.destroy(PreTBuffer);
-				Scene.destroy(PreCNBuffer);
-				Scene.destroy(PreMesh);
+					// accel.set_mesh(Instance, *NullMesh);
+				}
+				// stream << accel.build();
+
+				// bindlessArray.remove_buffer_on_update(StaticMeshData[Id1].vertex_buffer_id);
+				// bindlessArray.remove_buffer_on_update(StaticMeshData[Id1].triangle_buffer_id);
+				// bindlessArray.remove_buffer_on_update(StaticMeshData[Id1].corner_normal_buffer_id);
+				// stream << bindlessArray.update();
+
+				// Scene.destroy(MeshResources[Id1].AccelMesh);
+				// Scene.destroy(MeshResources[Id1].VertexBuffer);
+				// Scene.destroy(MeshResources[Id1].TriangleBuffer);
+				// Scene.destroy(MeshResources[Id1].CornerNormalBuffer);
 				MeshResources[Id1] = {};
 				break;
 			}

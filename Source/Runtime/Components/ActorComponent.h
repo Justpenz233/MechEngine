@@ -30,12 +30,15 @@ public:
 	FORCEINLINE World* GetWorld() const;
 
 	// Called after this object is created
-    virtual void Init() {};
+    virtual void Init() {}
 	// Called when game start
-	virtual void BeginPlay() {};
+	virtual void BeginPlay() {}
 	virtual void TickComponent(double DeltaTime){};
 	// Called when game end
-	virtual void EndPlay() {};
+	virtual void EndPlay() {}
+
+	// Destroy this component
+	virtual void Destroy() {}
 
 protected:
 	class Actor* Owner = nullptr;

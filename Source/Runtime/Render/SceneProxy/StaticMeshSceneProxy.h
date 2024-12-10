@@ -168,6 +168,8 @@ protected:
 	// ID is index in the MeshResources/StaticMeshData
 	uint MeshIdCounter = 0;
 
+	Mesh* NullMesh = nullptr;
+
 	enum CommandType
 	{
 		Create,

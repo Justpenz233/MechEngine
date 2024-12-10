@@ -19,17 +19,7 @@ StaticMeshComponent::StaticMeshComponent()
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-	if(GetWorld() != nullptr)
-	{
-		if(auto ShapeProxy = GetScene()->GetShapeProxy()) // Check nullptr prevent a system shut down
-		{
-			ShapeProxy->RemoveInstance(InstanceID);
-		}
-		if (auto StaticMeshProxy = GetScene()->GetStaticMeshProxy())
-		{
-			StaticMeshProxy->RemoveStaticMesh(MeshID);
-		}
-	}
+
 }
 
 void StaticMeshComponent::TickComponent(double DeltaTime)
@@ -60,6 +50,22 @@ void StaticMeshComponent::BeginPlay()
 void StaticMeshComponent::EndPlay()
 {
 	ActorComponent::EndPlay();
+}
+
+void StaticMeshComponent::Destroy()
+{
+	RenderingComponent::Destroy();
+	if(GetWorld() != nullptr)
+	{
+		if(auto ShapeProxy = GetScene()->GetShapeProxy()) // Check nullptr prevent a system shut down
+		{
+			ShapeProxy->RemoveInstance(InstanceID);
+		}
+		if (auto StaticMeshProxy = GetScene()->GetStaticMeshProxy())
+		{
+			StaticMeshProxy->RemoveStaticMesh(MeshID);
+		}
+	}
 }
 
 void StaticMeshComponent::OnSelected()

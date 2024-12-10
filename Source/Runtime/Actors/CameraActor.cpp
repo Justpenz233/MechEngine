@@ -87,24 +87,21 @@ void CameraActor::MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta)
 
 	if(StartPos == LastPos)
 	{
-		if (auto Focus = World->GetSelectedActor())
-		{
-			auto NowMouse = StartPos + Delta;
+		auto NowMouse = StartPos + Delta;
 
-			// Mouse down world position
-			auto NDCSpace0 = World->GetViewport()->ScreenToNDC(StartPos.cast<double>());
-			auto UnProject0 = Component->UnProject({NDCSpace0.x(), NDCSpace0.y(), ClipSpaceZ});
+		// Mouse down world position
+		auto NDCSpace0 = World->GetViewport()->ScreenToNDC(StartPos.cast<double>());
+		auto UnProject0 = Component->UnProject({NDCSpace0.x(), NDCSpace0.y(), ClipSpaceZ});
 
-			// Mouse now world position
-			auto NDCSpace1 = World->GetViewport()->ScreenToNDC(NowMouse.cast<double>());
-			auto UnProject1 = Component->UnProject({NDCSpace1.x(), NDCSpace1.y(), ClipSpaceZ});
+		// Mouse now world position
+		auto NDCSpace1 = World->GetViewport()->ScreenToNDC(NowMouse.cast<double>());
+		auto UnProject1 = Component->UnProject({NDCSpace1.x(), NDCSpace1.y(), ClipSpaceZ});
 
-			auto Delta = UnProject1 - UnProject0;
+		auto Delta = UnProject1 - UnProject0;
 
 
-			FocusCenter = PreCenter - Delta;
-			SetTranslation(DownPos - Delta);
-		}
+		FocusCenter = PreCenter - Delta;
+		SetTranslation(DownPos - Delta);
 	}
 	else {
 		auto ClipSpace = Component->Project(FocusCenter);
