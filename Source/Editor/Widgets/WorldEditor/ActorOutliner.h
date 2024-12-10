@@ -66,7 +66,7 @@ public:
 protected:
 	void RecursiveDrawObjectOutliner(Object* InObject)
 	{
-		auto Properties = InObject->GetAllPropertyAceessors();
+		auto Properties = InObject->GetAllPropertyAccessors();
 
 		// Check if the object has any child object, if not draw as leaf node
 		bool bHasChildObject = false;

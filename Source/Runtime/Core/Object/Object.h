@@ -20,7 +20,7 @@ enum EAccessorFlag
 	Default,
 
 	// Exclude all property from parent class
-	ExculdeParent
+	ExcludeParent
 };
 
 /**
@@ -56,7 +56,7 @@ public:
     template<class T>
     FORCEINLINE ObjectPtr<T> GetThis();
 
-//    TODO: serilization
+//    TODO: serialization
     virtual bool Load() { return true; }
     virtual bool Save() { return true; }
 
@@ -104,10 +104,10 @@ public:
 	std::vector<Class> GetBaseClassRecursive();
 
 	// Get all MPROPERTY from this class (and parent class)
-	std::vector<Reflection::FieldAccessor> GetAllPropertyAceessors(EAccessorFlag Flag = EAccessorFlag::Default);
+	std::vector<Reflection::FieldAccessor> GetAllPropertyAccessors(EAccessorFlag Flag = EAccessorFlag::Default);
 
 	// Get all MFUNCTION from this class (and parent class)
-	std::vector<Reflection::MethodAccessor> GetAllMethodAceessors(EAccessorFlag Flag = EAccessorFlag::Default);
+	std::vector<Reflection::MethodAccessor> GetAllMethodAccessors(EAccessorFlag Flag = EAccessorFlag::Default);
 
 	template<typename RetValue = void, typename... Args>
 	auto InvokeFunction(const String& MethodName, Args&&... Parameter) -> std::conditional_t<std::is_void<RetValue>::value, void, RetValue>
@@ -133,7 +133,7 @@ public:
 	FORCEINLINE bool IsSelected() const;
 	FORCEINLINE virtual void SetSelected(bool InSelected);
 	virtual void OnSelected() {}
-	virtual void OnCancleSelected() {}
+	virtual void OnCancelSelected() {}
 protected:
 	MPROPERTY()
 	String ObjectName;
@@ -198,5 +198,5 @@ FORCEINLINE void Object::SetSelected(bool InSelected)
 	bool bPreSelected = bSelected;
 	bSelected = InSelected;
 	if(!bPreSelected && InSelected) OnSelected();
-	if(bPreSelected && !InSelected) OnCancleSelected();
+	if(bPreSelected && !InSelected) OnCancelSelected();
 }

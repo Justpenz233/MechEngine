@@ -39,7 +39,7 @@ public:
 protected:
 	Object* GetObjectSelectedChild(Object* Obj)
 	{
-		auto Properties = Obj->GetAllPropertyAceessors();
+		auto Properties = Obj->GetAllPropertyAccessors();
 		for (auto Property : Properties)
 		{
 			if (Property.isPointerType())
@@ -89,7 +89,7 @@ protected:
 
 	static void DrawObjectPanel(Object* Obj)
 	{
-		auto Properties = Obj->GetAllPropertyAceessors();
+		auto Properties = Obj->GetAllPropertyAccessors();
 		if(Properties.empty()) return;
 		ImGui::PushID(Obj);
 		for (auto Property : Properties)

@@ -61,7 +61,7 @@ std::vector<Object::Class> Object::GetBaseClassRecursive()
 
 }
 
-std::vector<Reflection::FieldAccessor> Object::GetAllPropertyAceessors(EAccessorFlag Flag)
+std::vector<Reflection::FieldAccessor> Object::GetAllPropertyAccessors(EAccessorFlag Flag)
 {
     std::function<void(Class CurrentClass)> RecursiveBase;
     std::vector<Reflection::FieldAccessor> ret;
@@ -71,7 +71,7 @@ std::vector<Reflection::FieldAccessor> Object::GetAllPropertyAceessors(EAccessor
     auto ThisProperty = ThisMeta.m_meta.getFieldsList();
     ret.insert(ret.end(), ThisProperty.begin(), ThisProperty.end());
 
-    if (Flag != ExculdeParent) {
+    if (Flag != ExcludeParent) {
         for(auto ParaentClass : GetBaseClassRecursive()) {
             auto Meta = Object::GetMetaInfo(ParaentClass, this);
             auto Property = Meta.m_meta.getFieldsList();
@@ -81,7 +81,7 @@ std::vector<Reflection::FieldAccessor> Object::GetAllPropertyAceessors(EAccessor
     return ret;
 }
 
-std::vector<Reflection::MethodAccessor> Object::GetAllMethodAceessors(EAccessorFlag Flag)
+std::vector<Reflection::MethodAccessor> Object::GetAllMethodAccessors(EAccessorFlag Flag)
 {
     std::function<void(Class CurrentClass)> RecursiveBase;
     std::vector<Reflection::MethodAccessor> ret;
@@ -91,7 +91,7 @@ std::vector<Reflection::MethodAccessor> Object::GetAllMethodAceessors(EAccessorF
     auto ThisMethod = ThisMeta.m_meta.getMethodsList();
     ret.insert(ret.end(), ThisMethod.begin(), ThisMethod.end());
 
-    if (Flag != ExculdeParent) {
+    if (Flag != ExcludeParent) {
         for(auto ParaentClass : GetBaseClassRecursive()) {
             auto Meta = Object::GetMetaInfo(ParaentClass, this);
             auto Property = Meta.m_meta.getMethodsList();

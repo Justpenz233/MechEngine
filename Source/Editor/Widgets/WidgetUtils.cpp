@@ -10,7 +10,7 @@
 
 void UI::DrawObjectPanel(Object* Obj)
 {
-	auto Properties = Obj->GetAllPropertyAceessors();
+	auto Properties = Obj->GetAllPropertyAccessors();
 	if (Properties.empty())
 		return;
 	ImGui::PushID(Obj);
