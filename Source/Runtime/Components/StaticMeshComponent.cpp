@@ -112,8 +112,8 @@ void StaticMeshComponent::UploadRenderingData()
 			GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceID, MeshID);
 			GetScene()->GetStaticMeshProxy()->BindInstance(MeshID, InstanceID);
 		}
+		World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 	}
-	World->GetScene()->GetShapeProxy()->SetInstanceVisibility(InstanceID, bVisible);
 }
 
 void StaticMeshComponent::Remesh()

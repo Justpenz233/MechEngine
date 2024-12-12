@@ -109,9 +109,6 @@ void World::EndPlay()
 	for (auto actor : Actors)
 		actor->EndPlay();
 
-	while (!Actors.empty())
-		DestroyActor(Actors.begin()->get());
-
 	Actors.clear();
 }
 

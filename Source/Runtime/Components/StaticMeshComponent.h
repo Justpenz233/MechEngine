@@ -48,9 +48,9 @@ public:
 	~StaticMeshComponent() override;
 
 	MPROPERTY()
-	ObjectPtr<StaticMesh> MeshData;
+	ObjectPtr<StaticMesh> MeshData = nullptr;
 
-	ObjectPtr<StaticMesh> CollisionMesh;
+	ObjectPtr<StaticMesh> CollisionMesh = nullptr;
 
 	FORCEINLINE void               MarkAsDirty(StaticMeshDirtyTag InTag);
 	FORCEINLINE StaticMeshDirtyTag GetDirtyTag() const;
