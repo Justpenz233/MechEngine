@@ -132,7 +132,7 @@ public:
 	 */
 	[[nodiscard]] Float2 motion_vector(const ray_intersection& intersection) const;
 
-	[[nodiscard]] auto tone_mapping_uncharted2(Expr<float3> color) noexcept {
+	[[nodiscard]] static auto tone_mapping_uncharted2(Expr<float3> color) noexcept {
 		static constexpr auto a = 0.15f;
 		static constexpr auto b = 0.50f;
 		static constexpr auto c = 0.10f;
@@ -146,7 +146,7 @@ public:
 		return op(1.6f * color) / op(white);
 	}
 
-	[[nodiscard]] auto tone_mapping_aces(Expr<float3> color) noexcept {
+	[[nodiscard]] static auto tone_mapping_aces(Expr<float3> color) noexcept {
 		constexpr auto a = 2.51f;
 		constexpr auto b = 0.03f;
 		constexpr auto c = 2.43f;

@@ -110,7 +110,7 @@ light_data LightSceneProxy::GetFlatLightData(LightComponent* InLight) const
 {
 	light_data LightData;
 	LightData.intensity = ToLuisaVector(InLight->GetIntensity());
-	LightData.light_color = ToLuisaVector(InLight->GetLightColor());
+	LightData.light_color = srgb_to_acescg(ToLuisaVector(InLight->GetLightColor()));
 	if (auto Ptr = Cast<PointLightComponent>(InLight))
 	{
 		LightData.light_type = point_light_tag;

@@ -5,6 +5,7 @@
 #include <luisa/luisa-compute.h>
 #include "Render/Core/TypeConvertion.h"
 #include "Materials/Material.h"
+#include "Render/material/shading_function.h"
 
 namespace MechEngine::Rendering
 {
@@ -29,8 +30,8 @@ namespace MechEngine::Rendering
         show_wireframe(InMaterial->bShowWireframe),
         shader_id(Tag),
     	alpha(InMaterial->Alpha),
-        base_color(ToLuisaVector(InMaterial->BaseColor)),
-        specular_tint(ToLuisaVector(InMaterial->SpecularTint)),
+        base_color(srgb_to_acescg(ToLuisaVector(InMaterial->BaseColor))),
+        specular_tint(srgb_to_acescg(ToLuisaVector(InMaterial->SpecularTint))),
         metalness(InMaterial->Metalness),
         specular(InMaterial->Specular),
         roughness(InMaterial->Roughness),

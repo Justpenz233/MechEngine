@@ -220,9 +220,9 @@ void GpuScene::CompileShader()
 			auto pixel_coord = dispatch_id().xy();
 			auto color = frame_buffer()->read(pixel_coord);
 			if (bHDR)
-				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(color.xyz()), 1.f));
+				frame_buffer()->write(pixel_coord, make_float4(acescg_to_srgb(color.xyz()), 1.f)); // Still need fix
 			else
-				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(tone_mapping_aces(color.xyz())), 1.f));
+				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(acescg_to_srgb(tone_mapping_aces(color.xyz()))), 1.f));
 		}));
 }
 
