@@ -92,7 +92,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		$if(intersection.shape->has_light() & depth == 0)
 		{
 			auto light = LightProxy->get_light_data(intersection.shape.light_id);
-			pixel_radiance = light->light_color;
+			pixel_radiance = light->light_color * light->intensity;
 			$break;
 		};
 		$if(intersection.shape->has_light() & depth != 0)

@@ -37,7 +37,8 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 	Float Alpha = 1.f;
 	$if(intersection.shape->is_light())
 	{
-		pixel_radiance = LightProxy->get_light_data(intersection.shape.light_id)->light_color;
+		auto light_data = LightProxy->get_light_data(intersection.shape.light_id);
+		pixel_radiance = light_data->light_color * light_data->intensity;
 	}
 	$elif (intersection.shape->is_mesh()) // Surface shade
 	{
