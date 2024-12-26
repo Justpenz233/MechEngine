@@ -21,6 +21,8 @@ public:
 	T* AddSubWidget(Args&&... args);
 
     virtual void Draw() = 0;
+
+	World* GetWorld() const { return World; }
     
     friend class World;
 

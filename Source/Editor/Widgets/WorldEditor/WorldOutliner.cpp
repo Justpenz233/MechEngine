@@ -53,7 +53,7 @@ void WorldOutliner::Draw()
 		}
 		if(SelectedActor) UI::DrawActorPanel(SelectedActor);
 
-		if(ImGui::IsKeyPressed(ImGuiKey_Delete))
+		if(ImGui::IsKeyPressed(ImGuiKey_Delete) || ImGui::IsKeyPressed(ImGuiKey_X))
 		{
 			if (SelectedActor)
 			{
