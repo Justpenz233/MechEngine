@@ -19,12 +19,30 @@ double SplineCurvature(const tinyspline::BSpline& spline, double u, int Dimensio
 	u = std::clamp(u, 0.0, 1.0);
 
 	// Evaluate the first derivative
-	auto firstDeriv = spline.derive(1);
-	std::vector<tinyspline::real> r1 = firstDeriv.eval(u).result();
+	tinyspline::BSpline firstDeriv;
+	std::vector<tinyspline::real> r1;
+	try
+	{
+		firstDeriv = spline.derive(1);
+		r1 = firstDeriv.eval(u).result();
+	}
+	catch (const std::runtime_error& e)
+	{
+		return 0.;
+	}
 
-	// Evaluate the second derivative
-	auto secondDeriv = spline.derive(2);
-	std::vector<tinyspline::real> r2 = secondDeriv.eval(u).result();
+	tinyspline::BSpline secondDeriv;
+	std::vector<tinyspline::real> r2;
+
+	try
+	{
+		secondDeriv = spline.derive(2);
+		r2 = secondDeriv.eval(u).result();
+	}
+	catch (const std::runtime_error& e)
+	{
+		return 0.;
+	}
 
 	// Compute norm of the first derivativew
 	double normR1 = 0.0;
