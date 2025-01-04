@@ -4,6 +4,10 @@
 
 #include "SplineLibrary.h"
 #include "tinysplinecxx.h"
+#include <cmath>
+#include <algorithm>
+#include <array>
+#include <stdexcept>
 #include <vector>
 
 namespace SplineLibrary

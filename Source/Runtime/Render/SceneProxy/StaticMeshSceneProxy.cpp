@@ -24,8 +24,8 @@ StaticMeshSceneProxy::StaticMeshSceneProxy(GpuScene& InScene)
 
 	{
 		// Create a null mesh
-		auto VBuffer = Scene.create<Buffer<Vertex>>(3);
-		auto TBuffer = Scene.create<Buffer<Triangle>>(1);
+		auto VBuffer = Scene.create<Buffer<Vertex>>(3u);
+		auto TBuffer = Scene.create<Buffer<Triangle>>(1u);
 		NullMesh = Scene.create<Mesh>(*VBuffer, *TBuffer, AccelOption{});
 	}
 }

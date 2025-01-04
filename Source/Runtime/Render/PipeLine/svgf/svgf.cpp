@@ -123,6 +123,8 @@ Float3 svgf::atrous_filter(const UInt2& pixel_coord, const UInt& step_size) cons
 
 void svgf::CompileShader(Device& device)
 {
+	buffer = svgf_buffer(device, WinSize);
+
 	spacial_filter_shader = luisa::make_unique<Shader2D<uint>>(device.compile<2>(
 		[&](UInt step_size) noexcept {
 			auto pixel_coord = dispatch_id().xy();
@@ -133,8 +135,6 @@ void svgf::CompileShader(Device& device)
 			buffer.color->write(pixel_coord, make_float4(new_color, 1.f));
 		}));
 
-
-
 	write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(device.compile<2>(
 		[&]() noexcept {
 			auto pixel_coord = dispatch_id().xy();
@@ -143,7 +143,7 @@ void svgf::CompileShader(Device& device)
 		}));
 }
 
-void svgf::PostProcess(Stream& stream) const
+void svgf::PostPass(Stream& stream) const
 {
 	for(int i = 0;i < 4;i ++)
 		stream << (*spacial_filter_shader)(1 << i).dispatch(frame_buffer.size()) << synchronize();

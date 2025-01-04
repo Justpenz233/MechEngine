@@ -121,6 +121,6 @@ protected:
 
 		Stream << FontTexture.copy_from(pixels) << luisa::compute::synchronize();
 		auto tex_id = MainWindow->register_texture(FontTexture, luisa::compute::Sampler::linear_point_edge());
-		io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(tex_id));
+		io.Fonts->SetTexID(ImTextureID(tex_id));
 	}
 };

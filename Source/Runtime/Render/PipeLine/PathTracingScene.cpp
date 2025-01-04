@@ -28,24 +28,27 @@ void PathTracingScene::LoadRenderSettings()
 void PathTracingScene::InitBuffers()
 {
 	GpuScene::InitBuffers();
+}
+
+void PathTracingScene::CompileShader()
+{
 	auto WindowSize = Window->framebuffer().size();
 
 	if (bUseRIS)
 		reservoirs = device.create_buffer<ris_reservoir>(WindowSize.x * WindowSize.y);
 
 	if (bUseSVGF)
-		svgf = make_unique<class svgf>(device, WindowSize, frame_buffer());
-}
+		svgf = make_unique<class svgf>(WindowSize, frame_buffer());
 
-void PathTracingScene::CompileShader()
-{
+	if (bUseSVGF)
+		svgf->CompileShader(device);
+
 	GpuScene::CompileShader();
-	if (bUseSVGF) svgf->CompileShader(device);
 }
 
 void PathTracingScene::PostPass(Stream& stream)
 {
-	if (bUseSVGF) svgf->PostProcess(stream);
+	if (bUseSVGF) svgf->PostPass(stream);
 	GpuScene::PostPass(stream);
 }
 

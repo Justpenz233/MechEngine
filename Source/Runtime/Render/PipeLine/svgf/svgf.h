@@ -5,6 +5,7 @@
 #pragma once
 #include "svgf_buffer.h"
 #include "Render/Core/geometry_buffer.h"
+#include "Render/PipeLine/RenderPass.h"
 
 namespace MechEngine::Rendering
 {
@@ -13,11 +14,11 @@ namespace MechEngine::Rendering
  * @ref https://cg.ivd.kit.edu/publications/2017/svgf/svgf_preprint.pdf
  * @ref https://github.com/TheVaffel/spatiotemporal-variance-guided-filtering/blob/master/svgf.cl
  */
-class svgf
+class svgf : public RenderPass
 {
 public:
-	svgf(Device& device, const uint2& size, ImageView<float> in_frame_buffer) :
-	frame_buffer(in_frame_buffer), buffer(device, size), WinSize(size) {}
+	svgf(const uint2& size, const ImageView<float>& in_frame_buffer) :
+	frame_buffer(in_frame_buffer), WinSize(size) {}
 
 	static inline Float luminance(const Float3& c) {
 		return c.x * 0.2126f + c.y * 0.7152f + c.z * 0.0722f;
@@ -32,9 +33,9 @@ public:
 	 */
 	Float3 temporal_filter(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const;
 
-	void PostProcess(Stream& stream) const;
+	virtual void PostPass(Stream& stream) const override;
 
-	void CompileShader(Device& device);
+	virtual void CompileShader(Device& device) override;
 protected:
 	ImageView<float> frame_buffer;
 	uint2 WinSize;
