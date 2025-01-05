@@ -214,4 +214,28 @@ namespace MechEngine::Rendering
 		return p.x * basis[0] + p.y * basis[1] + p.z * basis[2];
 	}
 
+	/**
+	 * Calculate the barycentric coordinates of a point in a triangle.
+	 * @param p point in 2D space
+	 * @param a vertex 0 of the triangle
+	 * @param b vertex 1 of the triangle
+	 * @param c	vertex 2 of the triangle
+	 * @return the barycentric coordinates, v w, u can be calculated by 1 - v - w
+	 */
+	FORCEINLINE Float2 barycentric(const Float2& p, const Float2& a, const Float2& b, const Float2& c)
+	{
+		auto v0 = b - a;
+		auto v1 = c - a;
+		auto v2 = p - a;
+		auto d00 = dot(v0, v0);
+		auto d01 = dot(v0, v1);
+		auto d11 = dot(v1, v1);
+		auto d20 = dot(v2, v0);
+		auto d21 = dot(v2, v1);
+		auto denom = d00 * d11 - d01 * d01;
+		auto v = (d11 * d20 - d01 * d21) / denom;
+		auto w = (d00 * d21 - d01 * d20) / denom;
+		return make_float2(v, w);
+	}
+
 }
