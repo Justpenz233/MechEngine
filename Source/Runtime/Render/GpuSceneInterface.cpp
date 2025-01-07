@@ -52,7 +52,7 @@ namespace MechEngine::Rendering
 					frame_buffer()->write(pixel_coord, g_buffer.base_color->read(pixel_coord));
 				};
 			};
-		}));
+		}, {.enable_debug_info = bShaderDebugInfo}));
 
 		LineProxy->CompileShader();
 	}
@@ -68,5 +68,6 @@ namespace MechEngine::Rendering
     	bGlobalIllumination = GConfig.Get<bool>("Render", "GlobalIllumination");
     	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
 		bHDR = GConfig.Get<bool>("Render", "HDR");
+		bShaderDebugInfo = GConfig.Get<bool>("RenderDebug", "ShaderDebugInfo");
 	}
 }

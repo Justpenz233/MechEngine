@@ -35,7 +35,7 @@ public:
 
 	virtual void PostPass(Stream& stream) const override;
 
-	virtual void CompileShader(Device& device) override;
+	virtual void CompileShader(Device& device, bool bDebugInfo) override;
 protected:
 	ImageView<float> frame_buffer;
 	uint2 WinSize;

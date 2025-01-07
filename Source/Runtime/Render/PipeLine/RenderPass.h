@@ -19,7 +19,7 @@ public:
 	/**
 	 * Compile the shader for this pass and initialize the buffers.
 	 */
-	virtual void CompileShader(luisa::compute::Device& Device) = 0;
+	virtual void CompileShader(luisa::compute::Device& Device, bool bDebugInfo) = 0;
 
 	virtual void PrePass(luisa::compute::Stream& Stream) const {}
 

@@ -41,7 +41,7 @@ void PathTracingScene::CompileShader()
 		svgf = make_unique<class svgf>(WindowSize, frame_buffer());
 
 	if (bUseSVGF)
-		svgf->CompileShader(device);
+		svgf->CompileShader(device, bShaderDebugInfo);
 
 	GpuScene::CompileShader();
 }

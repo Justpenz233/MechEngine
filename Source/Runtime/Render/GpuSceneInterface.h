@@ -131,7 +131,7 @@ namespace MechEngine::Rendering
 		template<uint dim, typename Def>
 		auto RegisterShader(Def &&def) noexcept {
 			static_assert(dim == 1u || dim == 2u || dim == 3u);
-			return device.compile<dim>(std::forward<Def>(def));
+			return device.compile<dim>(std::forward<Def>(def), {.enable_debug_info = bShaderDebugInfo});
 		}
 
 		[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept = 0;
@@ -213,6 +213,9 @@ namespace MechEngine::Rendering
 
 		/** Whether to use global illumination */
 		bool bGlobalIllumination;
+
+		/** Whether to compile shader with debug info */
+		bool bShaderDebugInfo;
 
 		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
 

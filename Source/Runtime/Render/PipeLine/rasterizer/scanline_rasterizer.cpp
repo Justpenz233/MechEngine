@@ -8,7 +8,7 @@
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 namespace MechEngine::Rendering
 {
-void scanline_rasterizer::CompileShader(Device& Device)
+void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 {
 	auto WinSize = scene->GetWindosSize();
 	triangle_box = Device.create_buffer<float4>(triangle_max_number);
@@ -20,17 +20,17 @@ void scanline_rasterizer::CompileShader(Device& Device)
 	RasterMeshShader = luisa::make_unique<decltype(RasterMeshShader)::element_type>(
 		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
 			raster_mesh(instance_id, mesh_id);
-		}));
+		}, {.enable_debug_info = bDebugInfo}));
 
 	RasterTriangleShader = luisa::make_unique<decltype(RasterTriangleShader)::element_type>(
 		Device.compile<2>([&](const UInt& instance_id, const UInt& mesh_id, const UInt& triangle_id, const UInt2& pixel_delta) noexcept {
 			raster_triangle(instance_id, mesh_id, triangle_id, pixel_delta);
-		}));
+		}, {.enable_debug_info = bDebugInfo}));
 
 	ClearShader = luisa::make_unique<decltype(ClearShader)::element_type>(
 		Device.compile<2>([&]() noexcept {
 			vbuffer.instance_id->write(dispatch_id().xy(), make_uint4(~0u));
-		}));
+		}, {.enable_debug_info = bDebugInfo}));
 }
 void scanline_rasterizer::ClearPass(Stream& stream)
 {

@@ -12,7 +12,7 @@ class scanline_rasterizer : public rasterizer
 	using rasterizer::rasterizer;
 
 public:
-	virtual void CompileShader(Device& Device) override;
+	virtual void CompileShader(Device& Device, bool bDebugInfo) override;
 
 	virtual void ClearPass(Stream& stream) override;
 

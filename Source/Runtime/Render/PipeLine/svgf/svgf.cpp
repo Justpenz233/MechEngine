@@ -121,7 +121,7 @@ Float3 svgf::atrous_filter(const UInt2& pixel_coord, const UInt& step_size) cons
 	return ite(sum_weight > 0.f, new_color / sum_weight, color);
 }
 
-void svgf::CompileShader(Device& device)
+void svgf::CompileShader(Device& device, bool bDebugInfo)
 {
 	buffer = svgf_buffer(device, WinSize);
 
@@ -133,14 +133,14 @@ void svgf::CompileShader(Device& device)
 
 			auto new_color = atrous_filter(pixel_coord, step_size);
 			buffer.color->write(pixel_coord, make_float4(new_color, 1.f));
-		}));
+		}, {.enable_debug_info = bDebugInfo}));
 
 	write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(device.compile<2>(
 		[&]() noexcept {
 			auto pixel_coord = dispatch_id().xy();
 			auto color = buffer.color->read(pixel_coord);
 			frame_buffer->write(pixel_coord, make_float4(color.xyz(), 1.f));
-		}));
+		}, {.enable_debug_info = bDebugInfo}));
 }
 
 void svgf::PostPass(Stream& stream) const

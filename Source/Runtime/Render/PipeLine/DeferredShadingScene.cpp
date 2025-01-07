@@ -27,9 +27,8 @@ DeferredShadingScene::~DeferredShadingScene()
 void DeferredShadingScene::CompileShader()
 {
 	Rasterizer = make_unique<scanline_rasterizer>(this);
-	Rasterizer->CompileShader(device);
+	Rasterizer->CompileShader(device, bShaderDebugInfo);
 	GpuScene::CompileShader();
-
 }
 
 void DeferredShadingScene::PrePass(Stream& stream)
