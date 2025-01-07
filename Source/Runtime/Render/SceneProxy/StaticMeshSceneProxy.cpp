@@ -98,6 +98,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 					continue;
 				}
 				bFrameUpdated = true;
+				MeshIdToPtr[Id1] = MeshPtr;
 				auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshPtr);
 				auto VBuffer = Scene.create<Buffer<Vertex>>(Vertices.size());
 				auto TBuffer = Scene.create<Buffer<Triangle>>(Triangles.size());
@@ -126,6 +127,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 					continue;
 				}
 				bFrameUpdated = true;
+				MeshIdToPtr[Id1] = MeshPtr;
 				auto [Vertices, Triangles, CornerNormals] = GetFlattenMeshData(MeshPtr);
 
 				// Register and upload new data buffer
@@ -188,6 +190,7 @@ void StaticMeshSceneProxy::UploadDirtyData(Stream& stream)
 				// Scene.destroy(MeshResources[Id1].TriangleBuffer);
 				// Scene.destroy(MeshResources[Id1].CornerNormalBuffer);
 				MeshResources[Id1] = {};
+				MeshIdToPtr.erase(Id1);
 				break;
 			}
 			case Bind:

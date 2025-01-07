@@ -143,6 +143,12 @@ public:
 			bindelss_buffer<float3>(mesh_data.corner_normal_buffer_id)->read(triangle_index * 3 + 2)};
 	}
 
+	// Mesh pointer to mesh id, used for iterating
+	map<uint, StaticMesh*> MeshIdToPtr;
+
+	// MeshId corresponding instances' id
+	vector<set<uint>> MeshInstances;
+
 protected:
 
 	/**
@@ -160,8 +166,7 @@ protected:
 
 	vector<StaticMeshResource> MeshResources;
 
-	// MeshId corresponding instances' id
-	vector<set<uint>> MeshInstances;
+
 
 	uint data_buffer_id; // bindless array id of data buffer, this id will never change
 

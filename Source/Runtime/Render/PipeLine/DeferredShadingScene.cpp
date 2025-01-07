@@ -4,15 +4,55 @@
 
 #include "DeferredShadingScene.h"
 
+#include "Mesh/StaticMesh.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
-#include "Render/material/shading_function.h"
 #include "Render/sampler/sampler_base.h"
+#include "rasterizer/rasterizer.h"
+#include "rasterizer/scanline_rasterizer.h"
 
 namespace MechEngine::Rendering
 {
+
+DeferredShadingScene::DeferredShadingScene(
+	Stream& stream, Device& device, ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept
+	: GpuScene(stream, device, InWindows, InViewport) {}
+
+DeferredShadingScene::~DeferredShadingScene()
+{
+}
+
+void DeferredShadingScene::CompileShader()
+{
+	Rasterizer = make_unique<scanline_rasterizer>(this);
+	Rasterizer->CompileShader(device);
+	GpuScene::CompileShader();
+
+}
+
+void DeferredShadingScene::PrePass(Stream& stream)
+{
+	GpuScene::PrePass(stream);
+
+	if(false)
+	{
+		auto MeshSceneProxy = StaticMeshProxy.get();
+
+		Rasterizer->ClearPass(stream);
+
+		// Iterate all the mesh in the scene
+		for(auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
+		{
+			ASSERT(Mesh != nullptr);
+			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
+			{
+				Rasterizer->VisibilityPass(stream, instance_id, MeshId, Mesh->GetFaceNum());
+			}
+		}
+	}
+}
 
 void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt& time)
 {

@@ -15,10 +15,7 @@ public:
 	/**
 	 * Load render settings for this pass
 	 */
-	virtual void LoadRenderSettings() {};
-
-protected:
-
+	virtual void LoadRenderSettings() {}
 	/**
 	 * Compile the shader for this pass and initialize the buffers.
 	 */

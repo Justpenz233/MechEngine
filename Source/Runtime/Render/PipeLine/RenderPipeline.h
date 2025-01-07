@@ -42,6 +42,8 @@ protected:
 public:
 	#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) // Windows
 	const String BackEnd = "Dx";
+	spdlog::logger logger{"device"};
+
 	#elif __APPLE__ // Macos
 	const String BackEnd = "Metal";
 	#else

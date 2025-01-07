@@ -22,6 +22,16 @@ RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
 	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
 
 	RendererType = static_cast<RenderPipelineType>(GConfig.Get<int>("Render", "RenderPipelineType"));
+
+	if(BackEnd == "Dx")
+	{
+		logger = {"device", std::make_shared<spdlog::sinks::stdout_color_sink_mt>()};
+		Stream.set_log_callback([&](luisa::string_view message) mutable noexcept {
+			if (!message.empty()) {
+				logger.info("{}", message);
+			}
+		});
+	}
 }
 
 RenderPipeline::~RenderPipeline()

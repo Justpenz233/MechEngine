@@ -21,22 +21,25 @@ class rasterizer : public RenderPass
 public:
 	explicit rasterizer(GpuScene* InScene) : scene(InScene) {}
 
+
+	virtual void ClearPass(Stream& stream) = 0;
+
 	/**
 	 * Raster visibility pass
 	 */
-	virtual void VisibilityPass(Stream& stream) = 0;
+	virtual void VisibilityPass(Stream& stream, uint instance_id, uint mesh_id, uint triangle_count) = 0;
 
-	UInt get_mesh_id(const UInt& instance_id) const;
+	[[nodiscard]] UInt get_mesh_id(const UInt& instance_id) const;
 
-	Float4x4 get_instance_transform_mat(const UInt& instance_id) const;
+	[[nodiscard]] Float4x4 get_instance_transform_mat(const UInt& instance_id) const;
 
 	[[nodiscard]] ArrayVar<Vertex, 3> get_vertices(const UInt& mesh_id, const UInt& triangle_id) const;
 
 	[[nodiscard]] Var<view> get_view() const;
-
+	visibility_buffer vbuffer;
 protected:
 	GpuScene* scene;
-	visibility_buffer vbuffer;
+
 };
 
 };
