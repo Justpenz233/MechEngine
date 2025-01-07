@@ -67,15 +67,26 @@ LUISA_STRUCT(MechEngine::Rendering::view,
         return clip_position.xyz();
     }
 
-    [[nodiscard]] auto ndc_to_screen(const luisa::compute::Float3& ndc_position) const noexcept
+	[[nodiscard]] auto ndc_to_screen(const luisa::compute::Float3& ndc_position) const noexcept
+    {
+    	auto pixel_coord = make_float2(ndc_position.x * 0.5f + 0.5f, -ndc_position.y * 0.5f + 0.5f) * make_float2(viewport_size);
+    	return make_float3(pixel_coord, ndc_position.z);
+    }
+
+    [[nodiscard]] auto ndc_to_pixel(const luisa::compute::Float3& ndc_position) const noexcept
     {
         auto pixel_coord = make_float2(ndc_position.x * 0.5f + 0.5f, -ndc_position.y * 0.5f + 0.5f) * make_float2(viewport_size);
         return pixel_coord;
     }
 
-    [[nodiscard]] auto world_to_screen(const luisa::compute::Float3& world_position) const noexcept
+    [[nodiscard]] auto world_to_pixel(const luisa::compute::Float3& world_position) const noexcept
     {
-        return ndc_to_screen(world_to_ndc(world_position));
+        return ndc_to_pixel(world_to_ndc(world_position));
+    }
+
+	[[nodiscard]] auto world_to_screen(const luisa::compute::Float3& world_position) const noexcept
+    {
+    	return ndc_to_screen(world_to_ndc(world_position));
     }
 
 	/**

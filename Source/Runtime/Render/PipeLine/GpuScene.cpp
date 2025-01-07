@@ -201,7 +201,7 @@ Float2 GpuScene::motion_vector(const ray_intersection& intersection) const
 	auto pre_clip_position = CameraProxy->get_main_view().last_view_projection_matrix * pre_x;
 	auto pre_ndc_position = (pre_clip_position / pre_clip_position.w).xyz();
 
-	return CameraProxy->get_main_view()->ndc_to_screen(pre_ndc_position) - 0.5f;
+	return CameraProxy->get_main_view()->ndc_to_pixel(pre_ndc_position) - 0.5f;
 }
 
 void GpuScene::CompileShader()

@@ -8,10 +8,10 @@
 
 namespace MechEngine::Rendering
 {
+
 class GpuScene;
-}
-namespace MechEngine::Rendering
-{
+struct Vertex;
+struct view;
 
 /**
  * Base class for visibility-buffer rasterizer
@@ -26,6 +26,13 @@ public:
 	 */
 	virtual void VisibilityPass(Stream& stream) = 0;
 
+	UInt get_mesh_id(const UInt& instance_id) const;
+
+	Float4x4 get_instance_transform_mat(const UInt& instance_id) const;
+
+	[[nodiscard]] ArrayVar<Vertex, 3> get_vertices(const UInt& mesh_id, const UInt& triangle_id) const;
+
+	[[nodiscard]] Var<view> get_view() const;
 
 protected:
 	GpuScene* scene;

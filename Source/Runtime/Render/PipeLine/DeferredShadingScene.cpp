@@ -192,9 +192,9 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 				wireframe_intersection.instance_id);
 
 			auto d = distance_to_triangle(pixel_pos,
-				view->world_to_screen((transform * make_float4(vertex_data[0]->position(), 1.f)).xyz()),
-				view->world_to_screen((transform * make_float4(vertex_data[1]->position(), 1.f)).xyz()),
-				view->world_to_screen((transform * make_float4(vertex_data[2]->position(), 1.f)).xyz())
+				view->world_to_pixel((transform * make_float4(vertex_data[0]->position(), 1.f)).xyz()),
+				view->world_to_pixel((transform * make_float4(vertex_data[1]->position(), 1.f)).xyz()),
+				view->world_to_pixel((transform * make_float4(vertex_data[2]->position(), 1.f)).xyz())
 				);
 
 			//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf

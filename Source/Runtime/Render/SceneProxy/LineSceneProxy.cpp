@@ -154,7 +154,7 @@ namespace MechEngine::Rendering
 				auto point = bindelss_buffer<point_data>(points_data_bindless_id)->read(point_id);
 				auto world_position = point.world_position;
 				auto ndc_position = view->world_to_ndc(world_position);
-				auto screen_position = view->ndc_to_screen(ndc_position);
+				auto screen_position = view->ndc_to_pixel(ndc_position);
 				raster_point(view, make_float3(screen_position, ndc_position.z), point.radius, point.color);
 			}));
 
