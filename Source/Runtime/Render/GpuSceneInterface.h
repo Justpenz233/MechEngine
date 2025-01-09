@@ -205,14 +205,8 @@ namespace MechEngine::Rendering
 		/** Whether to use HDR rendering */
 		bool bHDR;
 
-		/** Whether to render shadow */
-		bool bRenderShadow;
-
 		/** Whether to use shadow ray offset by HACKING THE SHADOW TERMINATOR*/
 		bool bShadowRayOffset;
-
-		/** Whether to use global illumination */
-		bool bGlobalIllumination;
 
 		/** Whether to compile shader with debug info */
 		bool bShaderDebugInfo;

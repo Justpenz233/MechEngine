@@ -5,6 +5,7 @@
 #include "DeferredShadingScene.h"
 
 #include "Mesh/StaticMesh.h"
+#include "Misc/Config.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
@@ -24,6 +25,14 @@ DeferredShadingScene::~DeferredShadingScene()
 {
 }
 
+void DeferredShadingScene::LoadRenderSettings()
+{
+	GpuScene::LoadRenderSettings();
+	bGlobalIllumination = GConfig.Get<bool>("DeferredShading", "GlobalIllumination");
+	bRenderShadow = GConfig.Get<bool>("DeferredShading", "RenderShadow");
+	bUseRasterizer = GConfig.Get<bool>("DeferredShading", "UseRasterizer");
+}
+
 void DeferredShadingScene::CompileShader()
 {
 	Rasterizer = make_unique<scanline_rasterizer>(this);
@@ -35,7 +44,7 @@ void DeferredShadingScene::PrePass(Stream& stream)
 {
 	GpuScene::PrePass(stream);
 
-	if(false)
+	if(true)
 	{
 		auto MeshSceneProxy = StaticMeshProxy.get();
 
@@ -58,15 +67,28 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	auto view = CameraProxy->get_main_view();
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
-	get_sampler()->init(pixel_coord, frame_index);
 
-	// Fill with default
-	g_buffer.set_default(pixel_coord, make_float4(1.f));
+	if(!bUseRasterizer)
+	{
+		get_sampler()->init(pixel_coord, frame_index);
 
-	// Ray trace rasterization
-	auto pixel_pos = make_float2(pixel_coord) + .5f;
-	auto ray = view->generate_ray(pixel_pos);
-	frame_buffer()->write(pixel_coord, make_float4(render_pixel(ray, pixel_pos), 1.f));
+		// Fill with default
+		g_buffer.set_default(pixel_coord, make_float4(1.f));
+
+		// Ray trace rasterization
+		auto pixel_pos = make_float2(pixel_coord) + .5f;
+		auto ray = view->generate_ray(pixel_pos);
+		frame_buffer()->write(pixel_coord, make_float4(render_pixel(ray, pixel_pos), 1.f));
+	}
+	else
+	{
+		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
+		get_sampler()->init(make_uint2(instance_id), instance_id);
+		auto r = get_sampler()->generate_1d();
+
+		auto color = ite(instance_id != ~0u, make_float4(r, r, r, 1.f), make_float4(0.f));
+		frame_buffer()->write(pixel_coord, color);
+	}
 }
 
 std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(

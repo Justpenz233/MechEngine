@@ -63,9 +63,7 @@ namespace MechEngine::Rendering
 
 	void GpuSceneInterface::LoadRenderSettings()
 	{
-    	bRenderShadow = GConfig.Get<bool>("Render", "RenderShadow");
     	bShadowRayOffset = GConfig.Get<bool>("Render", "ShadowRayOffset");
-    	bGlobalIllumination = GConfig.Get<bool>("Render", "GlobalIllumination");
     	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
 		bHDR = GConfig.Get<bool>("Render", "HDR");
 		bShaderDebugInfo = GConfig.Get<bool>("RenderDebug", "ShaderDebugInfo");

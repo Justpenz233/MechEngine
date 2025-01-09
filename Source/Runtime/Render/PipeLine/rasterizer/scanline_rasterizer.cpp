@@ -51,12 +51,11 @@ void scanline_rasterizer::VisibilityPass(Stream& stream, uint instance_id, uint 
 	for(uint i = 0; i < triangle_count; i++)
 	{
 		auto& box = triangle_boxes[i];
-		auto min_pixel = make_uint2(uint(box.x - 0.5f), uint(box.y - 0.5f));
-		auto max_pixel = make_uint2(uint(box.z + 0.5f), uint(box.w + 0.5f));
+		auto min_pixel = make_int2(std::ceil(box.x), std::ceil(box.y));
+		auto max_pixel = make_int2(std::floor(box.z), std::floor(box.w));
 		auto size = max_pixel - min_pixel;
-		if(size.x == 0 || size.y == 0) continue;
-		// LOG_INFO("min_pixel: {}, max_pixel: {}", min_pixel, max_pixel);
-		stream << (*RasterTriangleShader)(instance_id, mesh_id, i, min_pixel).dispatch(size);
+		if(size.x <= 0 || size.y <= 0) continue;
+		stream << (*RasterTriangleShader)(instance_id, mesh_id, i, make_uint2(min_pixel)).dispatch(make_uint2(size));
 	}
 	stream << synchronize();
 }
@@ -83,11 +82,10 @@ void scanline_rasterizer::raster_mesh(const UInt& instance_id, const UInt& mesh_
 	auto maxX = max(screen_coords[0].x, max(screen_coords[1].x, screen_coords[2].x));
 	auto minY = min(screen_coords[0].y, min(screen_coords[1].y, screen_coords[2].y));
 	auto maxY = max(screen_coords[0].y, max(screen_coords[1].y, screen_coords[2].y));
-	minX = max(0.0f, minX);
-	maxX = min(Float(view->viewport_size.x), maxX);
-	minY = max(0.0f, minY);
-	maxY = min(Float(view->viewport_size.y), maxY);
-
+	minX = clamp(minX, 0.0f, Float(view->viewport_size.x));
+	maxX = clamp(maxX, 0.0f, Float(view->viewport_size.x));
+	minY = clamp(minY, 0.0f, Float(view->viewport_size.y));
+	maxY = clamp(maxY, 0.0f, Float(view->viewport_size.y));
 	triangle_box->write(triangle_id, make_float4(minX, minY, maxX, maxY));
 }
 

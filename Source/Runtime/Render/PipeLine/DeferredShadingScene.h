@@ -16,6 +16,8 @@ public:
 
 	~DeferredShadingScene() override;
 
+	virtual void LoadRenderSettings() override;
+
 	virtual void CompileShader() override;
 
 	virtual void PrePass(Stream& stream) override;
@@ -28,6 +30,16 @@ public:
 	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos);
 
 protected:
+
+	/** Whether to use software rasterizer */
+	bool bUseRasterizer = false;
+
+	/** Whether to use global illumination */
+	bool bGlobalIllumination = false;
+
+	/** Whether to render shadow */
+	bool bRenderShadow = false;
+
 	unique_ptr<rasterizer> Rasterizer;
 };
 
