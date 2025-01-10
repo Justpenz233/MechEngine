@@ -44,7 +44,7 @@ void DeferredShadingScene::PrePass(Stream& stream)
 {
 	GpuScene::PrePass(stream);
 
-	if(true)
+	if(bUseRasterizer)
 	{
 		auto MeshSceneProxy = StaticMeshProxy.get();
 
@@ -56,7 +56,7 @@ void DeferredShadingScene::PrePass(Stream& stream)
 			ASSERT(Mesh != nullptr);
 			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
 			{
-				Rasterizer->VisibilityPass(stream, instance_id, MeshId, Mesh->GetFaceNum());
+				Rasterizer->VisibilityPass(stream, instance_id, MeshId, Mesh->GetVertexNum(), Mesh->GetFaceNum());
 			}
 		}
 	}
@@ -83,10 +83,13 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	else
 	{
 		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
-		get_sampler()->init(make_uint2(instance_id), instance_id);
+		auto triangle_id = Rasterizer->vbuffer.triangle_id->read(pixel_coord).x;
+		get_sampler()->init(make_uint2(instance_id, instance_id), triangle_id);
 		auto r = get_sampler()->generate_1d();
+		auto g = get_sampler()->generate_1d();
+		auto b = get_sampler()->generate_1d();
 
-		auto color = ite(instance_id != ~0u, make_float4(r, r, r, 1.f), make_float4(0.f));
+		auto color = ite(instance_id != ~0u, make_float4(r,g,b,1.f), make_float4(0.f));
 		frame_buffer()->write(pixel_coord, color);
 	}
 }

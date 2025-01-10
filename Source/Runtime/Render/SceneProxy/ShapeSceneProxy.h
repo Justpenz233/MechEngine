@@ -53,6 +53,7 @@ public:
 public:
 	Var<shape> get_instance_shape(const UInt& instance_id) const
 	{
+		$comment("read instance shape");
 		return bindelss_buffer<shape>(buffer_bindless_id)->read(instance_id);
 	}
 

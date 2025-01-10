@@ -64,6 +64,7 @@ namespace MechEngine::Rendering
 
 		[[nodiscard]] Var<transform_data> get_instance_transform_data(Expr<uint> instance_id) const
 		{
+			$comment("read instance transform data");
 			return get_transform_data(get_instance_transform_id(instance_id));
 		}
 

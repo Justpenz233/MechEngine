@@ -23,15 +23,14 @@ RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
 
 	RendererType = static_cast<RenderPipelineType>(GConfig.Get<int>("Render", "RenderPipelineType"));
 
-	if(BackEnd == "Dx")
-	{
+	#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) // Windows
 		logger = {"device", std::make_shared<spdlog::sinks::stdout_color_sink_mt>()};
 		Stream.set_log_callback([&](luisa::string_view message) mutable noexcept {
 			if (!message.empty()) {
 				logger.info("{}", message);
 			}
 		});
-	}
+	#endif
 }
 
 RenderPipeline::~RenderPipeline()

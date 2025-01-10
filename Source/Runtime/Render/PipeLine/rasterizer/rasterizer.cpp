@@ -29,6 +29,14 @@ ArrayVar<Vertex, 3> rasterizer::get_vertices(const UInt& mesh_id, const UInt& tr
 	auto MeshProxy = scene->GetStaticMeshProxy();
 	return MeshProxy->get_vertices(mesh_id, triangle_id);
 }
+Var<Vertex> rasterizer::get_vertex(const UInt& mesh_id, const UInt& vertex_index) const
+{
+	return scene->GetStaticMeshProxy()->get_vertex(mesh_id, vertex_index);
+}
+Var<Triangle> rasterizer::get_triangle(const UInt& mesh_id, const UInt& triangle_index) const
+{
+	return scene->GetStaticMeshProxy()->get_triangle(mesh_id, triangle_index);
+}
 
 Var<view> rasterizer::get_view() const
 {

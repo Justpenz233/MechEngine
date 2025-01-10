@@ -98,6 +98,7 @@ public:
 	 ***********************************************************************************************/
 	[[nodiscard]] Var<static_mesh_data> get_static_mesh_data(const UInt& mesh_id) const
 	{
+		$comment("read static mesh data");
 		return bindelss_buffer<static_mesh_data>(data_buffer_id)->read(mesh_id);
 	}
 
@@ -109,12 +110,14 @@ public:
 	[[nodiscard]] Var<Triangle> get_triangle(const UInt& mesh_id, const UInt& triangle_index) const
 	{
 		auto mesh_data = get_static_mesh_data(mesh_id);
+		$comment("read mesh triangle buffer");
 		return bindelss_buffer<Triangle>(mesh_data.triangle_buffer_id)->read(triangle_index);
 	}
 
 	[[nodiscard]] Var<Vertex> get_vertex(const UInt& mesh_id, const UInt& vertex_index) const
 	{
 		auto mesh_data = get_static_mesh_data(mesh_id);
+		$comment("read mesh vertex buffer");
 		return bindelss_buffer<Vertex>(mesh_data.vertex_buffer_id)->read(vertex_index);
 	}
 
@@ -131,6 +134,7 @@ public:
 	[[nodiscard]] Float3 get_corner_normal(const UInt& mesh_id, const UInt& triangle_index, const UInt& corner_id) const
 	{
 		auto mesh_data = get_static_mesh_data(mesh_id);
+		$comment("read corner normal buffer");
 		return bindelss_buffer<float3>(mesh_data.corner_normal_buffer_id)->read(triangle_index * 3 + corner_id);
 	}
 
