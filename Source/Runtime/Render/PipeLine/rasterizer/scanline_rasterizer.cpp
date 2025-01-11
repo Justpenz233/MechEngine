@@ -11,8 +11,10 @@ namespace MechEngine::Rendering
 void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 {
 	auto WinSize = scene->GetWindosSize();
+
 	vertex_screen_coords = Device.create_buffer<float3>(vertex_max_number);
-	triangle_box = Device.create_buffer<float4>(triangle_max_number);
+	triangle_pixel_offset = Device.create_buffer<uint2>(triangle_max_number);
+	draw_triangle_dispatch_buffer = Device.create_indirect_dispatch_buffer(triangle_max_number);
 
 	vbuffer.bary = Device.create_image<float>(PixelStorage::FLOAT2, WinSize.x, WinSize.y);
 	vbuffer.instance_id = Device.create_image<uint>(PixelStorage::INT1, WinSize.x, WinSize.y);
@@ -23,49 +25,47 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 			vertex_shader(instance_id, mesh_id);
 		}, {.enable_debug_info = bDebugInfo}));
 
-	TriangleBBoxShader = luisa::make_unique<decltype(TriangleBBoxShader)::element_type>(
+	RasterMeshShader = luisa::make_unique<decltype(RasterMeshShader)::element_type>(
 		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
 			raster_mesh(instance_id, mesh_id);
 		}, {.enable_debug_info = bDebugInfo}));
 
 	RasterTriangleShader = luisa::make_unique<decltype(RasterTriangleShader)::element_type>(
-		Device.compile<2>([&](const UInt& instance_id, const UInt& mesh_id, const UInt& triangle_id, const UInt2& pixel_delta) noexcept {
-			raster_triangle(instance_id, mesh_id, triangle_id, pixel_delta);
+		Device.compile<2>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
+			set_block_size(16, 16, 1);
+			raster_triangle(instance_id, mesh_id);
 		}, {.enable_debug_info = bDebugInfo}));
 
-	ClearShader = luisa::make_unique<decltype(ClearShader)::element_type>(
+	ClearScreenShader = luisa::make_unique<decltype(ClearScreenShader)::element_type>(
 		Device.compile<2>([&]() noexcept {
 			$comment("Clear visibility buffer and depth buffer");
 			auto& g_buffer = scene->get_gbuffer();
 			g_buffer.depth->write(g_buffer.flattend_index(dispatch_id().xy()), 1.f);
 			vbuffer.instance_id->write(dispatch_id().xy(), make_uint4(~0u));
 		}, {.enable_debug_info = bDebugInfo}));
+
+	ResetDispatchBufferShader = luisa::make_unique<decltype(ResetDispatchBufferShader)::element_type>(
+		Device.compile<1>([&](const Var<IndirectDispatchBuffer>& buffer, const UInt& dispatch_count) noexcept {
+			buffer.set_dispatch_count(dispatch_count);
+		}, {.enable_debug_info = bDebugInfo}));
 }
+
 void scanline_rasterizer::ClearPass(Stream& stream)
 {
-	stream << (*ClearShader)().dispatch(scene->GetWindosSize());
+	stream << (*ClearScreenShader)().dispatch(scene->GetWindosSize());
 }
 
 void scanline_rasterizer::VisibilityPass(Stream& stream, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num)
 {
 	static vector<float4> triangle_boxes(triangle_max_number);
-	stream
+	CommandList command_list{};
+	command_list
 		<< (*VertexShader)(instance_id, mesh_id).dispatch(vertex_num)
-		<< (*TriangleBBoxShader)(instance_id, mesh_id).dispatch(triangle_num)
-		<< triangle_box.copy_to(triangle_boxes.data()) << synchronize();
-
-	// TODO: use indirect dispatch optimize this write back
-	for (uint i = 0; i < triangle_num; i++)
-	{
-		auto box = triangle_boxes[i];
-		auto  min_pixel = make_int2(int(std::floor(box.x)), int(std::floor(box.y)));
-		auto  max_pixel = make_int2(int(std::ceil(box.z)), int(std::ceil(box.w)));
-		auto  size = (max_pixel - min_pixel) + make_int2(1, 1);
-		if (size.x <= 0 || size.y <= 0)
-			continue;
-		stream << (*RasterTriangleShader)(instance_id, mesh_id, i, make_uint2(min_pixel)).dispatch(make_uint2(size));
-	}
-	stream << synchronize();
+		<< (*ResetDispatchBufferShader)(draw_triangle_dispatch_buffer, triangle_num).dispatch(1) // set dispatch count
+		<< (*RasterMeshShader)(instance_id, mesh_id).dispatch(triangle_num);
+	for(int i = 0; i < triangle_num; i ++)
+		command_list << (*RasterTriangleShader)(instance_id, mesh_id).dispatch(draw_triangle_dispatch_buffer, i, 1);
+	stream << command_list.commit();
 }
 
 void scanline_rasterizer::vertex_shader(const UInt& instance_id, const UInt& mesh_id) const
@@ -98,19 +98,43 @@ void scanline_rasterizer::raster_mesh(const UInt& instance_id, const UInt& mesh_
 	auto maxX = max(screen_coords[0].x, max(screen_coords[1].x, screen_coords[2].x));
 	auto minY = min(screen_coords[0].y, min(screen_coords[1].y, screen_coords[2].y));
 	auto maxY = max(screen_coords[0].y, max(screen_coords[1].y, screen_coords[2].y));
-	minX = clamp(minX, 0.0f, Float(WinSize.x - 1.f));
-	maxX = clamp(maxX, 0.0f, Float(WinSize.x - 1.f));
-	minY = clamp(minY, 0.0f, Float(WinSize.y - 1.f));
-	maxY = clamp(maxY, 0.0f, Float(WinSize.y - 1.f));
+	$if(minX > Float(WinSize.x - 1.f) | minY > Float(WinSize.y - 1.f) | maxX < 0.0f | maxY < 0.0f)
+	{
+		$comment("Triangle is out of screen");
+		draw_triangle_dispatch_buffer->set_kernel(
+			triangle_id,
+			make_uint3(16, 16, 1),
+			make_uint3(0u, 1u, 1u),
+			triangle_id);
+	}
+	$else
+	{
+		$comment("Triangle is inside of screen");
+		minX = clamp(minX, 0.0f, Float(WinSize.x - 1.f));
+		minY = clamp(minY, 0.0f, Float(WinSize.y - 1.f));
+		maxX = clamp(maxX, 0.0f, Float(WinSize.x - 1.f));
+		maxY = clamp(maxY, 0.0f, Float(WinSize.y - 1.f));
 
-	$comment("write back triangle bounding box");
-	triangle_box->write(triangle_id, make_float4(minX, minY, maxX, maxY));
+		minX = floor(minX); maxX = ceil(maxX);
+		minY = floor(minY); maxY = ceil(maxY);
+
+		triangle_pixel_offset->write(triangle_id, make_uint2(UInt(minX), UInt(minY)));
+
+		$comment("Set draw triangle dispatch buffer");
+		draw_triangle_dispatch_buffer->set_kernel(
+			triangle_id,
+			make_uint3(16, 16, 1),
+			make_uint3(UInt(Int(maxX - minX) + 1), UInt(Int(maxY - minY) + 1), 1u),
+			triangle_id);
+	};
 }
 
-void scanline_rasterizer::raster_triangle(const UInt& instance_id, const UInt& mesh_id, const UInt& triangle_id, const UInt2& pixel_delta) const
+void scanline_rasterizer::raster_triangle(const UInt& instance_id, const UInt& mesh_id) const
 {
 	$comment_with_location("raster triangle");
 	auto& g_buffer = scene->get_gbuffer();
+	auto triangle_id = kernel_id();
+	auto pixel_delta = triangle_pixel_offset->read(triangle_id).xy();
 	auto pixel = dispatch_id().xy() + pixel_delta;
 	auto pixel_coord = make_float2(pixel) + 0.5f;
 
