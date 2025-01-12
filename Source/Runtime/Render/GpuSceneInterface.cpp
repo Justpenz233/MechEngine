@@ -67,5 +67,6 @@ namespace MechEngine::Rendering
     	SamplePerPixel = GConfig.Get<int>("Render", "SamplePerPixel");
 		bHDR = GConfig.Get<bool>("Render", "HDR");
 		bShaderDebugInfo = GConfig.Get<bool>("RenderDebug", "ShaderDebugInfo");
+		bUseRasterizer = GConfig.Get<bool>("DeferredShading", "UseRasterizer");
 	}
 }

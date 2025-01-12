@@ -4,16 +4,16 @@
 
 #include "PathTracingScene.h"
 
+#include "Mesh/StaticMesh.h"
 #include "Misc/Config.h"
 #include "Render/Core/shadow_terminator.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
-#include "Render/SceneProxy/TransformProxy.h"
-#include "Render/material/shading_function.h"
 #include "Render/sampler/sampler_base.h"
 #include "Render/Core/transform_data.h"
+#include "rasterizer/rasterizer.h"
 
 namespace MechEngine::Rendering
 {
@@ -46,6 +46,29 @@ void PathTracingScene::CompileShader()
 	GpuScene::CompileShader();
 }
 
+void PathTracingScene::PrePass(Stream& stream)
+{
+	GpuScene::PrePass(stream);
+	if(bUseRasterizer)
+	{
+		auto MeshSceneProxy = StaticMeshProxy.get();
+
+		Rasterizer->ClearPass(stream);
+
+		// Iterate all the mesh in the scene
+		for(auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
+		{
+			ASSERT(Mesh != nullptr);
+			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
+			{
+				Rasterizer->VisibilityPass(stream, instance_id, MeshId,
+					Mesh->GetVertexNum(), Mesh->GetFaceNum());
+			}
+		}
+	}
+
+}
+
 void PathTracingScene::PostPass(Stream& stream)
 {
 	if (bUseSVGF) svgf->PostPass(stream);
@@ -61,13 +84,38 @@ void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& tim
 
 	auto pixel_pos = make_float2(pixel_coord) + 0.5f;
 
-	auto ray = view->generate_ray(pixel_pos); Float3 color = make_float3(0.f);
+	auto   ray = view->generate_ray(pixel_pos);
+	Float3 color = make_float3(0.f);
 	$for(Sample, 0u, def(SamplePerPixel)) // Maybe we assume 1spp for all case? because we are only implementing real-time rendering
 	{
 		color += mis_path_tracing(ray, pixel_pos, pixel_coord);
 	};
 	color = color / Float(SamplePerPixel);
 	frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
+}
+
+ray_intersection PathTracingScene::intersect_bias(const UInt2& pixel_coord, Expr<Ray> ray, Bool first_intersect)
+{
+	ray_intersection intersection;
+	if(bUseRasterizer)
+	{
+		$if(first_intersect)
+		{
+			auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
+			auto triangle_id = Rasterizer->vbuffer.triangle_id->read(pixel_coord).x;
+			auto bary = Rasterizer->vbuffer.bary->read(pixel_coord).xy();
+			intersection = intersect({instance_id, triangle_id, bary}, ray);
+		}
+		$else
+		{
+			intersection = intersect(ray);
+		};
+	}
+	else
+	{
+		intersection = intersect(ray);
+	}
+	return intersection;
 }
 
 Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
@@ -79,7 +127,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 
 	$for(depth, 0, 2)
 	{
-		auto		intersection = intersect(ray);
+		auto		intersection = intersect_bias(pixel_coord, ray, depth == 0);
 		const auto& frame = intersection.shading_frame;
 		const auto& x = intersection.position_world;
 		const auto& w_o = normalize(-ray->direction());

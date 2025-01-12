@@ -21,11 +21,12 @@
 #include "Render/sampler/independent_sampler.h"
 #include "Render/sampler/sobol.h"
 #include "Render/sampler/sampler_base.h"
+#include "rasterizer/scanline_rasterizer.h"
 namespace MechEngine::Rendering
 {
 
-GpuScene::GpuScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept:
-GpuSceneInterface(stream, device), Window(InWindow)
+GpuScene::GpuScene(Stream& stream, Device& device, ImGuiWindow* InWindow, ViewportInterface* InViewport) noexcept
+	: GpuSceneInterface(stream, device), Window(InWindow)
 {
 	CameraProxy = luisa::make_unique<CameraSceneProxy>(*this);
 	LightProxy = luisa::make_unique<LightSceneProxy>(*this);
@@ -36,6 +37,8 @@ GpuSceneInterface(stream, device), Window(InWindow)
 	ShapeProxy = luisa::make_unique<ShapeSceneProxy>(*this);
 	Viewport = InViewport;
 }
+
+GpuScene::~GpuScene() {}
 
 void GpuScene::UploadRenderData()
 {
@@ -209,6 +212,9 @@ void GpuScene::CompileShader()
 	// Compile base shaders
 	GpuSceneInterface::CompileShader();
 
+	Rasterizer = make_unique<scanline_rasterizer>(this);
+	Rasterizer->CompileShader(device, bShaderDebugInfo);
+
 	// Main pass shader
 	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
 		[&](UInt frame_index, UInt time) noexcept {
@@ -224,6 +230,8 @@ void GpuScene::CompileShader()
 			else
 				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(acescg_to_srgb(tone_mapping_aces(color.xyz()))), 1.f));
 		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "ToneMappingShader"}));
+
+
 }
 
 void GpuScene::Init()

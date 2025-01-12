@@ -13,6 +13,7 @@ class RenderingComponent;
 
 namespace MechEngine::Rendering
 {
+class rasterizer;
 using namespace luisa;
 using namespace luisa::compute;
 class LuisaViewport;
@@ -33,6 +34,7 @@ class ENGINE_API GpuScene : public GpuSceneInterface
 public:
 	GpuScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
 
+	virtual ~GpuScene();
 protected:
 	luisa::compute::ImGuiWindow* Window;
 	ViewportInterface* Viewport;
@@ -164,6 +166,8 @@ protected:
 
 	unique_ptr<Shader2D<uint, uint>> MainShader;
 	unique_ptr<Shader2D<>> ToneMappingPass;
+
+	unique_ptr<rasterizer> Rasterizer;
 
 };
 }

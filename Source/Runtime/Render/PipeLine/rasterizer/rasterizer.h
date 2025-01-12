@@ -40,6 +40,7 @@ public:
 	[[nodiscard]] Var<Triangle> get_triangle(const UInt& mesh_id, const UInt& triangle_index) const;
 
 	[[nodiscard]] Var<view> get_view() const;
+
 	visibility_buffer vbuffer;
 protected:
 	GpuScene* scene;

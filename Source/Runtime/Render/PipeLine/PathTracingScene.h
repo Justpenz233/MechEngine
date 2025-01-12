@@ -22,10 +22,13 @@ public:
 
 	virtual void CompileShader() override;
 
+	virtual void PrePass(Stream& stream) override;
+
 	virtual void PostPass(Stream& stream) override;
 
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) override;
 
+	ray_intersection intersect_bias(const UInt2& pixel_coord, Expr<Ray> ray, Bool first_intersect);
 	/**
 	 * multi important sampling path tracing
 	 * @param ray the ray to calculate

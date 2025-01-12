@@ -18,8 +18,6 @@ public:
 
 	virtual void LoadRenderSettings() override;
 
-	virtual void CompileShader() override;
-
 	virtual void PrePass(Stream& stream) override;
 
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) override;
@@ -27,20 +25,15 @@ public:
 	std::pair<Float3, Float> calc_surface_point_color(
 		Var<Ray> ray, const ray_intersection& intersection, bool global_illumination);
 
-	Float3 render_pixel(Var<Ray> ray, const Float2& pixel_pos);
+	Float3 render_pixel(Var<Ray> ray, const UInt2& pixel_coord);
 
 protected:
-
-	/** Whether to use software rasterizer */
-	bool bUseRasterizer = false;
 
 	/** Whether to use global illumination */
 	bool bGlobalIllumination = false;
 
 	/** Whether to render shadow */
 	bool bRenderShadow = false;
-
-	unique_ptr<rasterizer> Rasterizer;
 };
 
 }

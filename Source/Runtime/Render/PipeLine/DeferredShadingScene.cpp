@@ -9,6 +9,7 @@
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"
+#include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/sampler/sampler_base.h"
 #include "rasterizer/rasterizer.h"
@@ -30,14 +31,6 @@ void DeferredShadingScene::LoadRenderSettings()
 	GpuScene::LoadRenderSettings();
 	bGlobalIllumination = GConfig.Get<bool>("DeferredShading", "GlobalIllumination");
 	bRenderShadow = GConfig.Get<bool>("DeferredShading", "RenderShadow");
-	bUseRasterizer = GConfig.Get<bool>("DeferredShading", "UseRasterizer");
-}
-
-void DeferredShadingScene::CompileShader()
-{
-	Rasterizer = make_unique<scanline_rasterizer>(this);
-	Rasterizer->CompileShader(device, bShaderDebugInfo);
-	GpuScene::CompileShader();
 }
 
 void DeferredShadingScene::PrePass(Stream& stream)
@@ -68,30 +61,13 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
 
-	if(!bUseRasterizer)
-	{
-		get_sampler()->init(pixel_coord, frame_index);
+	get_sampler()->init(pixel_coord, frame_index);
 
-		// Fill with default
-		g_buffer.set_default(pixel_coord, make_float4(1.f));
+	g_buffer.set_default(pixel_coord, make_float4(1.f));
 
-		// Ray trace rasterization
-		auto pixel_pos = make_float2(pixel_coord) + .5f;
-		auto ray = view->generate_ray(pixel_pos);
-		frame_buffer()->write(pixel_coord, make_float4(render_pixel(ray, pixel_pos), 1.f));
-	}
-	else
-	{
-		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
-		auto triangle_id = Rasterizer->vbuffer.triangle_id->read(pixel_coord).x;
-		get_sampler()->init(make_uint2(instance_id, instance_id), triangle_id);
-		auto r = get_sampler()->generate_1d();
-		auto g = get_sampler()->generate_1d();
-		auto b = get_sampler()->generate_1d();
-
-		auto color = ite(instance_id != ~0u, make_float4(r,g,b,1.f), make_float4(0.f));
-		frame_buffer()->write(pixel_coord, color);
-	}
+	auto pixel_pos = make_float2(pixel_coord) + .5f;
+	auto ray = view->generate_ray(pixel_pos);
+	frame_buffer()->write(pixel_coord, make_float4(render_pixel(ray, pixel_pos), 1.f));
 }
 
 std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
@@ -214,9 +190,20 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 	return {pixel_radiance, Alpha};
 }
 
-Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
+Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord)
 {
-	auto intersection = intersect(ray);
+	ray_intersection intersection;
+	if(bUseRasterizer)
+	{
+		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
+		auto triangle_id = Rasterizer->vbuffer.triangle_id->read(pixel_coord).x;
+		auto bary = Rasterizer->vbuffer.bary->read(pixel_coord).xy();
+		intersection = intersect({instance_id, triangle_id, bary}, ray);
+	}
+	else
+	{
+		intersection = intersect(ray);
+	}
 	auto wireframe_intersection = intersection; // For wireframe pass
 	Float  transmission = 1.f;
 	Float3 pixel_color = make_float3(0.f);
@@ -245,6 +232,7 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const Float2& pixel_pos)
 	//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
 	$if(wireframe_intersection.shape->is_mesh())
 	{
+		auto pixel_pos = make_float2(pixel_coord) + .5f;
 		auto material_data = MaterialProxy->get_material_data(wireframe_intersection.material_id);
 		$if(material_data->show_wireframe == 1)
 		{

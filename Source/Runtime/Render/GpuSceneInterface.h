@@ -201,6 +201,8 @@ namespace MechEngine::Rendering
 
 	protected:
 		// ---------------------Render setting-------------------------------
+		/** Whether to use software rasterizer */
+		bool bUseRasterizer = false;
 
 		/** Whether to use HDR rendering */
 		bool bHDR;
