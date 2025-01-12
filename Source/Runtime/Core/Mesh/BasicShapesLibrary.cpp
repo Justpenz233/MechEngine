@@ -563,7 +563,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(double Radius, double 
 		Vertices.emplace_back(0, 0, HalfHeight + Radius);
 		for (int i = 0; i < RingSample; i++)
 		{
-			double  theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
+			double theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
 			for (int j = 0; j < RingSample; j++)
 			{
 				double phi = j * 2 * M_PI / RingSample;
@@ -598,7 +598,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(double Radius, double 
 		int IndexBias = Vertices.size();
 		for (int i = 0; i < Sample; i++)
 		{
-			for(int j = 0;j < RingSample; j ++)
+			for (int j = 0; j < RingSample; j++)
 			{
 				double beta = j * 2.0 * M_PI / RingSample;
 
@@ -609,8 +609,10 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(double Radius, double 
 				Vertices.emplace_back(x, y, z);
 			}
 		}
-		for (int h = 0; h < Sample - 1; ++ h) {
-			for (int i = 0; i < RingSample; ++ i) {
+		for (int h = 0; h < Sample - 1; ++h)
+		{
+			for (int i = 0; i < RingSample; ++i)
+			{
 				int start = h * RingSample + IndexBias;
 				int cur = i + start;
 				int next = (i + 1) % RingSample + start;
@@ -624,10 +626,10 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(double Radius, double 
 	// Bottom Hemisphere
 	{
 		int IndexBias = Vertices.size();
-		Vertices.emplace_back(0, 0, - HalfHeight - Radius);
+		Vertices.emplace_back(0, 0, -HalfHeight - Radius);
 		for (int i = 0; i < RingSample; i++)
 		{
-			double  theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
+			double theta = M_PI_2 - (i + 1) * M_PI_2 / RingSample;
 			for (int j = 0; j < RingSample; j++)
 			{
 				double phi = j * 2 * M_PI / RingSample;
@@ -678,6 +680,17 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(double Radius, double 
 	}
 
 	return NewObject<StaticMesh>(Vertices, Indices);
+}
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateCapsule(const Vector3d& A, Vector3d B, double Radius, int Sample, int RingSample)
+{
+	double Height = (B - A).norm();
+	auto   Mesh = GenerateCapsule(Radius, Height, Sample, RingSample);
+	FQuat Rotation = FQuat::FromTwoVectors(Vector3d{ 0., 0., 1. }, (B - A).normalized());
+	FTransform Transform = FTransform::Identity();
+	Transform.SetRotation(Rotation);
+	Transform.SetTranslation(0.5f * (A + B));
+	Mesh->TransformMesh(Transform.GetMatrix());
+	return Mesh;
 }
 
 ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateOneHatCapsule(double Radius, double Height, bool bTopHat, int Sample, int RingSample)

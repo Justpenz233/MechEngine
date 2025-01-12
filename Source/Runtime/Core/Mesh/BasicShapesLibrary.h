@@ -42,6 +42,7 @@ public:
 	 * @return Mesh
 	 */
 	static ObjectPtr<StaticMesh> GenerateCapsule(double Radius, double Height, int Sample = 32, int RingSample = 32);
+	static ObjectPtr<StaticMesh> GenerateCapsule(const Vector3d& A, Vector3d B, double Radius, int Sample = 32, int RingSample = 32);
 
 	/**
 	 * Generate a capsule with one hat
