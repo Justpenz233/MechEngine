@@ -74,6 +74,7 @@ namespace MechEngine::Rendering
 
     	// Draw a cirlce in 2d screen space simulating thickness
     	Callable raster_point = [&](Var<view> view, Float3 screen_position, Float radius, Float3 color) {
+    		$comment("Draw a circle in 2d screen space simulating thickness");
     		auto pixel_min_int =
 					make_uint2(UInt(screen_position.x - 0.5f - radius),
 						UInt(screen_position.y - 0.5f - radius));
@@ -107,6 +108,7 @@ namespace MechEngine::Rendering
 
     	// Bresenham's line algorithm
     	Callable raster_line = [&](Var<view> view, Float3 ndc_start, Float3 ndc_end, Float thickness, Float3 color) {
+    		$comment("Bresenham's line algorithm");
     		auto screen_start = view->ndc_to_screen(ndc_start);
     		auto screen_end = view->ndc_to_screen(ndc_end);
     		Bool Steep = false;
@@ -149,6 +151,7 @@ namespace MechEngine::Rendering
 
 		DrawPointsShader = luisa::make_unique<Shader1D<>>(Scene.RegisterShader<1>(
 			[&]() {
+				$comment("DrawPointsShader");
 				auto view = Scene.GetCameraProxy()->get_main_view();
 				auto point_id = dispatch_id().x;
 				auto point = bindelss_buffer<point_data>(points_data_bindless_id)->read(point_id);
@@ -156,10 +159,11 @@ namespace MechEngine::Rendering
 				auto ndc_position = view->world_to_ndc(world_position);
 				auto screen_position = view->ndc_to_pixel(ndc_position);
 				raster_point(view, make_float3(screen_position, ndc_position.z), point.radius, point.color);
-			}));
+			}, "DrawPointShader"));
 
     	DrawLineShader = luisa::make_unique<Shader2D<>>(Scene.RegisterShader<2>(
 			[&]() {
+				$comment("DrawLineShader");
 				auto view = Scene.GetCameraProxy()->get_main_view();
 				auto line_id = dispatch_id().x;
 				auto segment_id = dispatch_id().y;
@@ -179,7 +183,7 @@ namespace MechEngine::Rendering
 					auto segment_end = lerp(ndc_start, ndc_end, Float(segment_id + 1) / segments);
 					raster_line(view, segment_start, segment_end, line.thickness, line.color);
 				};
-			}));
+			}, "DrawLineShader"));
 	}
 
 	void LineSceneProxy::PostRenderPass(Stream& stream)

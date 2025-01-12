@@ -213,7 +213,7 @@ void GpuScene::CompileShader()
 	MainShader = luisa::make_unique<Shader2D<uint, uint>>(device.compile<2>(
 		[&](UInt frame_index, UInt time) noexcept {
 			render_main_view(frame_index, time);
-		}, ShaderOption{.enable_debug_info = bShaderDebugInfo}));
+		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "MainShader"}));
 
 	ToneMappingPass = luisa::make_unique<Shader2D<>>(device.compile<2>(
 		[&]() noexcept {
@@ -223,7 +223,7 @@ void GpuScene::CompileShader()
 				frame_buffer()->write(pixel_coord, make_float4(acescg_to_srgb(color.xyz()), 1.f)); // Still need fix
 			else
 				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(acescg_to_srgb(tone_mapping_aces(color.xyz()))), 1.f));
-		}, ShaderOption{.enable_debug_info = bShaderDebugInfo}));
+		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "ToneMappingShader"}));
 }
 
 void GpuScene::Init()

@@ -133,21 +133,23 @@ void svgf::CompileShader(Device& device, bool bDebugInfo)
 
 			auto new_color = atrous_filter(pixel_coord, step_size);
 			buffer.color->write(pixel_coord, make_float4(new_color, 1.f));
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "SpacialFilterShader"}));
 
 	write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(device.compile<2>(
 		[&]() noexcept {
 			auto pixel_coord = dispatch_id().xy();
 			auto color = buffer.color->read(pixel_coord);
 			frame_buffer->write(pixel_coord, make_float4(color.xyz(), 1.f));
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "SVGFWriteFrameBuffer"}));
 }
 
 void svgf::PostPass(Stream& stream) const
 {
+	CommandList command_list{};
 	for(int i = 0;i < 4;i ++)
-		stream << (*spacial_filter_shader)(1 << i).dispatch(frame_buffer.size()) << synchronize();
-	stream << (*write_frame_buffer_shader)().dispatch(frame_buffer.size());
+		command_list << (*spacial_filter_shader)(1 << i).dispatch(frame_buffer.size());
+	command_list << (*write_frame_buffer_shader)().dispatch(frame_buffer.size());
+	stream << command_list.commit();
 }
 
 } // namespace MechEngine::Rendering

@@ -23,18 +23,18 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 	VertexShader = luisa::make_unique<decltype(VertexShader)::element_type>(
 		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
 			vertex_shader(instance_id, mesh_id);
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "VertexShader"}));
 
 	RasterMeshShader = luisa::make_unique<decltype(RasterMeshShader)::element_type>(
 		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
 			raster_mesh(instance_id, mesh_id);
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "RasterMeshShader"}));
 
 	RasterTriangleShader = luisa::make_unique<decltype(RasterTriangleShader)::element_type>(
 		Device.compile<2>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
 			set_block_size(16, 16, 1);
 			raster_triangle(instance_id, mesh_id);
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "RasterTriangleShader"}));
 
 	ClearScreenShader = luisa::make_unique<decltype(ClearScreenShader)::element_type>(
 		Device.compile<2>([&]() noexcept {
@@ -42,12 +42,12 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 			auto& g_buffer = scene->get_gbuffer();
 			g_buffer.depth->write(g_buffer.flattend_index(dispatch_id().xy()), 1.f);
 			vbuffer.instance_id->write(dispatch_id().xy(), make_uint4(~0u));
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "RasterClearScreenShader"}));
 
 	ResetDispatchBufferShader = luisa::make_unique<decltype(ResetDispatchBufferShader)::element_type>(
 		Device.compile<1>([&](const Var<IndirectDispatchBuffer>& buffer, const UInt& dispatch_count) noexcept {
 			buffer.set_dispatch_count(dispatch_count);
-		}, {.enable_debug_info = bDebugInfo}));
+		}, {.enable_debug_info = bDebugInfo, .name = "ScanlineResetDispatchBuffer"}));
 }
 
 void scanline_rasterizer::ClearPass(Stream& stream)
@@ -155,10 +155,12 @@ void scanline_rasterizer::raster_triangle(const UInt& instance_id, const UInt& m
 		auto flat_index = g_buffer.flattend_index(pixel);
 
 		$comment("depth test");
-		g_buffer.depth->atomic(flat_index).fetch_min(z);
-		$if (g_buffer.depth->read(flat_index) == z)
+		// auto pre_z = g_buffer.depth->atomic(flat_index).fetch_min(z);
+		auto pre_z = g_buffer.depth->read(flat_index);
+		$if (pre_z > z)
 		{
 			$comment("write back visibility buffer");
+			g_buffer.depth->write(flat_index, z);
 			vbuffer.instance_id->write(pixel, make_uint4(instance_id));
 			vbuffer.triangle_id->write(pixel, make_uint4(triangle_id));
 			vbuffer.bary->write(pixel, make_float4(bary, 0.0f, 0.0f));

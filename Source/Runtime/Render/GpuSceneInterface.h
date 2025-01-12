@@ -129,9 +129,9 @@ namespace MechEngine::Rendering
 		}
 
 		template<uint dim, typename Def>
-		auto RegisterShader(Def &&def) noexcept {
+		auto RegisterShader(Def &&def, const luisa::string name = "") noexcept {
 			static_assert(dim == 1u || dim == 2u || dim == 3u);
-			return device.compile<dim>(std::forward<Def>(def), {.enable_debug_info = bShaderDebugInfo});
+			return device.compile<dim>(std::forward<Def>(def), {.enable_debug_info = bShaderDebugInfo, .name = name});
 		}
 
 		[[nodiscard]] virtual ImageView<float> frame_buffer() noexcept = 0;
