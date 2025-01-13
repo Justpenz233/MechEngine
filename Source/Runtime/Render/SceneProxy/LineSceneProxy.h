@@ -79,7 +79,7 @@ namespace MechEngine::Rendering
     public:
         virtual void CompileShader() override;
 
-        virtual void PostRenderPass(Stream& stream) override;
+        virtual void PostRenderPass(CommandList& CmdList) override;
 
     protected:
         static constexpr uint32_t MaxLinesCount = 8192; // 8192 * 10 * 4 = 327680 bytes = 320 KB

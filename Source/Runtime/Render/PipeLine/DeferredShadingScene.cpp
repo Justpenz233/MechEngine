@@ -33,15 +33,15 @@ void DeferredShadingScene::LoadRenderSettings()
 	bRenderShadow = GConfig.Get<bool>("DeferredShading", "RenderShadow");
 }
 
-void DeferredShadingScene::PrePass(Stream& stream)
+void DeferredShadingScene::PrePass(CommandList& CmdList)
 {
-	GpuScene::PrePass(stream);
+	GpuScene::PrePass(CmdList);
 
 	if(bUseRasterizer)
 	{
 		auto MeshSceneProxy = StaticMeshProxy.get();
 
-		Rasterizer->ClearPass(stream);
+		Rasterizer->ClearPass(CmdList);
 
 		// Iterate all the mesh in the scene
 		for(auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
@@ -49,9 +49,10 @@ void DeferredShadingScene::PrePass(Stream& stream)
 			ASSERT(Mesh != nullptr);
 			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
 			{
-				Rasterizer->VisibilityPass(stream, instance_id, MeshId, Mesh->GetVertexNum(), Mesh->GetFaceNum());
+				Rasterizer->VisibilityPass(CmdList, instance_id, MeshId, Mesh->GetVertexNum(), Mesh->GetFaceNum());
 			}
 		}
+		stream << CmdList.commit();
 	}
 }
 

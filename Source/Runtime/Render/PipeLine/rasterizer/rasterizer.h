@@ -22,12 +22,12 @@ public:
 	explicit rasterizer(GpuScene* InScene) : scene(InScene) {}
 
 
-	virtual void ClearPass(Stream& stream) = 0;
+	virtual void ClearPass(CommandList& command_list) = 0;
 
 	/**
 	 * Raster visibility pass
 	 */
-	virtual void VisibilityPass(Stream& stream, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) = 0;
+	virtual void VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) = 0;
 
 	[[nodiscard]] UInt get_mesh_id(const UInt& instance_id) const;
 

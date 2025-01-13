@@ -18,7 +18,7 @@ public:
 
 	virtual void LoadRenderSettings() override;
 
-	virtual void PrePass(Stream& stream) override;
+	virtual void PrePass(CommandList& CmdList) override;
 
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) override;
 

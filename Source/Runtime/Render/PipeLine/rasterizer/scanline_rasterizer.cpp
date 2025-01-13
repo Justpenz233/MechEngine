@@ -14,7 +14,9 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 
 	vertex_screen_coords = Device.create_buffer<float3>(vertex_max_number);
 	triangle_pixel_offset = Device.create_buffer<uint2>(triangle_max_number);
-	draw_triangle_dispatch_buffer = Device.create_indirect_dispatch_buffer(triangle_max_number);
+
+	// The maximum size of the dispatch buffer is 16384
+	draw_triangle_dispatch_buffer = Device.create_indirect_dispatch_buffer(16384);
 
 	vbuffer.bary = Device.create_image<float>(PixelStorage::FLOAT2, WinSize.x, WinSize.y);
 	vbuffer.instance_id = Device.create_image<uint>(PixelStorage::INT1, WinSize.x, WinSize.y);
@@ -50,22 +52,22 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 		}, {.enable_debug_info = bDebugInfo, .name = "ScanlineResetDispatchBuffer"}));
 }
 
-void scanline_rasterizer::ClearPass(Stream& stream)
+void scanline_rasterizer::ClearPass(CommandList& command_list)
 {
-	stream << (*ClearScreenShader)().dispatch(scene->GetWindosSize());
+	command_list << (*ClearScreenShader)().dispatch(scene->GetWindosSize());
 }
 
-void scanline_rasterizer::VisibilityPass(Stream& stream, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num)
+void scanline_rasterizer::VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num)
 {
 	static vector<float4> triangle_boxes(triangle_max_number);
-	CommandList command_list{};
+
+	ASSERTMSG(triangle_num <= 16384, "The maximum size of the dispatch buffer is 16384 due to metal limitation");
 	command_list
 		<< (*VertexShader)(instance_id, mesh_id).dispatch(vertex_num)
 		<< (*ResetDispatchBufferShader)(draw_triangle_dispatch_buffer, triangle_num).dispatch(1) // set dispatch count
 		<< (*RasterMeshShader)(instance_id, mesh_id).dispatch(triangle_num);
 	for(int i = 0; i < triangle_num; i ++)
 		command_list << (*RasterTriangleShader)(instance_id, mesh_id).dispatch(draw_triangle_dispatch_buffer, i, 1);
-	stream << command_list.commit();
 }
 
 void scanline_rasterizer::vertex_shader(const UInt& instance_id, const UInt& mesh_id) const

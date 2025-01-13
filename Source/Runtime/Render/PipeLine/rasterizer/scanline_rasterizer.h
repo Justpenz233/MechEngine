@@ -14,9 +14,9 @@ class scanline_rasterizer : public rasterizer
 public:
 	virtual void CompileShader(Device& Device, bool bDebugInfo) override;
 
-	virtual void ClearPass(Stream& stream) override;
+	virtual void ClearPass(CommandList& command_list) override;
 
-	virtual void VisibilityPass(Stream& stream, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) override;
+	virtual void VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) override;
 
 protected:
 	/**
@@ -41,7 +41,7 @@ protected:
 	void raster_triangle(const UInt& instance_id, const UInt& mesh_id) const;
 
 protected:
-	static constexpr uint triangle_max_number = (1<<20); // Should be dynamic in the future
+	static constexpr uint triangle_max_number = 16384;
 	static constexpr uint vertex_max_number = (1<<20); // Should be dynamic
 
 	IndirectDispatchBuffer draw_triangle_dispatch_buffer;

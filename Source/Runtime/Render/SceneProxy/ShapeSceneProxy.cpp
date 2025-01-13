@@ -38,7 +38,9 @@ void ShapeSceneProxy::SetInstanceMeshID(uint InstanceID, uint MeshID)
 uint ShapeSceneProxy::RegisterInstance() const
 {
 	accel.emplace_back_handle(0, {}, {}, false, 0);
-	return accel.size() - 1;
+	auto instance_id = accel.size() - 1;
+	ASSERTMSG(instance_id < Scene.MaxInstanceNum, "Instance number exceeds the maximum limit.");
+	return instance_id;
 }
 
 void ShapeSceneProxy::RemoveInstance(uint InstanceID) const

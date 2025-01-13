@@ -7,9 +7,6 @@
 #include "Render/Core/ray_tracing_hit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
-#include "Render/Core/bxdf_context.h"
-#include "Render/Core/math_function.h"
-#include "Render/Core/sample.h"
 #include "Render/material/shading_function.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/SceneProxy/TransformProxy.h"
@@ -78,20 +75,23 @@ void GpuScene::UploadRenderData()
 
 void GpuScene::Render()
 {
-	PrePass(stream);
-	stream << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
-	PostPass(stream);
+	CommandList CmdList{};
+	PrePass(CmdList);
+	CmdList << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
+	PostPass(CmdList);
+	stream << CmdList.commit();
 }
 
-void GpuScene::PostPass(Stream& stream)
+void GpuScene::PostPass(CommandList& CmdList)
 {
 	if (ViewMode != ViewMode::FrameBuffer) [[unlikely]]
-		stream << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+		CmdList << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
 	else
 	{
-		LineProxy->PostRenderPass(stream);
-		stream << (*ToneMappingPass)().dispatch(GetWindosSize());
+		LineProxy->PostRenderPass(CmdList);
+		CmdList << (*ToneMappingPass)().dispatch(GetWindosSize());
 	}
+	stream << CmdList.commit();
 }
 
 ImageView<float> GpuScene::frame_buffer() noexcept
@@ -267,7 +267,7 @@ void GpuScene::InitBuffers()
 void GpuScene::InitSamplers()
 {
 	// Initialize the sampler
-	sampler = luisa::make_unique<sobol_sampler>(this, stream);
+	sampler = luisa::make_unique<independent_sampler>(this, stream);
 	stream << synchronize();
 }
 

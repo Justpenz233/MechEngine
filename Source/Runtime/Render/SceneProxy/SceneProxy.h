@@ -36,8 +36,8 @@ public:
 	virtual bool IsDirty() { return false; }
 	virtual void CompileShader() {}
 	virtual void UploadDirtyData(luisa::compute::Stream& stream) = 0;
-	virtual void PreRenderPass(luisa::compute::Stream& stream) {}
-	virtual void PostRenderPass(luisa::compute::Stream& stream) {}
+	virtual void PreRenderPass(luisa::compute::CommandList& CmdList) {}
+	virtual void PostRenderPass(luisa::compute::CommandList& CmdList) {}
 
 protected:
 	template<typename T, typename I>

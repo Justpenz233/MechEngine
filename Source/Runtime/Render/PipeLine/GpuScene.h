@@ -36,7 +36,7 @@ public:
 
 	virtual ~GpuScene();
 protected:
-	luisa::compute::ImGuiWindow* Window;
+	ImGuiWindow* Window;
 	ViewportInterface* Viewport;
 
 public:
@@ -57,16 +57,15 @@ public:
 	
 	void UploadRenderData();
 
-	virtual void PrePass(Stream& stream) {};
+	virtual void PrePass(CommandList& CmdList) {};
 
 	virtual void Render() override;
 
 	/**
 	 * Post pass, do some post process after the main pass
 	 * Here we implement tone mapping and gamma correction for frame buffer
-	 * @param stream
 	 */
-	virtual void PostPass(Stream& stream);
+	virtual void PostPass(CommandList& CmdList);
 
 
 public:

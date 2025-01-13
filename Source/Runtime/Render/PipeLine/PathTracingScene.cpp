@@ -46,14 +46,14 @@ void PathTracingScene::CompileShader()
 	GpuScene::CompileShader();
 }
 
-void PathTracingScene::PrePass(Stream& stream)
+void PathTracingScene::PrePass(CommandList& CmdList)
 {
-	GpuScene::PrePass(stream);
+	GpuScene::PrePass(CmdList);
 	if(bUseRasterizer)
 	{
 		auto MeshSceneProxy = StaticMeshProxy.get();
 
-		Rasterizer->ClearPass(stream);
+		Rasterizer->ClearPass(CmdList);
 
 		// Iterate all the mesh in the scene
 		for(auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
@@ -61,18 +61,18 @@ void PathTracingScene::PrePass(Stream& stream)
 			ASSERT(Mesh != nullptr);
 			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
 			{
-				Rasterizer->VisibilityPass(stream, instance_id, MeshId,
-					Mesh->GetVertexNum(), Mesh->GetFaceNum());
+				Rasterizer->VisibilityPass(CmdList, instance_id, MeshId, Mesh->GetVertexNum(), Mesh->GetFaceNum());
 			}
 		}
+		// stream << CmdList.commit();
 	}
 
 }
 
-void PathTracingScene::PostPass(Stream& stream)
+void PathTracingScene::PostPass(CommandList& CmdList)
 {
 	if (bUseSVGF) svgf->PostPass(stream);
-	GpuScene::PostPass(stream);
+	GpuScene::PostPass(CmdList);
 }
 
 void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
@@ -120,7 +120,7 @@ ray_intersection PathTracingScene::intersect_bias(const UInt2& pixel_coord, Expr
 
 Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
 {
-	ray_intersection first_intersection;
+	// ray_intersection first_intersection;
 	Float3			 pixel_radiance = make_float3(0.f);
 	Float3			 beta = make_float3(1.f);
 	auto			 pdf_bsdf = def(1e16f);
@@ -132,24 +132,21 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		const auto& x = intersection.position_world;
 		const auto& w_o = normalize(-ray->direction());
 		auto		local_wo = frame.world_to_local(w_o);
-		$if(depth == 0)
-		{
-			first_intersection = intersection; // For wireframe pass
-		};
 		$if(!intersection.valid())
 		{
 			$break;
 		};
-		$if(intersection.shape->has_light() & depth == 0)
+		$if(intersection.shape->has_light())
 		{
-			auto light = LightProxy->get_light_data(intersection.shape.light_id);
-			pixel_radiance = light->light_color * light->intensity;
-			$break;
-		};
-		$if(intersection.shape->has_light() & depth != 0)
-		{
-			auto [li, pdf] = LightProxy->l_i(intersection.shape.light_id, ray->origin(), x);
-			pixel_radiance += beta * li * balance_heuristic(pdf_bsdf, pdf);
+			$if(depth == 0)
+			{
+				auto light = LightProxy->get_light_data(intersection.shape.light_id);
+				pixel_radiance = light->light_color * light->intensity;
+			}
+			$else{
+				auto [li, pdf] = LightProxy->l_i(intersection.shape.light_id, ray->origin(), x);
+				pixel_radiance += beta * li * balance_heuristic(pdf_bsdf, pdf);
+			};
 			$break;
 		};
 		$if(intersection.shape->has_surface()) // Surface shade

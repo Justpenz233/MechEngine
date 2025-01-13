@@ -186,17 +186,16 @@ namespace MechEngine::Rendering
 			}, "DrawLineShader"));
 	}
 
-	void LineSceneProxy::PostRenderPass(Stream& stream)
+	void LineSceneProxy::PostRenderPass(CommandList& CmdList)
 	{
     	static int NThreadPerLine = 16; // for each line, how many thread should be used
-		SceneProxy::PostRenderPass(stream);
     	if (!Points.empty())
     	{
-    		stream << (*DrawPointsShader)().dispatch(Points.size());
+    		CmdList << (*DrawPointsShader)().dispatch(Points.size());
     	}
     	if (!Lines.empty())
 		{
-			stream << (*DrawLineShader)().dispatch(Lines.size(), NThreadPerLine);
+			CmdList << (*DrawLineShader)().dispatch(Lines.size(), NThreadPerLine);
 		}
 	}
 }
