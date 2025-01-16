@@ -116,7 +116,6 @@ public:
 	[[nodiscard]] std::tuple<Float3, Float3, Float> sample_brdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float2& u) const;
 
 protected:
-	static constexpr uint MaxMaterials = 8192;
 	vector<material_data> MaterialDataVector;
 	BufferView<material_data> material_data_buffer;
 

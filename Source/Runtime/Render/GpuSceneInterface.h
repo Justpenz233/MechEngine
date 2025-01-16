@@ -171,8 +171,12 @@ namespace MechEngine::Rendering
 		FORCEINLINE ShapeSceneProxy* GetShapeProxy() { return ShapeProxy.get(); }
 
 	public:
-		const uint MaxInstanceNum = 65536u;
-		const uint MaxTransformNum = 65536u;
+	    // The maximum number of different buffer should depend on the GPU L2 cache size
+		const uint MaxLightNum = 256u; // 64B * 256 = 16KB
+		const uint MaxMaterialsNum = 8192u; // 64B * 8192 = 512KB
+		const uint MaxInstanceNum = 65536u; // 8B * 65536 = 512KB
+		const uint MaxTransformNum = 8196u; // 224B * 8196 = 1.75MB
+		const uint MaxStaticMeshNum = 8192u; // 20B * 8192 = 160KB
 
 	protected:
 		// Instance shape management

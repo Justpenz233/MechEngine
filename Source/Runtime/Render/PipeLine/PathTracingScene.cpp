@@ -120,7 +120,7 @@ ray_intersection PathTracingScene::intersect_bias(const UInt2& pixel_coord, Expr
 
 Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight)
 {
-	// ray_intersection first_intersection;
+	ray_intersection first_intersection;
 	Float3			 pixel_radiance = make_float3(0.f);
 	Float3			 beta = make_float3(1.f);
 	auto			 pdf_bsdf = def(1e16f);
@@ -132,10 +132,14 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		const auto& x = intersection.position_world;
 		const auto& w_o = normalize(-ray->direction());
 		auto		local_wo = frame.world_to_local(w_o);
+
+		$comment("If the intersection is invalid");
 		$if(!intersection.valid())
 		{
 			$break;
 		};
+
+		$comment("If the intersection is light");
 		$if(intersection.shape->has_light())
 		{
 			$if(depth == 0)
@@ -149,6 +153,8 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			};
 			$break;
 		};
+
+		$comment("Shading surface");
 		$if(intersection.shape->has_surface()) // Surface shade
 		{
 			// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
@@ -158,7 +164,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			auto normal = bxdf_parameters.normal;
 			auto shadow_ray_origin = offset_ray_origin(x, normal);
 
-			// Sample light
+			$comment("Sample light");
 			{
 				auto light_id = 0;
 				auto light_sample = LightProxy->sample_li(light_id, x, get_sampler()->generate_2d());
@@ -175,6 +181,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 
 			// Sample brdf
 			{
+				$comment("Next event estimation");
 				auto [local_wi, brdf, pdf]
 				= MaterialProxy->sample_brdf(shader_id, bxdf_parameters, local_wo, get_sampler()->generate_2d());
 				auto world_wi = frame.local_to_world(local_wi);

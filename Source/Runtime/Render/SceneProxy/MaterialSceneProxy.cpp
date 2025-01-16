@@ -13,7 +13,7 @@ namespace MechEngine::Rendering
 MaterialSceneProxy::MaterialSceneProxy(GpuScene& InScene)
 :SceneProxy(InScene)
 {
-	material_data_buffer = Scene.RegisterBuffer<material_data>(MaxMaterials);
+	material_data_buffer = Scene.RegisterBuffer<material_data>(Scene.MaxMaterialsNum);
 
 	auto disney_shader_id = shader_call.create<disney_material>();
 	auto blinn_phong_id = shader_call.create<blinn_phong_material>();
@@ -66,6 +66,7 @@ uint MaterialSceneProxy::RegisterShader(luisa::unique_ptr<shader_base>&& Shader)
 
 std::pair<UInt, material_parameters> MaterialSceneProxy::get_material_parameters(const ray_intersection& intersection) const noexcept
 {
+	$comment("Get material parameters from intersection");
 	auto material_data = get_material_data(intersection.material_id);
 
 	bxdf_context context{
@@ -84,6 +85,7 @@ std::pair<UInt, material_parameters> MaterialSceneProxy::get_material_parameters
 
 Float3 MaterialSceneProxy::brdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const
 {
+	$comment("Get brdf");
 	Float3 brdf;
 	shader_call.dispatch(shader_id, [&](const shader_base* material) {
 		 brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
@@ -93,6 +95,7 @@ Float3 MaterialSceneProxy::brdf(const UInt& shader_id, const material_parameters
 
 std::pair<Float3, Float> MaterialSceneProxy::brdf_pdf(const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float3& local_wi) const
 {
+	$comment("Get brdf and pdf");
 	Float3 brdf; Float pdf;
 	shader_call.dispatch(shader_id, [&](const shader_base* material) {
 		brdf = material->bxdf(bxdf_parameters, local_wo, local_wi);
@@ -104,6 +107,7 @@ std::pair<Float3, Float> MaterialSceneProxy::brdf_pdf(const UInt& shader_id, con
 std::tuple<Float3, Float3, Float> MaterialSceneProxy::sample_brdf
 (const UInt& shader_id, const material_parameters& bxdf_parameters, const Float3& local_wo, const Float2& u) const
 {
+	$comment("Sample brdf");
 	Float3 local_wi, brdf; Float pdf;
 	shader_call.dispatch(shader_id,
 		[&](const shader_base* material) {

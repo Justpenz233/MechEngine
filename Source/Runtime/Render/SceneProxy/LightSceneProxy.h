@@ -73,7 +73,6 @@ protected:
 
 	//Light collection
 	uint IdCounter = 0;
-	static constexpr auto light_max_number = 256u;
 	vector<light_data> LightDatas;
 	uint bindless_id;
 	BufferView<light_data> light_buffer;

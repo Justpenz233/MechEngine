@@ -17,9 +17,9 @@ namespace MechEngine::Rendering
 StaticMeshSceneProxy::StaticMeshSceneProxy(GpuScene& InScene)
 	: SceneProxy(InScene)
 {
-	StaticMeshData.resize(InScene.MaxInstanceNum);
-	MeshResources.resize(InScene.MaxInstanceNum);
-	MeshInstances.resize(InScene.MaxInstanceNum);
+	StaticMeshData.resize(InScene.MaxStaticMeshNum);
+	MeshResources.resize(InScene.MaxStaticMeshNum);
+	MeshInstances.resize(InScene.MaxStaticMeshNum);
 	std::tie(data_buffer, data_buffer_id) = Scene.RegisterBindlessBuffer<static_mesh_data>(InScene.MaxInstanceNum);
 
 	{

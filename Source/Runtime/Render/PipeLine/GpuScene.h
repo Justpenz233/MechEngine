@@ -34,12 +34,8 @@ class ENGINE_API GpuScene : public GpuSceneInterface
 public:
 	GpuScene(Stream& stream, Device& device, luisa::compute::ImGuiWindow* InWindows, ViewportInterface* InViewport) noexcept;
 
-	virtual ~GpuScene();
-protected:
-	ImGuiWindow* Window;
-	ViewportInterface* Viewport;
+	~GpuScene() override;
 
-public:
 	/** Create and Init buffers */
 	virtual void InitBuffers();
 
@@ -157,6 +153,7 @@ public:
 	}
 
 protected:
+
 	/**
 	 * Render the main view, dispatch the render kernel
 	 * @param frame_index the index of the frame, should start from 0 and increase by 1
@@ -167,6 +164,9 @@ protected:
 	unique_ptr<Shader2D<>> ToneMappingPass;
 
 	unique_ptr<rasterizer> Rasterizer;
+
+	ImGuiWindow* Window;
+	ViewportInterface* Viewport;
 
 };
 }

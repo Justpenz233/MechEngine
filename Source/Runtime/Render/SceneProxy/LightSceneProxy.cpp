@@ -17,8 +17,8 @@ namespace MechEngine::Rendering
 LightSceneProxy::LightSceneProxy(GpuScene& InScene) noexcept
 	: SceneProxy(InScene)
 {
-	LightDatas.resize(light_max_number);
-	std::tie(light_buffer, bindless_id) = Scene.RegisterBindlessBuffer<light_data>(light_max_number);
+	LightDatas.resize(Scene.MaxLightNum);
+	std::tie(light_buffer, bindless_id) = Scene.RegisterBindlessBuffer<light_data>(Scene.MaxLightNum);
 
 	point_light_tag = light_virtual_call.create<point_light>(Scene);
 	rectangle_light_tag = light_virtual_call.create<rectangle_light>(Scene);
