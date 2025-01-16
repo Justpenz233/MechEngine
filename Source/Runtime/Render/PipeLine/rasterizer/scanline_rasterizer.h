@@ -16,7 +16,8 @@ public:
 
 	virtual void ClearPass(CommandList& command_list) override;
 
-	virtual void VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) override;
+	virtual void VisibilityPass(CommandList& command_list,
+		uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num, bool back_face_culling) override;
 
 protected:
 	/**
@@ -30,8 +31,9 @@ protected:
 	 * Raster a mesh
 	 * @param instance_id instance id
 	 * @param mesh_id mesh id
+	 * @param enable_back_face_culling
 	 */
-	void raster_mesh(const UInt& instance_id, const UInt& mesh_id) const;
+	void culling_triangle(const UInt& instance_id, const UInt& mesh_id, Bool enable_back_face_culling) const;
 
 	/**
 	 * Raster a triangle
@@ -60,7 +62,7 @@ protected:
 	unique_ptr<Shader1D<uint, uint>> VertexShader;
 
 	// Raster mesh and dispatch draw triangle kernel
-	unique_ptr<Shader1D<uint, uint>> RasterMeshShader;
+	unique_ptr<Shader1D<uint, uint, bool>> CullingTriangleShader;
 
 	// Raster triangle to pixel shader
 	unique_ptr<Shader2D<uint, uint>> RasterTriangleShader;

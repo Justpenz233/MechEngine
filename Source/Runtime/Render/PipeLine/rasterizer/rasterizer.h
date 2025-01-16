@@ -27,7 +27,7 @@ public:
 	/**
 	 * Raster visibility pass
 	 */
-	virtual void VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num) = 0;
+	virtual void VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num, bool back_face_culling) = 0;
 
 	[[nodiscard]] UInt get_mesh_id(const UInt& instance_id) const;
 
@@ -40,6 +40,8 @@ public:
 	[[nodiscard]] Var<Triangle> get_triangle(const UInt& mesh_id, const UInt& triangle_index) const;
 
 	[[nodiscard]] Var<view> get_view() const;
+
+	static Bool back_face_culling(const ArrayFloat3<3>& vertex_screen_coords);
 
 	visibility_buffer vbuffer;
 protected:

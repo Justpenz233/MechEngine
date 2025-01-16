@@ -92,6 +92,14 @@ public:
 	FORCEINLINE FVector2 GetUV(int VertexIndex) const { return UV.row(VertexIndex); }
 
 	/**
+	 * Get the back face culling option of the mesh
+	 * @return if the mesh enable back face culling
+	 */
+	FORCEINLINE bool IsBackFaceCulling() const { return bBackFaceCulling; }
+	FORCEINLINE void SetBackFaceCulling(bool bEnable) { bBackFaceCulling = bEnable; }
+
+
+	/**
 	 * https://ieeexplore.ieee.org/document/958278 , to calc signed volume of a tetrahedron with Origin as the fourth vertex
 	 * @return volume of this mesh
 	 */
@@ -305,6 +313,9 @@ public:
 
 protected:
 	MatrixX2d UV; // UV matrix of the mesh, each row is a UV coordinate of a vertex
+
+	MPROPERTY()
+	bool bBackFaceCulling = true; // If enable back face culling
 
 	MPROPERTY()
 	ObjectPtr<Material> MaterialData; // Material of the mesh

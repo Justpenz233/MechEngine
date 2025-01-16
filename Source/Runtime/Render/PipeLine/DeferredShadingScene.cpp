@@ -49,7 +49,8 @@ void DeferredShadingScene::PrePass(CommandList& CmdList)
 			ASSERT(Mesh != nullptr);
 			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
 			{
-				Rasterizer->VisibilityPass(CmdList, instance_id, MeshId, Mesh->GetVertexNum(), Mesh->GetFaceNum());
+				Rasterizer->VisibilityPass(CmdList, instance_id, MeshId,
+					Mesh->GetVertexNum(), Mesh->GetFaceNum(), Mesh->IsBackFaceCulling());
 			}
 		}
 		stream << CmdList.commit();

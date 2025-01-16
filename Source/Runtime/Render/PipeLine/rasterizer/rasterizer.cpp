@@ -43,4 +43,13 @@ Var<view> rasterizer::get_view() const
 	return scene->GetCameraProxy()->get_main_view();
 }
 
+Bool rasterizer::back_face_culling(const ArrayFloat3<3>& vertex_scree_coords)
+{
+	static Callable func = [](const ArrayFloat3<3>& Vertex) {
+		auto normal = cross(Vertex[1] - Vertex[0], Vertex[2] - Vertex[0]);
+		return normal.z < 0.f;
+	};
+	return func(vertex_scree_coords);
+}
+
 } // namespace MechEngine::Rendering

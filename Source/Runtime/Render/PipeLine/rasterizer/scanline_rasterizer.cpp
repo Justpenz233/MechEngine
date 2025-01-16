@@ -27,9 +27,9 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 			vertex_shader(instance_id, mesh_id);
 		}, {.enable_debug_info = bDebugInfo, .name = "VertexShader"}));
 
-	RasterMeshShader = luisa::make_unique<decltype(RasterMeshShader)::element_type>(
-		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id) noexcept {
-			raster_mesh(instance_id, mesh_id);
+	CullingTriangleShader = luisa::make_unique<decltype(CullingTriangleShader)::element_type>(
+		Device.compile<1>([&](const UInt& instance_id, const UInt& mesh_id, const Bool& enable_back_face_culling) noexcept {
+			culling_triangle(instance_id, mesh_id, enable_back_face_culling);
 		}, {.enable_debug_info = bDebugInfo, .name = "RasterMeshShader"}));
 
 	RasterTriangleShader = luisa::make_unique<decltype(RasterTriangleShader)::element_type>(
@@ -57,7 +57,7 @@ void scanline_rasterizer::ClearPass(CommandList& command_list)
 	command_list << (*ClearScreenShader)().dispatch(scene->GetWindosSize());
 }
 
-void scanline_rasterizer::VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num)
+void scanline_rasterizer::VisibilityPass(CommandList& command_list, uint instance_id, uint mesh_id, uint vertex_num, uint triangle_num, bool back_face_culling)
 {
 	static vector<float4> triangle_boxes(triangle_max_number);
 
@@ -65,7 +65,7 @@ void scanline_rasterizer::VisibilityPass(CommandList& command_list, uint instanc
 	command_list
 		<< (*VertexShader)(instance_id, mesh_id).dispatch(vertex_num)
 		<< (*ResetDispatchBufferShader)(draw_triangle_dispatch_buffer, triangle_num).dispatch(1) // set dispatch count
-		<< (*RasterMeshShader)(instance_id, mesh_id).dispatch(triangle_num);
+		<< (*CullingTriangleShader)(instance_id, mesh_id, back_face_culling).dispatch(triangle_num);
 	for(int i = 0; i < triangle_num; i ++)
 		command_list << (*RasterTriangleShader)(instance_id, mesh_id).dispatch(draw_triangle_dispatch_buffer, i, 1);
 }
@@ -82,7 +82,7 @@ void scanline_rasterizer::vertex_shader(const UInt& instance_id, const UInt& mes
 		view->world_to_screen(world_pos.xyz()));
 }
 
-void scanline_rasterizer::raster_mesh(const UInt& instance_id, const UInt& mesh_id) const
+void scanline_rasterizer::culling_triangle(const UInt& instance_id, const UInt& mesh_id, Bool enable_back_face_culling) const
 {
 	auto WinSize = scene->GetWindosSize();
 	auto triangle_id = dispatch_id().x;
@@ -94,13 +94,14 @@ void scanline_rasterizer::raster_mesh(const UInt& instance_id, const UInt& mesh_
 	screen_coords[1] = vertex_screen_coords->read(Indices.i1);
 	screen_coords[2] = vertex_screen_coords->read(Indices.i2);
 
-	// TODO: add back face culling
 	$comment("Calulate triangle bounding box");
 	auto minX = min(screen_coords[0].x, min(screen_coords[1].x, screen_coords[2].x));
 	auto maxX = max(screen_coords[0].x, max(screen_coords[1].x, screen_coords[2].x));
 	auto minY = min(screen_coords[0].y, min(screen_coords[1].y, screen_coords[2].y));
 	auto maxY = max(screen_coords[0].y, max(screen_coords[1].y, screen_coords[2].y));
-	$if(minX > Float(WinSize.x - 1.f) | minY > Float(WinSize.y - 1.f) | maxX < 0.0f | maxY < 0.0f)
+	auto bfc_result = back_face_culling(screen_coords) & enable_back_face_culling;
+
+	$if(bfc_result | minX > Float(WinSize.x - 1.f) | minY > Float(WinSize.y - 1.f) | maxX < 0.0f | maxY < 0.0f)
 	{
 		$comment("Triangle is out of screen");
 		draw_triangle_dispatch_buffer->set_kernel(
