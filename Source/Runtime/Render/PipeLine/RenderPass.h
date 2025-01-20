@@ -21,9 +21,9 @@ public:
 	 */
 	virtual void CompileShader(luisa::compute::Device& Device, bool bDebugInfo) = 0;
 
-	virtual void PrePass(luisa::compute::Stream& Stream) const {}
+	virtual void PrePass(luisa::compute::CommandList& command_list) const {}
 
-	virtual void MainPass(luisa::compute::Stream& Stream) const {}
+	virtual void MainPass(luisa::compute::CommandList& command_list) const {}
 
-	virtual void PostPass(luisa::compute::Stream& Stream) const {}
+	virtual void PostPass(luisa::compute::CommandList& command_list) const {}
 };

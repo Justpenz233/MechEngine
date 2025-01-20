@@ -24,7 +24,7 @@ public:
 
 	virtual void PrePass(CommandList& CmdList) override;
 
-	virtual void PostPass(CommandList& CmdList) override;
+	virtual void Render() override;
 
 	virtual void render_main_view(const UInt& frame_index, const UInt& time) override;
 

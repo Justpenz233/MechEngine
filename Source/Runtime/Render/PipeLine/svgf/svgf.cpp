@@ -143,13 +143,11 @@ void svgf::CompileShader(Device& device, bool bDebugInfo)
 		}, {.enable_debug_info = bDebugInfo, .name = "SVGFWriteFrameBuffer"}));
 }
 
-void svgf::PostPass(Stream& stream) const
+void svgf::PostPass(CommandList& command_list) const
 {
-	CommandList command_list{};
 	for(int i = 0;i < 4;i ++)
 		command_list << (*spacial_filter_shader)(1 << i).dispatch(frame_buffer.size());
 	command_list << (*write_frame_buffer_shader)().dispatch(frame_buffer.size());
-	stream << command_list.commit();
 }
 
 } // namespace MechEngine::Rendering

@@ -63,9 +63,8 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
 
-	get_sampler()->init(pixel_coord, frame_index);
-
-	g_buffer.set_default(pixel_coord, make_float4(1.f));
+	if (bGlobalIllumination)
+		get_sampler()->init(pixel_coord, frame_index);
 
 	auto pixel_pos = make_float2(pixel_coord) + .5f;
 	auto ray = view->generate_ray(pixel_pos);
@@ -93,6 +92,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 		auto x = intersection.position_world;
 		auto w_o = normalize(-ray->direction());
 
+		$comment("Read material parameters");
 		// Rendering equation : L_o(x, w_0) = L_e(x, w_0) + \int_{\Omega} bxdf(x, w_i, w_0) L_i(x, w_i) (n \cdot w_i) dw_i
 		bxdf_context context{
 			.intersection = intersection,
@@ -109,7 +109,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 		auto normal_world = bxdf_parameters.normal;
 
 		// Raytracing gem 2,  CHAPTER 4 HACKING THE SHADOW TERMINATOR
-		auto offset_ray = [&]() {
+		static Callable offset_ray = [&]() {
 			auto vps = StaticMeshProxy->get_vertices(intersection.shape->mesh_id, intersection.primitive_id);
 			auto tmpu = x - vps[0]->position();
 			auto tmpv = x - vps[1]->position();
@@ -126,7 +126,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 		};
 		auto shadow_ray_origin = bShadowRayOffset ? offset_ray() : offset_ray_origin(x, normal_world);
 
-
+		$comment("For each light source");
 		$for(light_id, 128)
 		{
 			// First calculate light color, as rendering equation is L_i(x, w_i)
@@ -135,15 +135,17 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 			auto light_location = rtAccel->instance_transform(light_data->instance_id)[3].xyz();
 			auto light_dir = normalize(light_location - x);
 
-			auto calc_lighting = [&](const Float3& w_i, bool calc_shadow) {
+			Callable calc_lighting = [&](const Float3& w_i) {
+				$comment("Calculate lighting");
 				Float3 light_visibility = make_float3(1.);
 				auto local_w_i = frame.world_to_local(w_i);
 				auto local_w_o = frame.world_to_local(w_o);
 				auto shading = def(make_float3(0.f));
 				$if(dot(w_i, normal_world) >= 0.f)
 				{
-					if (calc_shadow)// Shadow ray
+					if (bRenderShadow)// Shadow ray
 					{
+						$comment("render shadow");
 						auto Hit = trace_closest(make_ray(shadow_ray_origin, w_i, 0.f, 1.f)).instance_id;
 						light_visibility = select(make_float3(0.), make_float3(1.),
 						 Hit == light_data->instance_id | Hit == ~0u);
@@ -155,6 +157,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 							auto light_color  = light->l_i_rt(light_data, x, w_i, w_o, normal_world);
 							MaterialProxy->shader_call.dispatch(
 							material_data.shader_id, [&](const shader_base* material) {
+								$comment("Calculate bxdf shading");
 								auto mesh_color = material->bxdf(bxdf_parameters, local_w_o, local_w_i);
 								shading = mesh_color * light_color * max(dot(w_i, normal_world), 0.001f) * light_visibility;
 							});
@@ -163,11 +166,13 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 				return shading;
 			};
 
-			auto lighting = calc_lighting(light_dir, bRenderShadow);
+			$comment("Calculate lighting");
+			auto lighting = calc_lighting(light_dir);
 			pixel_radiance += lighting;
 		};
 		if(global_illumination)
 		{
+			$comment("global illumination");
 			$if(material_data.alpha == 1.f) // Only reflect for opaque surface
 			{
 				Float3 reflect = make_float3(0.f);
@@ -195,6 +200,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord)
 {
 	ray_intersection intersection;
+	$comment("Rasterization");
 	if(bUseRasterizer)
 	{
 		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
@@ -209,15 +215,18 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 	auto wireframe_intersection = intersection; // For wireframe pass
 	Float  transmission = 1.f;
 	Float3 pixel_color = make_float3(0.f);
+	$comment("Trace path if transparent");
 	$while(intersection.valid())
 	{
 		auto [surface_radiance, alpha]
 		= calc_surface_point_color(ray, intersection, bGlobalIllumination);
 
+		$comment("accumulate color");
 		pixel_color += surface_radiance * alpha * transmission;
 		transmission *= 1.f - alpha;
 		$if(alpha != 1.f & transmission > 1e-2f)
 		{
+			$comment("Transparent surface, trace next ray");
 			ray->set_origin(
 				offset_ray_origin(intersection.position_world, intersection.triangle_normal_world, ray->direction()));
 			intersection = intersect(ray);
@@ -234,6 +243,7 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 	//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
 	$if(wireframe_intersection.shape->is_mesh())
 	{
+		$comment("Wireframe pass");
 		auto pixel_pos = make_float2(pixel_coord) + .5f;
 		auto material_data = MaterialProxy->get_material_data(wireframe_intersection.material_id);
 		$if(material_data->show_wireframe == 1)

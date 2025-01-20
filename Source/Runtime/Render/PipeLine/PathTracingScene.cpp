@@ -38,10 +38,10 @@ void PathTracingScene::CompileShader()
 		reservoirs = device.create_buffer<ris_reservoir>(WindowSize.x * WindowSize.y);
 
 	if (bUseSVGF)
+	{
 		svgf = make_unique<class svgf>(WindowSize, frame_buffer());
-
-	if (bUseSVGF)
 		svgf->CompileShader(device, bShaderDebugInfo);
+	}
 
 	GpuScene::CompileShader();
 }
@@ -49,32 +49,36 @@ void PathTracingScene::CompileShader()
 void PathTracingScene::PrePass(CommandList& CmdList)
 {
 	GpuScene::PrePass(CmdList);
-	if(bUseRasterizer)
+	if (bUseRasterizer)
 	{
 		auto MeshSceneProxy = StaticMeshProxy.get();
 
 		Rasterizer->ClearPass(CmdList);
 
 		// Iterate all the mesh in the scene
-		for(auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
+		for (auto [MeshId, Mesh] : MeshSceneProxy->MeshIdToPtr)
 		{
 			ASSERT(Mesh != nullptr);
-			for(auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
+			for (auto instance_id : MeshSceneProxy->MeshInstances[MeshId])
 			{
-				Rasterizer->VisibilityPass
-				(CmdList, instance_id, MeshId,
+				Rasterizer->VisibilityPass(CmdList, instance_id, MeshId,
 					Mesh->GetVertexNum(), Mesh->GetFaceNum(), Mesh->IsBackFaceCulling());
 			}
 		}
-		// stream << CmdList.commit();
 	}
-
 }
-
-void PathTracingScene::PostPass(CommandList& CmdList)
+void PathTracingScene::Render()
 {
-	if (bUseSVGF) svgf->PostPass(stream);
-	GpuScene::PostPass(CmdList);
+	CommandList CmdList{};
+	PrePass(CmdList);
+	stream << CmdList.commit();
+
+	CmdList << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
+	if (bUseSVGF) svgf->PostPass(CmdList);
+	stream << CmdList.commit();
+
+	PostPass(CmdList);
+	stream << CmdList.commit();
 }
 
 void PathTracingScene::render_main_view(const UInt& frame_index, const UInt& time)
@@ -139,6 +143,11 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		$if(!intersection.valid())
 		{
 			$break;
+		};
+
+		$if (depth == 0)
+		{
+			first_intersection = intersection;
 		};
 
 		$comment("If the intersection is light");

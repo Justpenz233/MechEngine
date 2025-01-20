@@ -33,7 +33,7 @@ public:
 	 */
 	Float3 temporal_filter(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color) const;
 
-	virtual void PostPass(Stream& stream) const override;
+	virtual void PostPass(CommandList& command_list) const override;
 
 	virtual void CompileShader(Device& device, bool bDebugInfo) override;
 protected:
