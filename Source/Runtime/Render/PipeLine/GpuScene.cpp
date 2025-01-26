@@ -167,7 +167,6 @@ ray_intersection GpuScene::intersect(const ray_tracing_hit& hit, const Var<Ray>&
 		it.depth = dot(p - ray->origin(), ray->direction());
 		it.back_face = dot(normal_world, ray->direction()) > 0.f;
 		it.material_id = StaticMeshProxy->get_static_mesh_data(mesh_id).material_id;
-		it.shading_frame = frame::make(it.corner_normal_world);
 		// .......
 	};
 	return it;

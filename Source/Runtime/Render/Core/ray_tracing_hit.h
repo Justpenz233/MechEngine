@@ -43,8 +43,6 @@ struct ray_intersection
 	UInt material_id;
 	Bool back_face;
 
-	frame shading_frame;
-
 	ray_intersection(): instance_id(~0u) {}
 	[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }
 

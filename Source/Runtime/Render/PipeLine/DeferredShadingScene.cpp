@@ -83,7 +83,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 	}
 	$elif (intersection.shape->is_mesh()) // Surface shade
 	{
-		const auto& frame = intersection.shading_frame;
+		auto frame = frame::make(intersection.corner_normal_world);
 		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
 		Alpha = material_data.alpha;
 		/************************************************************************

@@ -134,10 +134,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	$for(depth, 0, 2)
 	{
 		auto		intersection = intersect_bias(pixel_coord, ray, depth == 0);
-		const auto& frame = intersection.shading_frame;
 		const auto& x = intersection.position_world;
-		const auto& w_o = normalize(-ray->direction());
-		auto		local_wo = frame.world_to_local(w_o);
 
 		$comment("If the intersection is invalid");
 		$if(!intersection.valid())
@@ -148,6 +145,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		$if (depth == 0)
 		{
 			first_intersection = intersection;
+			g_buffer.write(pixel_coord, intersection);
 		};
 
 		$comment("If the intersection is light");
@@ -174,6 +172,9 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			// normal in world space
 			auto normal = bxdf_parameters.normal;
 			auto shadow_ray_origin = offset_ray_origin(x, normal);
+			const auto& w_o = normalize(-ray->direction());
+			auto frame = frame::make(intersection.corner_normal_world);
+			auto		local_wo = frame.world_to_local(w_o);
 
 			$comment("Sample light");
 			{
