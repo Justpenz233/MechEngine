@@ -4,26 +4,13 @@
 
 
 #pragma once
-#include "frame.h"
 #include "shape.h"
 
 namespace MechEngine::Rendering
 {
 using namespace luisa::compute;
-struct ray_tracing_hit
-{
-	// Instance id of the hit
-	UInt instance_id;
 
-	// Primitive id (i.e. triangle) of the hit
-	UInt primitive_id;
-
-	// Barycentric coordinates of the hit
-	Float2 barycentric;
-
-	[[nodiscard]] auto miss() const noexcept { return instance_id == ~0u; }
-};
-using hit = ray_tracing_hit;
+using hit = RayCastHit;
 
 struct ray_intersection
 {
@@ -47,4 +34,4 @@ struct ray_intersection
 	[[nodiscard]] auto valid() const noexcept { return instance_id != ~0u; }
 
 };
-}
+};

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "ray_tracing_hit.h"
+#include "ray_intersection.h"
 #include "luisa/luisa-compute.h"
 #include "Render/Core/material_data.h"
 

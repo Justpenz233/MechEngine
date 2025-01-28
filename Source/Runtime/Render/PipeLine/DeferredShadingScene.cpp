@@ -3,9 +3,9 @@
 //
 
 #include "DeferredShadingScene.h"
-
 #include "Mesh/StaticMesh.h"
 #include "Misc/Config.h"
+#include "Render/Core/frame.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"

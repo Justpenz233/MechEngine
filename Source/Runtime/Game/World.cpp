@@ -14,6 +14,8 @@
 #include "TimerManager.h"
 #include "Components/LinesComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Render/PipeLine/GpuScene.h"
+
 #include <spdlog/fmt/fmt.h>
 
 ENGINE_API World* GWorld = nullptr;
@@ -177,19 +179,19 @@ void World::DebugDrawBox(const FBox& Box, const FTransform& Transform, const FCo
 
 void World::ExportSceneToObj(const Path& FolderPath, bool bExportGlobal)
 {
-	if(FolderPath.Existing() && FolderPath.IsDirectory())
+	if (FolderPath.Existing() && FolderPath.IsDirectory())
 	{
 		for (auto& Actor : Actors)
 		{
-			if(auto MeshComponent = Actor->GetComponent<StaticMeshComponent>())
+			if (auto MeshComponent = Actor->GetComponent<StaticMeshComponent>())
 			{
-				if(auto Mesh = MeshComponent->GetMeshData())
+				if (auto Mesh = MeshComponent->GetMeshData())
 				{
-					if(!bExportGlobal)
+					if (!bExportGlobal)
 						Mesh->SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
 					else
 					{
-						auto Transform = Actor->GetTransformMatrix();
+						auto	   Transform = Actor->GetTransformMatrix();
 						StaticMesh CopyMesh = *Mesh;
 						CopyMesh.TransformMesh(Transform);
 						CopyMesh.SaveOBJ(FolderPath / (Actor->GetName() + ".obj"));
@@ -203,6 +205,11 @@ void World::ExportSceneToObj(const Path& FolderPath, bool bExportGlobal)
 	{
 		ImGui::NotifyError(fmt::format("Export scene to obj failed, folder path {} is invalid", FolderPath.string()), "Export failed", 1e4);
 	}
+}
+
+RayCastHit World::RayCastQuery(const uint PixelX, const uint PixelY) const
+{
+	return Cast<Rendering::GpuScene>(GetScene())->RayCastQuery(PixelX, PixelY);
 }
 
 template <class T>

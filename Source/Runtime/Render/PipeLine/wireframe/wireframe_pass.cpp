@@ -4,7 +4,7 @@
 
 #include "wireframe_pass.h"
 #include "Render/Core/math_function.h"
-#include "Render/Core/ray_tracing_hit.h"
+#include "Render/Core/RayCastHit.h"
 #include "Render/Core/shape.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/MaterialSceneProxy.h"

@@ -3,7 +3,7 @@
 //
 #pragma once
 #include <luisa/luisa-compute.h>
-#include "Render/Core/ray_tracing_hit.h"
+#include "Render/Core/RayCastHit.h"
 #include "Render/Core/bxdf_context.h"
 #include "Render/Core/material_data.h"
 #include "Render/Core/sample.h"

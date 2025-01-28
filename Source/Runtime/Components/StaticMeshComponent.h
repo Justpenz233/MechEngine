@@ -99,6 +99,9 @@ public:
 	 */
 	void SetMaterial(const ObjectPtr<Material>& InMaterial);
 
+	FORCEINLINE uint GetMeshID() const { return MeshID; }
+	FORCEINLINE uint GetInstanceID() const { return InstanceID; }
+
 protected:
 	StaticMeshDirtyTag Dirty = DIRTY_RENDERDATA;
 

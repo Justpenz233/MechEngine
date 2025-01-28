@@ -4,7 +4,7 @@
 
 #pragma once
 #include <luisa/luisa-compute.h>
-#include "Render/Core/ray_tracing_hit.h"
+#include "Render/Core/RayCastHit.h"
 namespace MechEngine::Rendering
 {
 	using namespace luisa::compute;

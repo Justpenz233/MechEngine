@@ -124,6 +124,8 @@ public:
 	 */
 	void ExportSceneToObj(const Path& FolderPath, bool bExportGlobal = true);
 
+	struct RayCastHit RayCastQuery(uint PixelX, uint PixelY) const;
+
 
 private:
     Rendering::GpuSceneInterface* GPUScene = nullptr;

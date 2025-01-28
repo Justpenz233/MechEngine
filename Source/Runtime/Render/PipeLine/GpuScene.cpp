@@ -4,7 +4,7 @@
 
 #include "GpuScene.h"
 #include <luisa/runtime/rtx/accel.h>
-#include "Render/Core/ray_tracing_hit.h"
+#include "Render/Core/RayCastHit.h"
 #include "Render/Core/VertexData.h"
 #include "Render/ViewportInterface.h"
 #include "Render/material/shading_function.h"
@@ -104,10 +104,10 @@ uint2 GpuScene::GetWindosSize() const noexcept
 	return Window->framebuffer().size();
 }
 
-ray_tracing_hit GpuScene::trace_closest(const Var<Ray>& ray) const noexcept
+Var<RayCastHit> GpuScene::trace_closest(const Var<Ray>& ray) const noexcept
 {
 	auto hit = rtAccel->intersect(ray, {});
-	return ray_tracing_hit {hit.inst, hit.prim, hit.bary};
+	return  {hit.inst, hit.prim, hit.bary};
 }
 
 Bool GpuScene::has_hit(const Var<Ray>& ray) const noexcept
@@ -115,16 +115,16 @@ Bool GpuScene::has_hit(const Var<Ray>& ray) const noexcept
 	return rtAccel->intersect_any(ray, {});
 }
 
-ray_intersection GpuScene::intersect(const Var<Ray>& ray) const noexcept
+ray_intersection GpuScene::intersect(Var<Ray> ray) const noexcept
 {
 	auto hit = trace_closest(ray);
 	return intersect(hit, ray);
 }
 
-ray_intersection GpuScene::intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept
+ray_intersection GpuScene::intersect(Var<RayCastHit> hit, Var<Ray> ray) const noexcept
 {
 	ray_intersection it;
-	$if(!hit.miss())
+	$if(!hit->miss())
 	{
 		it.instance_id = hit.instance_id;
 		it.shape = ShapeProxy->get_instance_shape(hit.instance_id);
@@ -170,6 +170,31 @@ ray_intersection GpuScene::intersect(const ray_tracing_hit& hit, const Var<Ray>&
 		// .......
 	};
 	return it;
+}
+
+RayCastHit GpuScene::RayCastQuery(uint PixelX, uint PixelY)
+{
+	vector<uint2> PixelCoords(MaxQueryCount);
+	vector<RayCastHit> Hits(MaxQueryCount);
+	PixelCoords[0] = make_uint2(PixelX, PixelY);
+	CommandList CmdList{};
+	CmdList << RayCastQueryBuffer.copy_from(PixelCoords.data());
+	CmdList << (*RayCastQueryShader)().dispatch(1);
+	CmdList << RayCastHitBuffer.copy_to(Hits.data());
+	stream << CmdList.commit() << synchronize();
+	return Hits[0];
+}
+
+TArray<RayCastHit> GpuScene::RayCastQuery(const TArray<uint2>& PixelCoords)
+{
+	TArray<RayCastHit> Hits(MaxQueryCount);
+	CommandList CmdList{};
+	CmdList << RayCastQueryBuffer.copy_from(PixelCoords.data());
+	CmdList << (*RayCastQueryShader)().dispatch(PixelCoords.size());
+	CmdList << RayCastHitBuffer.copy_to(Hits.data());
+	stream << CmdList.commit() << synchronize();
+	Hits.resize(PixelCoords.size());
+	return Hits;
 }
 
 Float4x4 GpuScene::get_instance_transform(Expr<uint> instance_index) const noexcept
@@ -230,6 +255,18 @@ void GpuScene::CompileShader()
 				frame_buffer()->write(pixel_coord, make_float4(linear_to_srgb(acescg_to_srgb(tone_mapping_aces(color.xyz()))), 1.f));
 		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "ToneMappingShader"}));
 
+	// Ray cast query shader
+	RayCastQueryBuffer = device.create_buffer<uint2>(MaxQueryCount);
+	RayCastHitBuffer = device.create_buffer<RayCastHit>(MaxQueryCount);
+	RayCastQueryShader = luisa::make_unique<decltype(RayCastQueryShader)::element_type>(device.compile<1>(
+		[&]() noexcept {
+			auto view = CameraProxy->get_main_view();
+			auto query_id = dispatch_id().x;
+			auto pixel_coord = RayCastQueryBuffer->read(query_id);
+			auto ray = view->generate_ray(pixel_coord);
+			auto hit = trace_closest(ray);
+			RayCastHitBuffer->write(query_id, hit);
+		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "RayCastQueryShader"}));
 
 }
 

@@ -82,7 +82,7 @@ public:
 	 * @param ray Ray to trace
 	 * @return Hit information of the closest object hit by the ray
 	 */
-	[[nodiscard]] ray_tracing_hit trace_closest(const Var<Ray> &ray) const noexcept;
+	[[nodiscard]] Var<RayCastHit> trace_closest(const Var<Ray> &ray) const noexcept;
 
 	/**
 	 * Test whether a ray has hit any object in the scene.
@@ -96,8 +96,15 @@ public:
 	* @param ray Ray to trace
 	* @return Instersection of primitve information of the ray
 	*/
-	ray_intersection intersect(const Var<Ray>& ray) const noexcept;
-	ray_intersection intersect(const ray_tracing_hit& hit, const Var<Ray>& ray) const noexcept;
+	ray_intersection intersect(Var<Ray> ray) const noexcept;
+	ray_intersection intersect(Var<RayCastHit> hit, Var<Ray> ray) const noexcept;
+
+	/**
+	 * Cast a ray in the scene and return the instance id of the hit object and return the hit to the CPU
+	 * @return RayCastHit in CPU
+	 */
+	RayCastHit RayCastQuery(uint PixelX, uint PixelY);
+	TArray<RayCastHit> RayCastQuery(const TArray<uint2>& PixelCoords);
 
 	/**
 	* Get the transform data of a transform by instance id
@@ -163,9 +170,15 @@ protected:
 	unique_ptr<Shader2D<uint, uint>> MainShader;
 	unique_ptr<Shader2D<>> ToneMappingPass;
 
+	// User for ray cast query
+	const int MaxQueryCount = 1024;
+	unique_ptr<Shader1D<>> RayCastQueryShader;
+	BufferView<uint2> RayCastQueryBuffer;
+	BufferView<RayCastHit> RayCastHitBuffer;
+
 	unique_ptr<rasterizer> Rasterizer;
 
-	ImGuiWindow* Window;
+	luisa::compute::ImGuiWindow* Window;
 	ViewportInterface* Viewport;
 
 };

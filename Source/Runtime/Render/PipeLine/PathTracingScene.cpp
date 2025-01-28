@@ -6,6 +6,7 @@
 
 #include "Mesh/StaticMesh.h"
 #include "Misc/Config.h"
+#include "Render/Core/frame.h"
 #include "Render/Core/shadow_terminator.h"
 #include "Render/SceneProxy/CameraSceneProxy.h"
 #include "Render/SceneProxy/LightSceneProxy.h"

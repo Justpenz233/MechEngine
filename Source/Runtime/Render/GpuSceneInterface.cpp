@@ -3,7 +3,7 @@
 //
 
 #include "GpuSceneInterface.h"
-#include "Core/ray_tracing_hit.h"
+#include "Core/RayCastHit.h"
 #include "Core/VertexData.h"
 #include "Core/view.h"
 #include "Misc/Config.h"

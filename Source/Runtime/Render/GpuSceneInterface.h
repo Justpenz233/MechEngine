@@ -15,7 +15,7 @@ class StaticMeshComponent;
 class TransformComponent;
 class CameraComponent;
 class LightComponent;
-
+struct RayCastHit;
 
 namespace MechEngine::Rendering
 {
@@ -28,7 +28,6 @@ namespace MechEngine::Rendering
 	class StaticMeshSceneProxy;
 	class LineSceneProxy;
 	class ShapeSceneProxy;
-	struct ray_tracing_hit;
 	struct ray_intersection;
 
 	using namespace luisa;
