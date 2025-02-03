@@ -76,7 +76,17 @@ public:
 
     TArray<ObjectPtr<class Actor>> GetAllActors() { return Actors; }
 
+	/**
+	 * Select actor in the world, this will call the OnActorSelectedEvent and OnSelected in the actor
+	 * @param InActor Actor to be selected
+	 */
 	void SelectActor(const ObjectPtr<class Actor>& InActor);
+
+	/**
+	 * Select actor by instance id
+	 * @param InstanceId Instance id of the actor
+	 */
+	void SelectActorByInstanceId(uint InstanceId);
 
 	class CameraActor* GetCurrentCamera() const;
 

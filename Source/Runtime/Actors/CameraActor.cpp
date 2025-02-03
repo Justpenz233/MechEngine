@@ -1,10 +1,10 @@
 #include "CameraActor.h"
 #include <imgui.h>
-#include <iostream>
 #include "Components/CameraComponent.h"
 #include "Game/Actor.h"
 #include "Game/TimerManager.h"
 #include "Math/LinearAlgebra.h"
+#include "Render/Core/RayCastHit.h"
 
 CameraActor::CameraActor()
 {
@@ -17,6 +17,11 @@ void CameraActor::BeginPlay()
 	World->GetViewport()->MouseLeftButtonDragEvent.AddObjectFunction(this, &CameraActor::MouseLeftDragRotation);
 	World->GetViewport()->MouseRightButtonDragEvent.AddObjectFunction(this, &CameraActor::MouseRightDragTranslation);
 	World->GetViewport()->MouseScrollEvent.AddObjectFunction(this, &CameraActor::MouseWheelZoom);
+	World->GetViewport()->MouseLeftButtonClickedEvent.AddLambda([this](FVector2 MousePos) {
+		auto HitObjectId = GetWorld()->RayCastQuery(MousePos.x() * 2., MousePos.y() * 2.);
+		if(!HitObjectId.miss())
+			GetWorld()->SelectActorByInstanceId(HitObjectId.instance_id);
+	});
 }
 
 void CameraActor::LookAt(const FVector& Target)

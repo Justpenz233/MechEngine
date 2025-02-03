@@ -103,7 +103,7 @@ public:
 		DelegateList.push_back(delegate);
 	}
 
-	template<class T>
+	template<class T> requires std::is_invocable_v<T, Args...>
 	void AddLambda(T Lambda)
 	{
 		Delegate<void, Args...> delegate;

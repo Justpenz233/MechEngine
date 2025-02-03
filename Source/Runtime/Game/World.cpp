@@ -136,11 +136,25 @@ void World::DestroyActor(Actor* ToDestroyActor)
 
 void World::SelectActor(const ObjectPtr<Actor>& InActor)
 {
-	if(!SelectedActor.expired())
+	if (!SelectedActor.expired())
 		SelectedActor.lock()->SetSelected(false);
 	SelectedActor = InActor;
 	InActor->SetSelected(true);
 	OnActorSelectedEvent.Broadcast(InActor.get());
+}
+
+void World::SelectActorByInstanceId(uint InstanceId)
+{
+	for (auto& Actor: Actors) {
+		for(auto MeshComponent : Actor->GetAllComponentsOfClass<StaticMeshComponent>())
+		{
+			if(MeshComponent->GetInstanceID() == InstanceId)
+			{
+				SelectActor(Actor);
+				return;
+			}
+		}
+	}
 }
 
 CameraActor* World::GetCurrentCamera() const

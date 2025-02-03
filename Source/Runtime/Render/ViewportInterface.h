@@ -15,6 +15,7 @@ class World;
 DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonDrag, FVector2, FVector2);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonDown, FVector2);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonUp, FVector2);
+DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseLeftButtonClicked, FVector2);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseRightButtonDrag, FVector2, FVector2);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnMouseScroll, FVector2);
 DECLARE_MULTICAST_DELEGATE_PARMS(OnKeyPressed, int);
@@ -142,6 +143,7 @@ public:
 	OnMouseRightButtonDrag MouseRightButtonDragEvent;
 	OnMouseLeftButtonDown MouseLeftButtonDownEvent;
 	OnMouseLeftButtonUp MouseLeftButtonUpEvent;
+	OnMouseLeftButtonClicked MouseLeftButtonClickedEvent;
 	OnMouseScroll MouseScrollEvent;
 	OnKeyPressed KeyPressedEvent;
 protected:

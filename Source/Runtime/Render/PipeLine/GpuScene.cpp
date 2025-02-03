@@ -256,14 +256,15 @@ void GpuScene::CompileShader()
 		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "ToneMappingShader"}));
 
 	// Ray cast query shader
-	RayCastQueryBuffer = device.create_buffer<uint2>(MaxQueryCount);
-	RayCastHitBuffer = device.create_buffer<RayCastHit>(MaxQueryCount);
+	RayCastQueryBuffer = RegisterBuffer<uint2>(MaxQueryCount);
+	RayCastHitBuffer = RegisterBuffer<RayCastHit>(MaxQueryCount);
 	RayCastQueryShader = luisa::make_unique<decltype(RayCastQueryShader)::element_type>(device.compile<1>(
 		[&]() noexcept {
 			auto view = CameraProxy->get_main_view();
 			auto query_id = dispatch_id().x;
 			auto pixel_coord = RayCastQueryBuffer->read(query_id);
-			auto ray = view->generate_ray(pixel_coord);
+			auto pixel_pos = make_float2(pixel_coord) + 0.5f;
+			auto ray = view->generate_ray(pixel_pos);
 			auto hit = trace_closest(ray);
 			RayCastHitBuffer->write(query_id, hit);
 		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "RayCastQueryShader"}));

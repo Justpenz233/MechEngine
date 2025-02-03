@@ -34,13 +34,24 @@ void ViewportInterface::HandleMouseInput()
 		}
 		if(ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		{
-			auto [X, Y] = ImGui::GetMousePos();
-			MouseLeftButtonDownEvent.Broadcast({X, Y});
+			ImVec2 MousePosScreen = ImGui::GetMousePos();
+			ImVec2 WinPos = ImGui::GetMainViewport()->Pos;
+			ImVec2 RelativePos = ImVec2(MousePosScreen.x - WinPos.x, MousePosScreen.y - WinPos.y);
+			MouseLeftButtonDownEvent.Broadcast({RelativePos.x, RelativePos.y});
 		}
 		if(ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
-			auto [X, Y] = ImGui::GetMousePos();
-			MouseLeftButtonUpEvent.Broadcast({X, Y});
+			ImVec2 MousePosScreen = ImGui::GetMousePos();
+			ImVec2 WinPos = ImGui::GetMainViewport()->Pos;
+			ImVec2 RelativePos = ImVec2(MousePosScreen.x - WinPos.x, MousePosScreen.y - WinPos.y);
+			MouseLeftButtonUpEvent.Broadcast({RelativePos.x, RelativePos.y});
+		}
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::IsMouseDragPastThreshold(ImGuiMouseButton_Left))
+		{
+			ImVec2 MousePosScreen = ImGui::GetMousePos();
+			ImVec2 WinPos = ImGui::GetMainViewport()->Pos;
+			ImVec2 RelativePos = ImVec2(MousePosScreen.x - WinPos.x, MousePosScreen.y - WinPos.y);
+			MouseLeftButtonClickedEvent.Broadcast({RelativePos.x, RelativePos.y});
 		}
 		// Mouse Scroll
 		if(ImGui::GetIO().MouseWheel != 0 || ImGui::GetIO().MouseWheelH != 0)
