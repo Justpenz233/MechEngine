@@ -37,7 +37,7 @@ void Actor::BeginPlay()
 	}
 	HasBeginPlay = true;
 	if(BeginPlayFunction) BeginPlayFunction();
-	for(auto Component: Components)
+	for(const auto& Component: Components)
 	{
 		if(Component)
 		{

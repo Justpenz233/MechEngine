@@ -57,17 +57,26 @@ void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
 	Reflection::TypeMetaRegister::metaRegister();
 }
 
-void Editor::LoadWorld(TFunction<void(World&)>&& InitScript)
+void Editor::LoadWorld(const TFunction<void(class World&)>& InitScript)
 {
-	if (CurrentWorld)
-	{
-		LOG_ERROR("World already loaded");
-		return;
-	}
+	WorldCommandQueue.emplace( Unload, nullptr );
+	WorldCommandQueue.emplace( Load, InitScript );
+}
+
+void Editor::UnloadCurrentWorldImpl()
+{
+	if(!CurrentWorld) return;
+	LOG_INFO("Unloading map");
+	CurrentWorld->EndPlay();
+	CurrentWorld.reset();
+}
+
+void Editor::LoadWorldImpl(const TFunction<void(class World&)>& InitScript)
+{
 	LOG_INFO("Load world map by script");
 
 	CurrentWorld = MakeUnique<World>();
-	CurrentWorld->InitScript = std::move(InitScript);
+	CurrentWorld->InitScript = InitScript;
 	GWorld = CurrentWorld.get();
 
 	Renderer->Init();
@@ -76,31 +85,50 @@ void Editor::LoadWorld(TFunction<void(World&)>&& InitScript)
 
 	LoadDefaultEditorLayout(CurrentWorld.get());
 
+	CurrentWorld->BeginPlay();
 	LOG_INFO("Load world map done");
+}
+
+void Editor::Tick(double DeltaTime)
+{
+	// First handle the world command
+	if(CurrentWorld)
+	{
+		CurrentWorld->Tick(DeltaTime);
+		Renderer->RenderFrame();
+	}
+	while(!WorldCommandQueue.empty())
+	{
+		auto& Command = WorldCommandQueue.front();
+		switch(std::get<0>(Command))
+		{
+		case Load:
+			LoadWorldImpl(std::get<1>(Command));
+			break;
+		case Unload:
+			UnloadCurrentWorldImpl();
+			break;
+		case Save:
+			break;
+		}
+		WorldCommandQueue.pop();
+	}
 }
 
 void Editor::Start()
 {
-	if(!CurrentWorld)
-	{
-		LOG_ERROR("No world loaded!");
-		return;
-	}
 
 	auto NowFrame = std::chrono::high_resolution_clock::now();
 	auto LastFrame = std::chrono::high_resolution_clock::now();
 	LOG_INFO("Editor START");
-
-	CurrentWorld->BeginPlay();
 
 	while (!Renderer->ShouldClose())
 	{
 		NowFrame = std::chrono::high_resolution_clock::now();
 
 		// Sleep for a while if the frame rate is too high
-		if(
-			MaxFPS > 0 &&
-			NowFrame - LastFrame < std::chrono::nanoseconds(int(1.0 / MaxFPS * 1e9)))
+		if (
+			MaxFPS > 0 && NowFrame - LastFrame < std::chrono::nanoseconds(int(1.0 / MaxFPS * 1e9)))
 		{
 			std::this_thread::sleep_for(std::chrono::nanoseconds(int(1.0 / MaxFPS * 1e9)) - (NowFrame - LastFrame));
 			NowFrame = std::chrono::high_resolution_clock::now();
@@ -108,9 +136,7 @@ void Editor::Start()
 
 		auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(NowFrame - LastFrame);
 		LastFrame = NowFrame;
-
-		CurrentWorld->Tick((double) delta.count() * (double) 1e-9);
-		Renderer->RenderFrame();
+		Tick(static_cast<double>(delta.count()) * (double)1e-9);
 		CalculateFPSTimings();
 	}
 

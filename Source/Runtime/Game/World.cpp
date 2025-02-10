@@ -111,6 +111,9 @@ void World::EndPlay()
 	for (auto actor : Actors)
 		actor->EndPlay();
 
+	for (const auto& actor : Actors)
+		actor->Destroy();
+
 	Actors.clear();
 }
 

@@ -19,7 +19,6 @@ RenderPipeline::RenderPipeline(uint width, uint height, const String& title)
 	Stream        = Device.create_stream(luisa::compute::StreamTag::GRAPHICS);
 	MainWindow    = luisa::make_unique<luisa::compute::ImGuiWindow>(Device, Stream, luisa::string(title),
 		luisa::compute::ImGuiWindow::Config{.size = {width, height}, .resizable = false, .hdr = GConfig.Get<bool>("Render", "HDR"), .multi_viewport = false});
-	Viewport = MakeUnique<LuisaViewport>(width, height, this, MainWindow.get(), Stream, Device);
 
 	RendererType = static_cast<RenderPipelineType>(GConfig.Get<int>("Render", "RenderPipelineType"));
 
@@ -78,6 +77,8 @@ void RenderPipeline::Init()
 			LOG_TEMP(str);
 		});
 	}
+	Viewport = MakeUnique<LuisaViewport>(Width, Height, this, MainWindow.get(), Stream, Device);
+
 	MainWindow->prepare_frame();
 	MainWindow->render_frame();
 	Viewport->LoadViewportStyle();

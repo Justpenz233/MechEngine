@@ -13,6 +13,13 @@
 
 DECLARE_MULTICAST_DELEGATE(KeyPressedEvent);
 
+enum WorldCommandType
+{
+	Load, Unload, Save
+};
+
+typedef std::tuple<WorldCommandType, TFunction<void(class World&)>> WorldCommand;
+
 /**
  * MechEngine Editor for multi world
  * First Init the editor, then load the world
@@ -26,6 +33,12 @@ public:
 
 	void Start();
 
+	/**
+	 * Load a world by script
+	 * @param InitScript The script to init the world
+	 */
+	void LoadWorld(const TFunction<void(class World&)>& InitScript);
+
 	[[nodiscard]] FORCEINLINE World* GetWorld() const;
 
 	/**
@@ -36,9 +49,13 @@ public:
 
 	FORCEINLINE float GetMaxFPS() const;
 
-	void LoadWorld(TFunction<void(class World&)>&& InitScript);
-
 private:
+	void Tick(double DeltaTime);
+
+	void UnloadCurrentWorldImpl();
+	void LoadWorldImpl(const TFunction<void(class World&)>& InitScript);
+	// void SaveWorldImpl();
+
 	float MaxFPS = -1;
 
 	UniquePtr<RenderPipeline> Renderer = nullptr;
@@ -46,6 +63,8 @@ private:
 	UniquePtr<World> CurrentWorld;
 
 	Editor() = default;
+
+	std::queue<WorldCommand> WorldCommandQueue;
 };
 
 FORCEINLINE World* Editor::GetWorld() const
