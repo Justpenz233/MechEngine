@@ -38,14 +38,14 @@ public:
 	 * @param TargetTransform the target transform
 	 * @param Duration the duration of the blending
 	 */
-	void BlendeTo(const FTransform& TargetTransform, double Duration = 1.);
+	void BlendTo(const FTransform& TargetTransform, double Duration = 1.);
 
 	/**
 	 * Blend the camera to the target location
 	 * @param TargetLocation the target location
 	 * @param Duration the duration of the blending
 	 */
-	void BlendeTo(const FVector& TargetLocation, double Duration = 1.);
+	void BlendTo(const FVector& TargetLocation, double Duration = 1.);
 
 	virtual void BeginPlay() override;
 
@@ -72,8 +72,8 @@ private:
 
 	FVector2 LastPos = {0.f, 0.f};
 	FVector2 LastDelta = {0.f, 0.f};
-	FQuat LastRotation;
-	double DistranceToTarget;
+	FQuat LastRotation = FQuat::Identity();
+	double DistanceToTarget = 0.;
 };
 
 FORCEINLINE CameraComponent* CameraActor::GetCameraComponent() const

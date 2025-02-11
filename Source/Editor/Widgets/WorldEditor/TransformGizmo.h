@@ -1,13 +1,12 @@
 #pragma once
-#include "CoreMinimal.h"
+#include "Core/CoreMinimal.h"
 #include "UI/Imguizmo/Imguizmo.h"
 #include "UI/UIWidget.h"
-
 
 class EDITOR_API TransformGizmo : public UIWidget
 {
 public:
-    TransformGizmo():  UIWidget("GizoManager") { Visible = false; }
+    TransformGizmo():  UIWidget("GizmoManager") { Visible = false; }
 
     virtual void Draw() override;
 

@@ -35,7 +35,7 @@ void CameraActor::LookAt()
 	LookAt(FocusCenter);
 }
 
-void CameraActor::BlendeTo(const FTransform& TargetTransform, double Duration)
+void CameraActor::BlendTo(const FTransform& TargetTransform, double Duration)
 {
 	GetWorld()->GetTimerManager()->AddTimer(Duration,
 		[TargetTransform, this]() {
@@ -44,7 +44,7 @@ void CameraActor::BlendeTo(const FTransform& TargetTransform, double Duration)
 		});
 }
 
-void CameraActor::BlendeTo(const FVector& TargetLocation, double Duration)
+void CameraActor::BlendTo(const FVector& TargetLocation, double Duration)
 {
 	GetWorld()->GetTimerManager()->AddTimer(Duration,
 	[TargetLocation, this]() {
@@ -72,12 +72,12 @@ void CameraActor::MouseLeftDragRotation(FVector2 StartPos, FVector2 Delta)
 		NewRotation.normalize();
 		SetRotation(NewRotation);
 
-		FVector Forward = ((NewRotation * FVector{1, 0, 0}).normalized() * DistranceToTarget).eval();
+		FVector Forward = ((NewRotation * FVector{1, 0, 0}).normalized() * DistanceToTarget).eval();
 		SetTranslation(FocusCenter - Forward);
 	}
 	else {
 		LastRotation = GetRotation();
-		DistranceToTarget = (GetLocation() - FocusCenter).norm();
+		DistanceToTarget = (GetLocation() - FocusCenter).norm();
 	}
 	LastPos = StartPos;
 	LastDelta = Delta;
@@ -120,4 +120,5 @@ void CameraActor::MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta)
 void CameraActor::MouseWheelZoom(FVector2 Delta)
 {
 	AddTranslationLocal({TranslationSpeed * 0.6f * Delta.x(), 0., 0.});
+	DistanceToTarget = (GetLocation() - FocusCenter).norm();
 }

@@ -147,6 +147,8 @@ public:
 	OnMouseScroll MouseScrollEvent;
 	OnKeyPressed KeyPressedEvent;
 protected:
+	/** Dragging threshold for mouse dragging */
+	static constexpr float DraggingThreshold = 1.4f;
 
 	virtual void HandleMouseInput();
 	virtual void HandleKeyboardInput();

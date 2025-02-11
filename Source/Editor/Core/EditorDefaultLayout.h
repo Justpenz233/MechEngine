@@ -2,7 +2,7 @@
 
 #include "LambdaUIWidget.h"
 #include "Widgets/MenuBarWidgets/MenuBar.h"
-#include "Widgets/TransformGizmo.h"
+#include "Widgets/WorldEditor/TransformGizmo.h"
 #include "Widgets/MenuBarWidgets/SaveMeshMenuBar.h"
 #include "Widgets/WorldEditor/WorldOutliner.h"
 #include "UI/ImguiPlus.h"

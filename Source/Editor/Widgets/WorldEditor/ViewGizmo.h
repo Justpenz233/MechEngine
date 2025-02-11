@@ -41,7 +41,7 @@ public:
         {
         	auto TargetForward = FVector(Dir[0], Dir[1], Dir[2]);
         	auto TargetLocation = FocusCenter - TargetForward * Length;
-        	Camera->BlendeTo(TargetLocation, 1.);
+        	Camera->BlendTo(TargetLocation, 1.);
         }
     }
 };
