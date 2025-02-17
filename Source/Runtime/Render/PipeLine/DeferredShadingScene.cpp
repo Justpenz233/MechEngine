@@ -62,7 +62,7 @@ void DeferredShadingScene::render_main_view(const UInt& frame_index, const UInt&
 	auto view = CameraProxy->get_main_view();
 	// Calc view space coordination, left bottom is (-1, -1), right top is (1, 1). Forwards is +Z
 	auto pixel_coord = dispatch_id().xy();
-
+	g_buffer.set_default(pixel_coord);
 	if (bGlobalIllumination)
 		get_sampler()->init(pixel_coord, frame_index);
 
@@ -213,6 +213,8 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 		intersection = intersect(ray);
 	}
 	auto wireframe_intersection = intersection; // For wireframe pass
+	$if(intersection.valid())
+	{ g_buffer.write(pixel_coord, intersection)	;};
 	Float  transmission = 1.f;
 	Float3 pixel_color = make_float3(0.f);
 	$comment("Trace path if transparent");

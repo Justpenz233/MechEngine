@@ -216,7 +216,7 @@ namespace MechEngine::Rendering
 		/** Whether to compile shader with debug info */
 		bool bShaderDebugInfo;
 
-		float3 BackgroundColor = float3(1.0f, 1.0f, 1.0f);
+		float3 BackgroundColor = float3(0.0f, 0.0f, 0.0f);
 
 		// Frame counter, start from 0, increase by 1 each frame, refresh when the scene is updated
 		uint FrameCounter = 0;

@@ -131,6 +131,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	Float3			 pixel_radiance = make_float3(0.f);
 	Float3			 beta = make_float3(1.f);
 	auto			 pdf_bsdf = def(1e16f);
+	g_buffer.set_default(pixel_coord);
 
 	$for(depth, 0, 2)
 	{
@@ -206,6 +207,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	};
 	$if(first_intersection.valid())
 	{
+		g_buffer.write(pixel_coord, first_intersection);
 		if (bUseSVGF)
 		{
 			pixel_radiance = svgf->temporal_filter(pixel_coord, first_intersection, pixel_radiance);

@@ -19,6 +19,7 @@
 #include "Render/sampler/sobol.h"
 #include "Render/sampler/sampler_base.h"
 #include "rasterizer/scanline_rasterizer.h"
+#include "Render/PipeLine/ground_grid/ground_pass.h"
 namespace MechEngine::Rendering
 {
 
@@ -40,7 +41,7 @@ GpuScene::~GpuScene() {}
 void GpuScene::UploadRenderData()
 {
 	auto UpdateBindlessArrayIfDirty = [&]() {
-		if(bindlessArray.dirty())
+		if (bindlessArray.dirty())
 		{
 			stream << bindlessArray.update();
 		}
@@ -70,7 +71,8 @@ void GpuScene::UploadRenderData()
 	LineProxy->UploadDirtyData(stream);
 	UpdateBindlessArrayIfDirty();
 
-	if (rtAccel.dirty()) stream << rtAccel.build() << synchronize();
+	if (rtAccel.dirty())
+		stream << rtAccel.build() << synchronize();
 }
 
 void GpuScene::Render()
@@ -91,6 +93,7 @@ void GpuScene::PostPass(CommandList& CmdList)
 		LineProxy->PostRenderPass(CmdList);
 		CmdList << (*ToneMappingPass)().dispatch(GetWindosSize());
 	}
+	GroundPass->PostPass(CmdList);
 	stream << CmdList.commit();
 }
 
@@ -269,6 +272,8 @@ void GpuScene::CompileShader()
 			RayCastHitBuffer->write(query_id, hit);
 		}, ShaderOption{.enable_debug_info = bShaderDebugInfo, .name = "RayCastQueryShader"}));
 
+	GroundPass = make_unique<ground_pass>(this, GetWindosSize(), frame_buffer());
+	GroundPass->CompileShader(device, bShaderDebugInfo);
 }
 
 void GpuScene::Init()

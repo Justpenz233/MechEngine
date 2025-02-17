@@ -24,7 +24,7 @@ struct geometry_buffer
     {
         base_color->write(pixel_coord, background_color);
         normal->write(pixel_coord, background_color);
-        depth->write(flattend_index(pixel_coord), 1.f);
+        depth->write(flattend_index(pixel_coord), 1e6f);
         instance_id->write(pixel_coord, make_uint4(~0u));
     	motion_vector->write(pixel_coord, make_float4(0.f));
     }
@@ -56,6 +56,16 @@ struct geometry_buffer
 	{
 	    return pixel_coord.x * frame_buffer->size().y + pixel_coord.y;
     }
+
+	auto read_depth(const UInt2& pixel_coord) const
+    {
+	    return depth->read(flattend_index(pixel_coord));
+    }
+
+	auto write_depth(const UInt2& pixel_coord, const Float& value) const
+	{
+	    depth->write(flattend_index(pixel_coord), value);
+	}
 
 	/**
 	 * Map the index of the flatten buffer to the pixel coordinate.

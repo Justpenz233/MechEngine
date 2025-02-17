@@ -238,4 +238,8 @@ namespace MechEngine::Rendering
 		return make_float2(v, w);
 	}
 
+	FORCEINLINE Float luminance(const Float3& c) {
+		return c.x * 0.2126f + c.y * 0.7152f + c.z * 0.0722f;
+	}
+
 }

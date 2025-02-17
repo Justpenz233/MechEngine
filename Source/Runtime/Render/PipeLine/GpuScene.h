@@ -14,6 +14,7 @@ class RenderingComponent;
 namespace MechEngine::Rendering
 {
 class rasterizer;
+class ground_pass;
 using namespace luisa;
 using namespace luisa::compute;
 class LuisaViewport;
@@ -177,6 +178,7 @@ protected:
 	BufferView<RayCastHit> RayCastHitBuffer;
 
 	unique_ptr<rasterizer> Rasterizer;
+	unique_ptr<ground_pass> GroundPass;
 
 	luisa::compute::ImGuiWindow* Window;
 	ViewportInterface* Viewport;
