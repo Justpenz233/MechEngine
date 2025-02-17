@@ -19,7 +19,7 @@ public:
 	virtual void CompileShader(Device& Device, bool bDebugInfo) override;
 	virtual void PostPass(CommandList& command_list) const override;
 protected:
-	Float grid(const UInt2& pixel_coord) const;
+	Float3 grid(const UInt2& pixel_coord) const;
 
 protected:
 
