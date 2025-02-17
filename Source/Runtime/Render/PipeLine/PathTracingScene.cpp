@@ -146,7 +146,6 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		$if (depth == 0)
 		{
 			first_intersection = intersection;
-			g_buffer.write(pixel_coord, intersection);
 		};
 
 		$comment("If the intersection is light");
@@ -207,7 +206,6 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	};
 	$if(first_intersection.valid())
 	{
-		g_buffer.write(pixel_coord, first_intersection);
 		if (bUseSVGF)
 		{
 			pixel_radiance = svgf->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
