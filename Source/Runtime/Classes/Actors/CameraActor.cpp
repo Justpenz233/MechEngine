@@ -119,6 +119,15 @@ void CameraActor::MouseRightDragTranslation(FVector2 StartPos, FVector2 Delta)
 
 void CameraActor::MouseWheelZoom(FVector2 Delta)
 {
-	AddTranslationLocal({TranslationSpeed * 0.6f * Delta.x(), 0., 0.});
+	if(Delta.x() != 0)
+		AddTranslationLocal({TranslationSpeed * 0.6f * Delta.x(), 0., 0.});
+	if(Delta.y() != 0)
+	{
+		auto Rotation = AngleAxisd(Delta.y() * RotationSpeed * 0.05f, FVector{0, 0, 1});
+		auto NewPos = Rotation * (GetLocation() - FocusCenter) + FocusCenter;
+		SetTranslation(NewPos);
+		LookAt();
+	}
+
 	DistanceToTarget = (GetLocation() - FocusCenter).norm();
 }
