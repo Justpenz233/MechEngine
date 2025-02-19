@@ -10,10 +10,12 @@ namespace MechEngine::Rendering
 {
 struct geometry_buffer
 {
+	Image<uint> instance_id;
+	Image<uint> primitive_id;
+
     Image<float> base_color;
     Image<float> normal;
 	Buffer<float> depth; // For atomic operation
-    Image<uint> instance_id;
 	Image<float> motion_vector;
     // The frame buffer to store the final image, ownership should managed by the window.
     Image<float>* frame_buffer{nullptr};
@@ -26,6 +28,7 @@ struct geometry_buffer
         normal->write(pixel_coord, background_color);
         depth->write(flattend_index(pixel_coord), 1e6f);
         instance_id->write(pixel_coord, make_uint4(~0u));
+    	primitive_id->write(pixel_coord, make_uint4(~0u));
     	motion_vector->write(pixel_coord, make_float4(0.f));
     }
 
@@ -33,6 +36,7 @@ struct geometry_buffer
 		const ray_intersection& intersection) const noexcept
     {
     	instance_id->write(pixel_coord, make_uint4(intersection.instance_id));
+    	primitive_id->write(pixel_coord, make_uint4(intersection.primitive_id));
     	normal->write(pixel_coord, make_float4(intersection.corner_normal_world, 1.f));
     	depth->write(flattend_index(pixel_coord), intersection.depth);
     	motion_vector->write(pixel_coord, make_float4(intersection.motion_vector, 0.f, 0.f));

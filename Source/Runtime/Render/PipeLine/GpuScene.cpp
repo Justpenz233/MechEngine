@@ -20,6 +20,7 @@
 #include "Render/sampler/sampler_base.h"
 #include "rasterizer/scanline_rasterizer.h"
 #include "Render/PipeLine/ground_grid/ground_pass.h"
+#include "wireframe/wireframe_pass.h"
 namespace MechEngine::Rendering
 {
 
@@ -93,6 +94,7 @@ void GpuScene::PostPass(CommandList& CmdList)
 		LineProxy->PostRenderPass(CmdList);
 		CmdList << (*ToneMappingPass)().dispatch(GetWindosSize());
 	}
+	WireFramePass->PostPass(CmdList);
 	GroundPass->PostPass(CmdList);
 	stream << CmdList.commit();
 }
@@ -274,6 +276,9 @@ void GpuScene::CompileShader()
 
 	GroundPass = make_unique<ground_pass>(this, GetWindosSize(), frame_buffer());
 	GroundPass->CompileShader(device, bShaderDebugInfo);
+
+	WireFramePass = make_unique<wireframe_pass>(*this);
+	WireFramePass->CompileShader(device, bShaderDebugInfo);
 }
 
 void GpuScene::Init()
@@ -297,6 +302,8 @@ void GpuScene::InitBuffers()
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
 	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
+		Window->framebuffer().size().x, Window->framebuffer().size().y);
+	g_buffer.primitive_id = device.create_image<uint>(PixelStorage::INT1,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);
 	g_buffer.motion_vector = device.create_image<float>(PixelStorage::FLOAT2,
 		Window->framebuffer().size().x, Window->framebuffer().size().y);

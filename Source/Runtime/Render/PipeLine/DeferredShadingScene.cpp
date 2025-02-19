@@ -201,6 +201,7 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 {
 	ray_intersection intersection;
 	$comment("Rasterization");
+
 	if(bUseRasterizer)
 	{
 		auto instance_id = Rasterizer->vbuffer.instance_id->read(pixel_coord).x;
@@ -212,9 +213,9 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 	{
 		intersection = intersect(ray);
 	}
-	auto wireframe_intersection = intersection; // For wireframe pass
-	$if(intersection.valid())
-	{ g_buffer.write(pixel_coord, intersection)	;};
+
+	$if(intersection.valid()) { g_buffer.write(pixel_coord, intersection)	;};
+
 	Float  transmission = 1.f;
 	Float3 pixel_color = make_float3(0.f);
 	$comment("Trace path if transparent");
@@ -237,37 +238,6 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 		$break;
 	};
 	pixel_color += transmission * BackgroundColor;
-
-	// Draw wireframe pass, blend  with the pixel color as Anti-aliasing
-	// Currently, we only draw the first intersection with the wireframe, which means
-	// the wireframe would disappear in refractive or alpha blended surface
-	//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-	//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-	$if(wireframe_intersection.shape->is_mesh())
-	{
-		$comment("Wireframe pass");
-		auto pixel_pos = make_float2(pixel_coord) + .5f;
-		auto material_data = MaterialProxy->get_material_data(wireframe_intersection.material_id);
-		$if(material_data->show_wireframe == 1)
-		{
-			auto view = CameraProxy->get_main_view();
-			auto vertex_data = StaticMeshProxy->get_vertices(
-				wireframe_intersection.shape->mesh_id,
-				wireframe_intersection.primitive_id);
-			auto transform = get_instance_transform(
-				wireframe_intersection.instance_id);
-
-			auto d = distance_to_triangle(pixel_pos,
-				view->world_to_pixel((transform * make_float4(vertex_data[0]->position(), 1.f)).xyz()),
-				view->world_to_pixel((transform * make_float4(vertex_data[1]->position(), 1.f)).xyz()),
-				view->world_to_pixel((transform * make_float4(vertex_data[2]->position(), 1.f)).xyz())
-				);
-
-			//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
-			auto wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
-			pixel_color = lerp(pixel_color, make_float3(0.f), wireframe_intensity);
-		};
-	};
 	return pixel_color;
 }
 };

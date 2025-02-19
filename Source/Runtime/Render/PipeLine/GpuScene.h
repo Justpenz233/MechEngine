@@ -6,6 +6,10 @@
 #include "Render/GpuSceneInterface.h"
 #include <luisa/luisa-compute.h>
 
+namespace MechEngine::Rendering
+{
+class wireframe_pass;
+}
 class ViewportInterface;
 class CameraComponent;
 class RenderingComponent;
@@ -179,6 +183,7 @@ protected:
 
 	unique_ptr<rasterizer> Rasterizer;
 	unique_ptr<ground_pass> GroundPass;
+	unique_ptr<wireframe_pass>  WireFramePass;
 
 	luisa::compute::ImGuiWindow* Window;
 	ViewportInterface* Viewport;
