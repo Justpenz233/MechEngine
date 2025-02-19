@@ -62,7 +62,7 @@ namespace MechEngine::Rendering
 		*					Base shaders for all types pipeline						                   *
 		**********************************************************************************************/
 	public:
-		virtual void CompileShader();
+		virtual void CompileShader() {}
 
   		/** Reset the frame counter to 0, used to clear integrator */
 		void ResetFrameCounter() noexcept;
@@ -223,9 +223,6 @@ namespace MechEngine::Rendering
 		uint TimeCounter = 0;
 
 		uint SamplePerPixel = 1;
-
-		unique_ptr<Shader2D<uint>> ViewModePass;
-
 
 		/***********************************************************************************************
 		*									GPU resource management									   *

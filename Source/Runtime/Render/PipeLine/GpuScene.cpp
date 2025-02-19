@@ -20,6 +20,7 @@
 #include "Render/sampler/sampler_base.h"
 #include "rasterizer/scanline_rasterizer.h"
 #include "Render/PipeLine/ground_grid/ground_pass.h"
+#include "RenderPass/buffer_view_pass.h"
 #include "wireframe/wireframe_pass.h"
 namespace MechEngine::Rendering
 {
@@ -88,13 +89,14 @@ void GpuScene::Render()
 void GpuScene::PostPass(CommandList& CmdList)
 {
 	if (ViewMode != ViewMode::FrameBuffer) [[unlikely]]
-		CmdList << (*ViewModePass)(static_cast<uint>(ViewMode)).dispatch(GetWindosSize());
+		BufferViewPass->PostPass(CmdList);
 	else
 	{
 		LineProxy->PostRenderPass(CmdList);
 		CmdList << (*ToneMappingPass)().dispatch(GetWindosSize());
 	}
 	WireFramePass->PostPass(CmdList);
+	BufferViewPass->PostPass(CmdList);
 	GroundPass->PostPass(CmdList);
 	stream << CmdList.commit();
 }
@@ -239,7 +241,12 @@ Float2 GpuScene::motion_vector(const ray_intersection& intersection) const
 void GpuScene::CompileShader()
 {
 	// Compile base shaders
-	GpuSceneInterface::CompileShader();
+	g_buffer.InitBuffer(device, GetWindosSize());
+
+	LineProxy->CompileShader();
+
+	BufferViewPass = make_unique<buffer_view_pass>(*this);
+	BufferViewPass->CompileShader(device, bShaderDebugInfo);
 
 	Rasterizer = make_unique<scanline_rasterizer>(this);
 	Rasterizer->CompileShader(device, bShaderDebugInfo);
@@ -287,30 +294,10 @@ void GpuScene::Init()
 
 	LoadRenderSettings();
 
-	InitBuffers();
 	InitSamplers();
 
 	CompileShader();
 }
-void GpuScene::InitBuffers()
-{
-	auto size = Window->framebuffer().size();
-	LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
-	g_buffer.base_color = device.create_image<float>(PixelStorage::BYTE4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.normal = device.create_image<float>(PixelStorage::FLOAT4,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.depth = device.create_buffer<float>(size.x * size.y);
-	g_buffer.instance_id = device.create_image<uint>(PixelStorage::INT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.primitive_id = device.create_image<uint>(PixelStorage::INT1,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.motion_vector = device.create_image<float>(PixelStorage::FLOAT2,
-		Window->framebuffer().size().x, Window->framebuffer().size().y);
-	g_buffer.frame_buffer = &Window->framebuffer();
-	LOG_INFO("Init render frame buffer: {} {}", Window->framebuffer().size().x, Window->framebuffer().size().y);
-}
-
 
 
 void GpuScene::InitSamplers()

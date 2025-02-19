@@ -18,8 +18,6 @@ public:
 
 	virtual void LoadRenderSettings() override;
 
-	virtual void InitBuffers() override;
-
 	virtual void CompileShader() override;
 
 	virtual void PrePass(CommandList& CmdList) override;
@@ -47,15 +45,6 @@ public:
 	 * @return
 	 */
 	// Float3 ris_path_tracing(Var<Ray> ray, const Float2& pixel_pos, const UInt2& pixel_coord, const Float& weight = 1.f);
-
-	/**
-	 * Draw wireframe pass, blend  with the pixel color as Anti-aliasing
-	 * Currently, we only draw the first intersection with the wireframe, which means
-	 * the wireframe would disappear in refractive or alpha blended surface
-	 * @see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-	 * @see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-	*/
-	Float wireframe_intensity(const ray_intersection& intersection, const Float2& pixel_pos) const;
 
 	auto get_reservoir(const UInt2& pixel_coord) const
 	{

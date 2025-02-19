@@ -17,9 +17,18 @@ struct geometry_buffer
     Image<float> normal;
 	Buffer<float> depth; // For atomic operation
 	Image<float> motion_vector;
-    // The frame buffer to store the final image, ownership should managed by the window.
-    Image<float>* frame_buffer{nullptr};
 
+	void InitBuffer(Device& device, const uint2& size)
+	{
+		LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
+		base_color = device.create_image<float>(PixelStorage::BYTE4, size.x, size.y);
+		normal = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
+		depth = device.create_buffer<float>(size.x * size.y);
+		instance_id = device.create_image<uint>(PixelStorage::INT1, size.x, size.y);
+		primitive_id = device.create_image<uint>(PixelStorage::INT1, size.x, size.y);
+		motion_vector = device.create_image<float>(PixelStorage::FLOAT2, size.x, size.y);
+		LOG_INFO("Init render frame buffer: {} {}", size.x, size.y);
+	}
 
     void set_default(const UInt2& pixel_coord,
         const Float4& background_color = luisa::make_float4(1.)) const noexcept
@@ -46,9 +55,9 @@ struct geometry_buffer
 	 * Get the size of the G-Buffers. The size should be equal to the size of the frame buffer.
 	 * @return The size of the G-Buffers.
 	 */
-	[[nodiscard]] UInt2 size() const noexcept
+	[[nodiscard]] UInt2 get_size() const noexcept
 	{
-	    return frame_buffer->size();
+	    return instance_id.size();
 	}
 
 	/**
@@ -58,10 +67,10 @@ struct geometry_buffer
 	 */
 	[[nodiscard]] UInt flattend_index(const UInt2& pixel_coord) const
 	{
-	    return pixel_coord.x * frame_buffer->size().y + pixel_coord.y;
+	    return pixel_coord.x * get_size().y + pixel_coord.y;
     }
 
-	auto read_depth(const UInt2& pixel_coord) const
+	[[nodiscard]] auto read_depth(const UInt2& pixel_coord) const
     {
 	    return depth->read(flattend_index(pixel_coord));
     }
@@ -78,7 +87,8 @@ struct geometry_buffer
 	 */
 	[[nodiscard]] UInt2 pixel_coord(const UInt& index) const noexcept
 	{
-	    return make_uint2(index / frame_buffer->size().y, index % frame_buffer->size().y);
+    	auto size_y = get_size().y;
+	    return make_uint2(index / size_y, index % size_y);
 	}
 };
 };

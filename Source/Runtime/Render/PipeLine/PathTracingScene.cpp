@@ -26,11 +26,6 @@ void PathTracingScene::LoadRenderSettings()
 	bUseSVGF = GConfig.Get<bool>("PathTracing", "SVGF");
 }
 
-void PathTracingScene::InitBuffers()
-{
-	GpuScene::InitBuffers();
-}
-
 void PathTracingScene::CompileShader()
 {
 	auto WindowSize = Window->framebuffer().size();
@@ -214,37 +209,5 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	return pixel_radiance;
 }
 
-
-Float PathTracingScene::wireframe_intensity(const ray_intersection& intersection, const Float2& pixel_pos) const
-{
-	// Draw wireframe pass, blend  with the pixel color as Anti-aliasing
-	// Currently, we only draw the first intersection with the wireframe, which means
-	// the wireframe would disappear in refractive or alpha blended surface
-	//@see https://developer.download.nvidia.com/whitepapers/2007/SDK10/SolidWireframe.pdf
-	//@see https://www2.imm.dtu.dk/pubdb/edoc/imm4884.pdf
-	auto wireframe_intensity = def(0.f);
-	$if(intersection.shape->is_mesh())
-	{
-		auto material_data = MaterialProxy->get_material_data(intersection.material_id);
-		$if(material_data->show_wireframe == 1)
-		{
-			auto view = CameraProxy->get_main_view();
-			auto vertex_data = StaticMeshProxy->get_vertices(
-				intersection.shape->mesh_id,
-				intersection.primitive_id);
-			auto transform = get_instance_transform(
-				intersection.instance_id);
-
-			auto d = distance_to_triangle(pixel_pos,
-				view->world_to_pixel((transform * make_float4(vertex_data[0]->position(), 1.f)).xyz()),
-				view->world_to_pixel((transform * make_float4(vertex_data[1]->position(), 1.f)).xyz()),
-				view->world_to_pixel((transform * make_float4(vertex_data[2]->position(), 1.f)).xyz()));
-
-			//@see https://backend.orbit.dtu.dk/ws/portalfiles/portal/3735323/wire-sccg.pdf
-			wireframe_intensity = exp2(-2.f * square(d)); // I = exp2(-2 * d^2)
-		};
-	};
-	return wireframe_intensity;
-}
 
 };

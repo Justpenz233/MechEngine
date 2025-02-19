@@ -8,6 +8,10 @@
 
 namespace MechEngine::Rendering
 {
+class buffer_view_pass;
+}
+namespace MechEngine::Rendering
+{
 class wireframe_pass;
 }
 class ViewportInterface;
@@ -41,13 +45,10 @@ public:
 
 	~GpuScene() override;
 
-	/** Create and Init buffers */
-	virtual void InitBuffers();
-
 	/** Init and create Sampler */
 	virtual void InitSamplers();
 
-	virtual void CompileShader() override;
+	virtual void CompileShader();
 
 	/**
 	 * Initialize the render scene
@@ -184,6 +185,7 @@ protected:
 	unique_ptr<rasterizer> Rasterizer;
 	unique_ptr<ground_pass> GroundPass;
 	unique_ptr<wireframe_pass>  WireFramePass;
+	unique_ptr<buffer_view_pass> BufferViewPass;
 
 	luisa::compute::ImGuiWindow* Window;
 	ViewportInterface* Viewport;
