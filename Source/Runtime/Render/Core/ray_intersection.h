@@ -17,6 +17,8 @@ struct ray_intersection
 	Float3 triangle_normal_world;
 	Float3 vertex_normal_world;
 	Float3 corner_normal_world;
+
+	Float3 albedo;
 	Float depth;
 
 	Float3 position_world;

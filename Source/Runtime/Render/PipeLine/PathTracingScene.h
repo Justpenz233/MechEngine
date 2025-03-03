@@ -5,7 +5,7 @@
 #pragma once
 #include "GpuScene.h"
 #include "ris_reservoir.h"
-#include "svgf/svgf.h"
+#include "denoiser/svgf.h"
 
 namespace MechEngine::Rendering
 {
@@ -58,10 +58,11 @@ public:
 
 protected:
 	bool bUseSVGF = true;
+	bool bUseDenoiserEXT = false;
 	bool bUseRIS = true;
 
 	BufferView<ris_reservoir> reservoirs;
 
-	unique_ptr<svgf> svgf;
+	std::unique_ptr<RenderPass> denoiser;
 };
 };

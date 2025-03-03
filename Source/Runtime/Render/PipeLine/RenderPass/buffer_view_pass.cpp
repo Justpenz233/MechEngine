@@ -23,10 +23,10 @@ void buffer_view_pass::CompileShader(Device& Device, bool bDebugInfo)
 			{
 				Scene.frame_buffer()->write(pixel_coord, Scene.get_gbuffer().normal->read(pixel_coord));
 			};
-			// $case(static_cast<uint>(ViewMode::BaseColorBuffer))
-			// {
-				// Scene.frame_buffer()->write(pixel_coord, Scene.get_gbuffer().base_color->read(pixel_coord));
-			// };
+			$case(static_cast<uint>(ViewMode::BaseColorBuffer))
+			{
+				Scene.frame_buffer()->write(pixel_coord, Scene.get_gbuffer().albedo->read(pixel_coord));
+			};
 		};
 	}, {.enable_debug_info = bDebugInfo, .name = "BufferViewShader"}));
 }

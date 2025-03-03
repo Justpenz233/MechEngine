@@ -14,6 +14,8 @@
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
 #include "Render/sampler/sampler_base.h"
 #include "Render/Core/transform_data.h"
+#include "denoiser/denoiser_ext.h"
+#include "denoiser/svgf.h"
 #include "rasterizer/rasterizer.h"
 
 namespace MechEngine::Rendering
@@ -24,22 +26,30 @@ void PathTracingScene::LoadRenderSettings()
 	GpuScene::LoadRenderSettings();
 	bUseRIS = GConfig.Get<bool>("PathTracing", "RIS");
 	bUseSVGF = GConfig.Get<bool>("PathTracing", "SVGF");
+	bUseDenoiserEXT = GConfig.Get<bool>("PathTracing", "DenoiserEXT");
 }
 
 void PathTracingScene::CompileShader()
 {
-	auto WindowSize = Window->framebuffer().size();
-
-	if (bUseRIS)
-		reservoirs = device.create_buffer<ris_reservoir>(WindowSize.x * WindowSize.y);
-
-	if (bUseSVGF)
+	auto resolution = Window->framebuffer().size();
+	if(bUseSVGF) // For now, we call temporal filter from main pass so we need to compile it before main pass
 	{
-		svgf = make_unique<class svgf>(WindowSize, frame_buffer());
-		svgf->CompileShader(device, bShaderDebugInfo);
+		denoiser = std::make_unique<svgf>(resolution, frame_buffer());
+		denoiser->CompileShader(device, bShaderDebugInfo);
 	}
 
 	GpuScene::CompileShader();
+
+	if (bUseRIS)
+		reservoirs = device.create_buffer<ris_reservoir>(resolution.x * resolution.y);
+
+	if(bUseDenoiserEXT && !bUseSVGF)
+	{
+		denoiser = std::make_unique<denoiser_ext>(this);
+		denoiser->CompileShader(device, bShaderDebugInfo);
+	}
+
+
 }
 
 void PathTracingScene::PrePass(CommandList& CmdList)
@@ -70,7 +80,8 @@ void PathTracingScene::Render()
 	stream << CmdList.commit();
 
 	CmdList << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
-	if (bUseSVGF) svgf->PostPass(CmdList);
+
+	if(denoiser) denoiser->PostPass(CmdList);
 	stream << CmdList.commit();
 
 	PostPass(CmdList);
@@ -197,6 +208,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 				pdf_bsdf = pdf;
 				auto w = ite(pdf > 0.f, 1.f / pdf, 0.f);
 				beta *= w * brdf;
+				first_intersection.albedo = ite(depth==0, bxdf_parameters.base_color, first_intersection.albedo);
 			}
 		};
 	};
@@ -204,7 +216,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	{
 		g_buffer.write(pixel_coord, first_intersection);
 		if (bUseSVGF)
-			pixel_radiance = svgf->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
+			pixel_radiance = dynamic_cast<svgf*>(denoiser.get())->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
 	};
 	return pixel_radiance;
 }

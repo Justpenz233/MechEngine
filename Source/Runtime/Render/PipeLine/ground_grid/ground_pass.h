@@ -26,6 +26,7 @@ protected:
 	float3 grid_color = {0.5f, 0.5f, 0.5f};
 	float2 ground_size = {100.f, 100.f};
 	float2 grid_size = {1.f, 1.f};
+	float big_grid_size = 5.f;
 	unique_ptr<Shader2D<>> ground_shader;
 
 	GpuScene* scene;
