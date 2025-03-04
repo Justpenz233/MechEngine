@@ -77,8 +77,6 @@ void PathTracingScene::Render()
 {
 	CommandList CmdList{};
 	PrePass(CmdList);
-	stream << CmdList.commit();
-
 	CmdList << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
 
 	if(denoiser) denoiser->PostPass(CmdList);
@@ -118,6 +116,13 @@ ray_intersection PathTracingScene::intersect_bias(const UInt2& pixel_coord, Expr
 			auto triangle_id = Rasterizer->vbuffer.triangle_id->read(pixel_coord).x;
 			auto bary = Rasterizer->vbuffer.bary->read(pixel_coord).xy();
 			intersection = intersect({instance_id, triangle_id, bary}, ray);
+
+			// Restore the world position from depth buffer
+			auto depth = g_buffer.read_depth(pixel_coord);
+			auto view = CameraProxy->get_main_view();
+			auto world_p = view->screen_to_world(make_float3(make_float2(pixel_coord) + 0.5f, depth));
+			intersection.position_world = world_p;
+			intersection.depth = depth;
 		}
 		$else
 		{
@@ -137,7 +142,6 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	Float3			 pixel_radiance = make_float3(0.f);
 	Float3			 beta = make_float3(1.f);
 	auto			 pdf_bsdf = def(1e16f);
-	g_buffer.set_default(pixel_coord);
 
 	$for(depth, 0, 2)
 	{
@@ -212,6 +216,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			}
 		};
 	};
+	g_buffer.set_default(pixel_coord);
 	$if(first_intersection.valid())
 	{
 		g_buffer.write(pixel_coord, first_intersection);

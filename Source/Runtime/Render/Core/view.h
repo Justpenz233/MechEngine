@@ -33,6 +33,11 @@ namespace MechEngine::Rendering
     };
 };
 
+/**
+ * Camera Space:  Forward +Z, Right +X, Up +Y
+ * NDC space:     Left Bottom (-1, -1), Right Top (1, 1), Forwards +Z (0, 1)
+ * Screen space:  Left Top (0, 0), Right Bottom (width, height)
+ **/
 LUISA_STRUCT(MechEngine::Rendering::view,
     projection_type, aspect_ratio, tan_half_fovh, tan_half_fovv, viewport_size, transform_matrix, view_matrix, inverse_view_matrix,
     projection_matrix, inverse_projection_matrix, view_projection_matrix, inverse_view_projection_matrix, last_view_projection_matrix)
@@ -66,11 +71,24 @@ LUISA_STRUCT(MechEngine::Rendering::view,
         clip_position /= clip_position.w;
         return clip_position.xyz();
     }
+	[[nodiscard]] auto ndc_to_world(const luisa::compute::Float3& ndc_position) const noexcept
+    {
+    	auto clip_position = make_float4(ndc_position, 1.0f);
+    	auto pos = inverse_view_projection_matrix * clip_position;
+    	return ite(pos.w != 0.0f, pos.xyz() / pos.w, pos.xyz()/pos.w);
+    }
 
 	[[nodiscard]] auto ndc_to_screen(const luisa::compute::Float3& ndc_position) const noexcept
     {
     	auto pixel_coord = make_float2(ndc_position.x * 0.5f + 0.5f, -ndc_position.y * 0.5f + 0.5f) * make_float2(viewport_size);
     	return make_float3(pixel_coord, ndc_position.z);
+    }
+
+	[[nodiscard]] auto screen_to_ndc(const luisa::compute::Float2& screen_position) const noexcept
+    {
+    	auto ndc_position = make_float2(screen_position.x * 2.f / viewport_size.x  - 1.f,
+										1.f - screen_position.y * 2.f / viewport_size.y);
+		return ndc_position;
     }
 
     [[nodiscard]] auto ndc_to_pixel(const luisa::compute::Float3& ndc_position) const noexcept
@@ -87,6 +105,12 @@ LUISA_STRUCT(MechEngine::Rendering::view,
 	[[nodiscard]] auto world_to_screen(const luisa::compute::Float3& world_position) const noexcept
     {
     	return ndc_to_screen(world_to_ndc(world_position));
+    }
+
+	[[nodiscard]] auto screen_to_world(const luisa::compute::Float3& screen_position) const noexcept
+    {
+	    auto ndc = make_float3(screen_to_ndc(screen_position.xy()), screen_position.z);
+    	return ndc_to_world(ndc);
     }
 
 	/**

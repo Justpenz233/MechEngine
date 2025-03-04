@@ -7,6 +7,11 @@
 #include "Core/CoreMinimal.h"
 #include "Math/Math.h"
 
+enum ProjectionType
+{
+	Orthogonal = 0,
+	Perspective = 1
+};
 
 // By default, the camera is at the origin, looking up the z-axis, with the positive x-axis pointing to.
 // In World space, the world X is Z(depth), the world Y is X(Left), and the world Z is Y(Height).
@@ -19,12 +24,21 @@ class ENGINE_API CameraComponent : public RenderingComponent
 	REFLECTION_BODY(CameraComponent)
 
 protected:
+	MPROPERTY()
+	ProjectionType ProjectionMethod = ProjectionType::Perspective;
+
 	// Field of view in degrees
 	MPROPERTY()
 	float FovH = 45.;
 
 	MPROPERTY()
 	float Zoom = 1.;
+
+	// MPROPERTY()
+	// float NearClip = 0.1f;
+	//
+	// MPROPERTY()
+	// float FarClip = 1000.f;
 
 public:
     bool IsDirty = false;
@@ -46,6 +60,8 @@ public:
 	FORCEINLINE float GetTanHalfFovV() const { return GetTanHalfFovH() / GetAspectRatio(); }
 	FORCEINLINE float GetZoom() const { return Zoom; }
 	FORCEINLINE float GetAspectRatio() const { return World->GetViewport()->GetAspectRatio(); }
+	// FORCEINLINE float GetNearClip() const { return NearClip; }
+	// FORCEINLINE float GetFarClip() const { return FarClip; }
 
 
 	/**
@@ -102,14 +118,24 @@ FORCEINLINE FMatrix4 CameraComponent::GetViewMatrix() const
 
 FORCEINLINE FMatrix4 CameraComponent::GetProjectionMatrix() const
 {
-	FMatrix4 Proj = FMatrix4::Zero();
-	float f = 1.0f / std::tan(DegToRad(FovH) * 0.5f);
-	Proj(0, 0) = f;
-	Proj(1, 1) = f * GetAspectRatio();
-	Proj(2, 2) = 1.f;
-	Proj(2, 3) = -1.0f;
-	Proj(3, 2) = 1.0f;
-	return Proj;
+	if(ProjectionMethod == Orthogonal)
+	{
+		FMatrix4 Proj = FMatrix4::Ones();
+		Proj(2, 2) = 0;
+		Proj(2, 3) = -1;
+		return Proj;
+	}
+	else
+	{
+		FMatrix4 Proj = FMatrix4::Zero();
+		float f = 1.0f / std::tan(DegToRad(FovH) * 0.5f);
+		Proj(0, 0) = f;
+		Proj(1, 1) = f * GetAspectRatio();
+		Proj(2, 2) = 1.f;
+		Proj(2, 3) = -1.0f;
+		Proj(3, 2) = 1.0f;
+		return Proj;
+	}
 }
 
 FORCEINLINE FVector4 CameraComponent::ProjectClipSpace(const FVector& Pos) const
