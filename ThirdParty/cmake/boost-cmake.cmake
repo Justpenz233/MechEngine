@@ -6,8 +6,7 @@ set(BOOST_RUNTIME_LINK shared)
 set(BUILD_SHARED_LIBS ON)
 FetchContent_Declare(
         Boost
-        URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.gz
-        DOWNLOAD_EXTRACT_TIMESTAMP true
+        URL https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-cmake.tar.gz
 )
 FetchContent_MakeAvailable(Boost)
 
