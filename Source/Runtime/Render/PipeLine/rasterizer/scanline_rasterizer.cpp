@@ -6,6 +6,7 @@
 #include "Render/PipeLine/GpuScene.h"
 #include "Render/SceneProxy/ShapeSceneProxy.h"
 #include "Render/SceneProxy/StaticMeshSceneProxy.h"
+
 namespace MechEngine::Rendering
 {
 void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
@@ -47,8 +48,8 @@ void scanline_rasterizer::CompileShader(Device& Device, bool bDebugInfo)
 		}, {.enable_debug_info = bDebugInfo, .name = "RasterClearScreenShader"}));
 
 	ResetDispatchBufferShader = luisa::make_unique<decltype(ResetDispatchBufferShader)::element_type>(
-		Device.compile<1>([&](const Var<IndirectDispatchBuffer>& buffer, const UInt& dispatch_count) noexcept {
-			buffer.set_dispatch_count(dispatch_count);
+		Device.compile<1>([&](const UInt& dispatch_count) noexcept {
+			draw_triangle_dispatch_buffer->set_dispatch_count(dispatch_count);
 		}, {.enable_debug_info = bDebugInfo, .name = "ScanlineResetDispatchBuffer"}));
 }
 
@@ -64,7 +65,7 @@ void scanline_rasterizer::VisibilityPass(CommandList& command_list, uint instanc
 	ASSERTMSG(triangle_num <= 16384, "The maximum size of the dispatch buffer is 16384 due to metal limitation");
 	command_list
 		<< (*VertexShader)(instance_id, mesh_id).dispatch(vertex_num)
-		<< (*ResetDispatchBufferShader)(draw_triangle_dispatch_buffer, triangle_num).dispatch(1) // set dispatch count
+		<< (*ResetDispatchBufferShader)(triangle_num).dispatch(1) // set dispatch count
 		<< (*CullingTriangleShader)(instance_id, mesh_id, back_face_culling).dispatch(triangle_num);
 	for(int i = 0; i < triangle_num; i ++)
 		command_list << (*RasterTriangleShader)(instance_id, mesh_id).dispatch(draw_triangle_dispatch_buffer, i, 1);

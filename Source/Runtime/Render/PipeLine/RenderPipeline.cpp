@@ -78,10 +78,9 @@ void RenderPipeline::Init()
 		});
 	}
 	Viewport = MakeUnique<LuisaViewport>(Width, Height, this, MainWindow.get(), Stream, Device);
-
+	Viewport->LoadViewportStyle();
 	MainWindow->prepare_frame();
 	MainWindow->render_frame();
-	Viewport->LoadViewportStyle();
 }
 
 bool RenderPipeline::ShouldClose()

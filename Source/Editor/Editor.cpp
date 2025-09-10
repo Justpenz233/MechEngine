@@ -19,10 +19,10 @@ Editor &Editor::Get() {
     return Instance;
 }
 
-void Editor::Init(const std::string& BinPath, const std::string& ProjectDir)
+void Editor::Init(const std::string& BinPath)
 {
 	//----- Init path -----
-	Path::Init(BinPath, ProjectDir);
+	Path::Init(BinPath);
 
 	//----- Init logger -----
 	// Init logger after path init, because the log file path is depend on the path

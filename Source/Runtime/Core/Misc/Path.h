@@ -57,8 +57,7 @@ public:
 
 private:
     static Path _ExePath;
-	static Path _ProjectRootPath;
-    static void Init(const std::string& BinPath, const std::string& ProjectDir);
+    static void Init(const std::string& BinPath);
     friend class Editor;
 };
 

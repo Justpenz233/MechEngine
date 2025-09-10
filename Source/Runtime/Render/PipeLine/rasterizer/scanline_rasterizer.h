@@ -53,7 +53,7 @@ protected:
 	Buffer<float3> vertex_screen_coords;
 
 	// Indirect dispatch buffer, set dispatch count to mesh triangle number
-	unique_ptr<Shader1D<IndirectDispatchBuffer, uint>> ResetDispatchBufferShader;
+	unique_ptr<Shader1D<uint>> ResetDispatchBufferShader;
 
 	// Clear visibility buffer and depth buffer
 	unique_ptr<Shader2D<>> ClearScreenShader;

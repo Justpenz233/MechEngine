@@ -5,7 +5,24 @@
 #include "Path.h"
 
 Path Path::_ExePath;
-Path Path::_ProjectRootPath;
+
+#ifndef ENGINE_DIR
+#define ENGINE_DIR ""
+#endif
+
+#ifndef PROJECT_DIR
+#define PROJECT_DIR ""
+#endif
+
+Path Path::EngineDir()
+{
+	return ENGINE_DIR;
+}
+
+Path Path::ProjectDir()
+{
+	return PROJECT_DIR;
+}
 
 Path Path::BinPath()
 {
@@ -19,7 +36,7 @@ Path Path::ExePath()
 
 Path Path::ExecutePath()
 {
-    return _ExePath;
+	return _ExePath;
 }
 
 Path Path::EngineContentDir()
@@ -38,16 +55,7 @@ Path Path::EnginLogDir()
 
 Path Path::RootDir()
 {
-	return _ExePath.parent_path().parent_path().parent_path();
-}
-Path Path::EngineDir()
-{
-	return RootDir() / "Engine";
-}
-
-Path Path::ProjectDir()
-{
-	return _ProjectRootPath;
+	return ProjectDir().parent_path();
 }
 
 Path Path::ProjectContentDir()
@@ -75,9 +83,10 @@ bool Path::CreateDirectory(const Path& InPath)
 	std::filesystem::create_directory(InPath, ErrorCode);
 	return !ErrorCode;
 }
-void Path::Init(const std::string& BinPath, const std::string& ProjectDir)
+void Path::Init(const std::string& BinPath)
 {
-    _ExePath = BinPath;
-	_ProjectRootPath = ProjectDir;
+	if (path(BinPath).is_absolute())
+		_ExePath = BinPath;
+	else
+		_ExePath = std::filesystem::absolute(BinPath);
 }
-

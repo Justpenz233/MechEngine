@@ -29,7 +29,7 @@ class EDITOR_API Editor
 public:
     static Editor &Get();
 
-	void Init(const std::string& BinPath, const std::string& ProjectDir);
+	void Init(const std::string& BinPath);
 
 	void Start();
 

@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
-set(ENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(CMAKE_INSTALL_PREFIX "${MECHENGINE_ROOT_DIR}/bin")
-set(THIRD_PARTY_DIR "${ENGINE_ROOT_DIR}/3rd")
-set(BINARY_ROOT_DIR "${CMAKE_INSTALL_PREFIX}/")
+set(THIRD_PARTY_DIR "${ENGINE_ROOT_DIR}/ThirdParty")
 list(PREPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR})
 set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE INTERNAL "" FORCE)
 
@@ -55,6 +52,8 @@ target_include_directories(MechEngineRuntime PUBLIC "UI/Imgui")
 target_include_directories(MechEngineRuntime PUBLIC "Core")
 target_include_directories(MechEngineRuntime PUBLIC "Classes")
 
+target_compile_definitions(MechEngineRuntime PUBLIC ENGINE_DIR="${ENGINE_ROOT_DIR}")
+target_compile_definitions(MechEngineRuntime PUBLIC PROJECT_DIR="${USER_PROJECT_ROOT_DIR}")
 
 target_link_libraries(MechEngineRuntime PUBLIC ThirdParty)
 ## Reflection

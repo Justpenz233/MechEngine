@@ -45,9 +45,9 @@ public:
 	spdlog::logger logger{"device"};
 
 	#elif __APPLE__ // Macos
-	const String BackEnd = "Metal";
+	const String BackEnd = "metal";
 	#else
-	const String BackEnd = "Cuda";
+	const String BackEnd = "cuda";
 	#endif
 
 	FORCEINLINE ViewportInterface* GetViewport() const
