@@ -9,7 +9,8 @@
 
 Material::Material()
 {
-	ShaderId = GWorld->GetScene()->GetMaterialProxy()->GetDefaultShaderId();
+	if (GWorld && GWorld->GetScene() && GWorld->GetScene()->GetMaterialProxy())
+		ShaderId = GWorld->GetScene()->GetMaterialProxy()->GetDefaultShaderId();
 }
 
 void Material::RegisterMaterial()
