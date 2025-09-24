@@ -27,6 +27,13 @@ public:
 	 */
 	static ObjectPtr<StaticMesh> GenerateExtrudeMesh(const TArray<FVector>& CurveData, const TFunction<FVector2(double)>& ContourSample, int ControuSample = 32, int CurveSample = 64);
 
+	/** Generate a cylinder by extruding a contour along Z direction
+	 * @param ContourSample Sample points of the contour, in the 2D plane
+	 * @param Height Height of the cylinder
+	 * @return Mesh generated mesh asset
+	 */
+	static ObjectPtr<StaticMesh> GenerateExtrudeCylinder(const TArray<FVector2>& ContourSample, double Height);
+
 
     static ObjectPtr<StaticMesh> GenerateSphere(double Radius, int Sample = 32);
 	static ObjectPtr<StaticMesh> GenerateHemisphere(double Radius, bool bTopHalf = true, int Sample = 32);

@@ -376,6 +376,92 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateExtrudeMesh(const TArray<FVect
 
 }
 
+ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateExtrudeCylinder(const TArray<FVector2>& Outline, double Height)
+{
+    const int OutlineCount = Outline.size();
+
+    // Check if polygon is clockwise (using signed area)
+    float SignedArea = 0.0f;
+    for (int i = 0; i < OutlineCount; i++)
+    {
+        int NextIndex = (i + 1) % OutlineCount;
+        SignedArea += (Outline[NextIndex].x() - Outline[i].x()) * (Outline[NextIndex].y() + Outline[i].y());
+    }
+    bool bIsClockwise = SignedArea > 0.0f;
+
+    // Generate vertices
+    TArray<Vector3d> G_verList;
+
+    // Bottom vertices (Z = 0)
+    for (const FVector2& Point : Outline)
+    {
+        G_verList.emplace_back(Point.x(), Point.y(), 0.0);
+    }
+
+    // Top vertices (Z = Height)
+    for (const FVector2& Point : Outline)
+    {
+        G_verList.emplace_back(Point.x(), Point.y(), Height);
+    }
+
+    // Generate triangles
+    TArray<Vector3i> G_triList;
+
+    // Side faces - adjust winding based on outline orientation
+    for (int i = 0; i < OutlineCount; i++)
+    {
+        int NextIndex = (i + 1) % OutlineCount;
+
+        int BottomCurrent = i;
+        int BottomNext = NextIndex;
+        int TopCurrent = i + OutlineCount;
+        int TopNext = NextIndex + OutlineCount;
+
+        if (!bIsClockwise)
+        {
+            // For clockwise outline, reverse triangle winding
+            G_triList.emplace_back(BottomCurrent, BottomNext, TopCurrent);
+            G_triList.emplace_back(BottomNext, TopNext, TopCurrent);
+        }
+        else
+        {
+            // For counter-clockwise outline
+            G_triList.emplace_back(BottomCurrent, TopCurrent, BottomNext);
+            G_triList.emplace_back(BottomNext, TopCurrent, TopNext);
+        }
+    }
+
+    // Bottom face - faces downward, so reverse winding for outward normals
+    for (int i = 1; i < OutlineCount - 1; i++)
+    {
+        if (bIsClockwise)
+        {
+            G_triList.emplace_back(0, i, i + 1);
+        }
+        else
+        {
+            G_triList.emplace_back(0, i + 1, i);
+        }
+    }
+
+    // Top face - faces upward, so use same winding as outline for outward normals
+    int TopStart = OutlineCount;
+    for (int i = 1; i < OutlineCount - 1; i++)
+    {
+        if (bIsClockwise)
+        {
+            G_triList.emplace_back(TopStart, TopStart + i + 1, TopStart + i);
+        }
+        else
+        {
+            G_triList.emplace_back(TopStart, TopStart + i, TopStart + i + 1);
+        }
+    }
+
+    auto CylinderMesh = NewObject<StaticMesh>(G_verList, G_triList);
+    return CylinderMesh;
+}
+
 ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateSphere(double Radius, int Sample)
 {
 	TArray<Vector3d> verList;
