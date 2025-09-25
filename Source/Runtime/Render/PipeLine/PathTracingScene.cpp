@@ -222,6 +222,8 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 		g_buffer.write(pixel_coord, first_intersection);
 		if (bUseSVGF)
 			pixel_radiance = dynamic_cast<svgf*>(denoiser.get())->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
+	}$else{
+		pixel_radiance = BackgroundColor;
 	};
 	return pixel_radiance;
 }

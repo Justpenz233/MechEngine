@@ -1,6 +1,7 @@
 #include "sdf/internal/sdf_util.hpp"
 #include <vector>
 #include <atomic>
+#include <chrono>
 
 namespace sdf {
 

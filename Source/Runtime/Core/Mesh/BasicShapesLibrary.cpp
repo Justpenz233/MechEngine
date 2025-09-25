@@ -459,6 +459,7 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateExtrudeCylinder(const TArray<F
     }
 
     auto CylinderMesh = NewObject<StaticMesh>(G_verList, G_triList);
+	CylinderMesh->Translate(FVector(0, 0, -Height * 0.5));
     return CylinderMesh;
 }
 

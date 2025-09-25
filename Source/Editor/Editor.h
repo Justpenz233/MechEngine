@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <queue>
 #include "CoreMinimal.h"
 #include "Delegate.h"
 #include "Game/World.h"
