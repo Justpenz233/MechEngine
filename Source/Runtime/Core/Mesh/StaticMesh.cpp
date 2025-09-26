@@ -373,7 +373,7 @@ ObjectPtr<StaticMesh> StaticMesh::LoadObj(const Path& FileName)
 		MatrixX3d verM;
 		MatrixX3i triM;
 		Path	  FixedFileName = FileName;
-		if (!FileName.has_parent_path())
+		if (!FileName.is_absolute())
 		{
 			if (exists((Path::EngineContentDir() / FileName)))
 				FixedFileName = Path::EngineContentDir() / FileName;
