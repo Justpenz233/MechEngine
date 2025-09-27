@@ -15,7 +15,8 @@ Material::Material()
 
 void Material::RegisterMaterial()
 {
-	GWorld->GetScene()->GetMaterialProxy()->AddMaterial(this);
+	if (GWorld && GWorld->GetScene() && GWorld->GetScene()->GetMaterialProxy())
+		GWorld->GetScene()->GetMaterialProxy()->AddMaterial(this);
 }
 uint Material::InnerRegisterShader(Rendering::shader_base* Shader)
 {
