@@ -16,7 +16,7 @@ class wireframe_pass;
 }
 class ViewportInterface;
 class CameraComponent;
-class RenderingComponent;
+class SceneComponent;
 
 
 namespace MechEngine::Rendering

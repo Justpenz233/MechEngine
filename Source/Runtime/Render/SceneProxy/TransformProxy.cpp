@@ -5,7 +5,7 @@
 #pragma once
 #include "TransformProxy.h"
 #include "StaticMeshSceneProxy.h"
-#include "Components/TransformComponent.h"
+#include "Components/SceneComponent.h"
 #include "Render/Core/TypeConvertion.h"
 #include "Render/PipeLine/GpuScene.h"
 
@@ -29,32 +29,32 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 		data.last_transform_matrix = data.transform_matrix;
 	}
 
-	for (TransformComponent* Component : NewTransforms)
+	for (SceneComponent* Component : NewTransforms)
 	{
 		auto TransformId = TransformIdMap[Component];
 		transform_data& data = TransformDatas[TransformId];
 
-		data.transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix());
+		data.transform_matrix = ToLuisaMatrix(Component->GetWorldMatrix());
 		data.last_transform_matrix = data.transform_matrix; // New transform, last frame's transform matrix the same as the current frame
 
-		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix().inverse().eval());
-		data.scale = ToLuisaVector(Component->GetScale());
-		data.rotation_quaternion = ToLuisaVector(Component->GetRotation().coeffs());
+		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetWorldMatrix().inverse().eval());
+		data.scale = ToLuisaVector(Component->GetTransform().GetScale());
+		data.rotation_quaternion = ToLuisaVector(Component->GetTransform().GetRotation().coeffs());
 		if (TransformToInstanceId.count(TransformId))
 		{
 			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transform_matrix);
 		}
 	}
 
-	for (TransformComponent* Component : DirtyTransforms)
+	for (SceneComponent* Component : DirtyTransforms)
 	{
 		auto TransformId = TransformIdMap[Component];
 		transform_data& data = TransformDatas[TransformId];
 		data.last_transform_matrix = data.transform_matrix;
-		data.transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix());
-		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetTransformMatrix().inverse().eval());
-		data.scale = ToLuisaVector(Component->GetScale());
-		data.rotation_quaternion = ToLuisaVector(Component->GetRotation().coeffs());
+		data.transform_matrix = ToLuisaMatrix(Component->GetWorldMatrix());
+		data.inverse_transform_matrix = ToLuisaMatrix(Component->GetWorldMatrix().inverse().eval());
+		data.scale = ToLuisaVector(Component->GetTransform().GetScale());
+		data.rotation_quaternion = ToLuisaVector(Component->GetTransform().GetRotation().coeffs());
 		if (TransformToInstanceId.count(TransformId))
 		{
 			accel.set_transform_on_update(TransformToInstanceId[TransformId], data.transform_matrix);
@@ -67,7 +67,7 @@ void TransformSceneProxy::UploadDirtyData(Stream& stream)
 	NewTransforms.clear();
 }
 
-uint TransformSceneProxy::AddTransform(TransformComponent* InTransform)
+uint TransformSceneProxy::AddTransform(SceneComponent* InTransform)
 {
 	if (!InTransform)
 	{
@@ -98,7 +98,7 @@ void TransformSceneProxy::BindTransform(uint InstanceID, uint TransformID)
 	accel.set_transform_on_update(InstanceID, TransformDatas[TransformID].transform_matrix);
 }
 
-bool TransformSceneProxy::IsExist(TransformComponent* InTransform) const
+bool TransformSceneProxy::IsExist(SceneComponent* InTransform) const
 {
 	return TransformIdMap.count(InTransform);
 }
@@ -108,7 +108,7 @@ bool TransformSceneProxy::IsExist(const uint TransformID) const
 	return std::ranges::any_of(TransformIdMap, [TransformID](const auto& Pair) { return Pair.second == TransformID; });
 }
 
-void TransformSceneProxy::UpdateTransform(TransformComponent* InTransform)
+void TransformSceneProxy::UpdateTransform(SceneComponent* InTransform)
 {
 	if(TransformIdMap.count(InTransform))
 		DirtyTransforms.insert(InTransform);

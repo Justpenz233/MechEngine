@@ -262,8 +262,8 @@ template <class T, typename... Args> requires IsActorComponent<T>
 	ObjectPtr<T> Actor::AddComponent(Args&&... args)
 {
 	auto NewComponent = NewObject<T>(std::forward<Args>(args)...);
-	NewComponent->SetOwner(this);
 	NewComponent->World = World;
+	NewComponent->SetOwner(this);
 	Components.push_back(NewComponent);
 	return NewComponent;
 }

@@ -4,6 +4,10 @@
 #include "Game/Actor.h"
 #include "ActorComponent.h"
 
+void ActorComponent::SetOwner(Actor* OwnerActor)
+{
+	Owner = OwnerActor;
+}
 
 std::string ActorComponent::GetOwnerName() const
 {

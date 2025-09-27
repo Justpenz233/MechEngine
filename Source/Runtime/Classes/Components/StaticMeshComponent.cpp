@@ -41,7 +41,7 @@ void StaticMeshComponent::BeginPlay()
 	{
 		if(Dirty & DIRTY_REMESH)
 			Remesh();
-		if(Dirty & DIRTY_RENDERDATA)
+		if(Dirty)
 			UploadRenderingData();
 		Dirty = DIRTY_NONE;
 	}
@@ -54,7 +54,7 @@ void StaticMeshComponent::EndPlay()
 
 void StaticMeshComponent::Destroy()
 {
-	RenderingComponent::Destroy();
+	SceneComponent::Destroy();
 	if(GetWorld() != nullptr)
 	{
 		if(auto ShapeProxy = GetScene()->GetShapeProxy()) // Check nullptr prevent a system shut down
@@ -75,7 +75,7 @@ void StaticMeshComponent::OnSelected()
 
 void StaticMeshComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
-	RenderingComponent::PostEdit(Field);
+	SceneComponent::PostEdit(Field);
 	String FieldName = Field.getFieldName();
 	if (FieldName == NAME(bVisible))
 	{
@@ -92,6 +92,7 @@ void StaticMeshComponent::SetVisible(bool InVisible)
 
 void StaticMeshComponent::UploadRenderingData()
 {
+	SceneComponent::UploadRenderingData();
 	if(MeshData != nullptr && !MeshData->IsEmpty())
 	{
 		ASSERTMSG(MeshData->GetMaterial() != nullptr, "Material should not be null!");
@@ -106,7 +107,6 @@ void StaticMeshComponent::UploadRenderingData()
 
 		if (InstanceID != ~0u)
 		{
-			auto TransformId = World->GetScene()->GetTransformProxy()->AddTransform(GetOwner()->GetTransformComponent());
 			GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceID, MeshID);
 			GetWorld()->GetScene()->GetTransformProxy()->BindTransform(InstanceID, TransformId);
 			GetScene()->GetShapeProxy()->SetInstanceMeshID(InstanceID, MeshID);

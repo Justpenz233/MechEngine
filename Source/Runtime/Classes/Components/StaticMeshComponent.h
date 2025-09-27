@@ -4,7 +4,7 @@
 
 #pragma once
 #include "Core/CoreMinimal.h"
-#include "RenderingComponent.h"
+#include "SceneComponent.h"
 #include "Mesh/StaticMesh.h"
 
 class Material;
@@ -40,7 +40,7 @@ inline StaticMeshDirtyTag& operator ^= (StaticMeshDirtyTag& ATag, StaticMeshDirt
 
 
 MCLASS(StaticMeshComponent)
-class ENGINE_API StaticMeshComponent : public RenderingComponent
+class ENGINE_API StaticMeshComponent : public SceneComponent
 {
 	REFLECTION_BODY(StaticMeshComponent)
 public:

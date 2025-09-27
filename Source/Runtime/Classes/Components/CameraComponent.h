@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 
-#include "RenderingComponent.h"
+#include "SceneComponent.h"
 #include "Math/FTransform.h"
 #include "Components/ActorComponent.h"
 #include "Core/CoreMinimal.h"
@@ -19,7 +19,7 @@ enum ProjectionType
 // Same as UE
 // @wiki: https://smiling-calcium-8e1.notion.site/Space-8bea9b9e55d4435da0ecaaca6389d6bc?pvs=4
 MCLASS(CameraComponent)
-class ENGINE_API CameraComponent : public RenderingComponent
+class ENGINE_API CameraComponent : public SceneComponent
 {
 	REFLECTION_BODY(CameraComponent)
 
@@ -48,7 +48,6 @@ public:
 
 	virtual void PostEdit(Reflection::FieldAccessor& Field) override;
 	virtual void BeginPlay() override;
-    virtual void TickComponent(double DeltaTime) override;
 
 	inline void MarkDirty() { IsDirty = true; }
 	inline void ClearDirty() { IsDirty = false; }
@@ -102,6 +101,7 @@ public:
 
 
 protected:
+	bool bAddedToScene = false;
 	virtual void UploadRenderingData() override;
 };
 

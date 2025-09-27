@@ -50,8 +50,6 @@ protected:
 	MPROPERTY()
 	FTransform Transform;
 
-	void UploadRenderingData();
-
 	bool bDirty = true;
 };
 

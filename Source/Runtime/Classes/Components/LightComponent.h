@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "RenderingComponent.h"
+#include "SceneComponent.h"
 #include "Components/ActorComponent.h"
 #include "../Render/PipeLine/PipelineInterface.h"
 
@@ -12,7 +12,7 @@ class LightSceneProxy;
 }
 
 MCLASS(LightComponent)
-class ENGINE_API LightComponent : public RenderingComponent
+class ENGINE_API LightComponent : public SceneComponent
 {
 	friend class LightProxyBatch;
 

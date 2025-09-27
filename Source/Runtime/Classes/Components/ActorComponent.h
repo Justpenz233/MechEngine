@@ -24,7 +24,10 @@ public:
 		return Cast<T>(GetOwner());
 	}
 
-	FORCEINLINE void SetOwner(Actor*);
+	/** Set the Actor that 'Owns' this component */
+	virtual void SetOwner(Actor*);
+
+	/** Get the name of the owner actor */
 	String GetOwnerName() const;
 
 	FORCEINLINE World* GetWorld() const;
@@ -46,11 +49,6 @@ protected:
 	friend class Actor;
 	friend class World;
 };
-
-FORCEINLINE void ActorComponent::SetOwner(Actor* OwnerActor)
-{
-	Owner = OwnerActor;
-}
 
 FORCEINLINE class Actor* ActorComponent::GetOwner() const
 {

@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include "RenderingComponent.h"
+#include "SceneComponent.h"
 
-class ENGINE_API LinesComponent : public RenderingComponent
+class ENGINE_API LinesComponent : public SceneComponent
 {
 public:
 	/**

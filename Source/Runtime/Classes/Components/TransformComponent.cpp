@@ -4,9 +4,6 @@
 
 #include "TransformComponent.h"
 #include "Game/World.h"
-#include "Render/GpuSceneInterface.h"
-#include "Render/SceneProxy/TransformProxy.h"
-
 
 void TransformComponent::PostEdit(Reflection::FieldAccessor& Field)
 {
@@ -22,7 +19,6 @@ void TransformComponent::TickComponent(double DeltaTime)
 	ActorComponent::TickComponent(DeltaTime);
 	if(bDirty)
 	{
-		UploadRenderingData();
 		bDirty = false;
 	}
 }
@@ -58,9 +54,4 @@ void TransformComponent::AddRotationGlobal(const FVector& DeltaRotation)
     * AngleAxisd(DeltaRotation.y(), Vector3d::UnitY())
     * AngleAxisd(DeltaRotation.x(), Vector3d::UnitX());
 	AddRotationGlobal(P);
-}
-
-void TransformComponent::UploadRenderingData()
-{
-	World->GetScene()->GetTransformProxy()->UpdateTransform(this);
 }
