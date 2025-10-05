@@ -6,7 +6,6 @@
 #include "UIWidget.h"
 #include "Math/FTransform.h"
 #include <ImguiPlus.h>
-#include "Math/Math.h"
 #include "Game/Actor.h"
 
 class SimpleTransformAnimationPlayer: public UIWidget
@@ -22,6 +21,8 @@ public:
     }
 
     virtual void Draw() override;
+
+    void ExportToFBX(std::string& Path, bool bBinary = true);
 
 protected:
     struct Track {

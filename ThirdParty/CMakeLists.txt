@@ -64,6 +64,10 @@ if (NOT TARGET Clipper2)
     add_subdirectory(cliper)
 endif ()
 
+if(NOT TARGET tinygltf)
+    add_subdirectory(tinygltf)
+endif ()
+
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
@@ -77,4 +81,5 @@ target_link_libraries(ThirdParty INTERFACE
         pmp
         sdf
         Clipper2
+        tinygltf
 )

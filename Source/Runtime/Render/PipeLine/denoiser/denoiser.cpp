@@ -97,23 +97,25 @@ void denoiser::CompileShader(Device& Device, bool bDebugInfo)
 		}, ShaderOption{.enable_debug_info = bDebugInfo, .name = "ClearHistoryLength"});
 
 	scene->get_stream() << ClearHistoryLength().dispatch(WinSize.x, WinSize.y);
-
 	auto resolution = scene->GetWindosSize();
-	albedo = Device.create_buffer<float4>(resolution.x * resolution.y);
-	normal = Device.create_buffer<float4>(resolution.x * resolution.y);
-	noisy_image = Device.create_buffer<float4>(resolution.x * resolution.y);
-	output_image = Device.create_buffer<float4>(resolution.x * resolution.y);
+
 	auto denoiserext = Device.extension<DenoiserExt>();
-	denoiser_ext = denoiserext->create(scene->GetStream());
-	{
-		auto input = DenoiserExt::DenoiserInput{ resolution.x, resolution.y };
-		input.push_noisy_image(noisy_image.view(), output_image.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-		input.push_feature_image("albedo", albedo.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-		input.push_feature_image("normal", normal.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-		input.noisy_features = false;
-		input.filter_quality = DenoiserExt::FilterQuality::FAST;
-		input.prefilter_mode = DenoiserExt::PrefilterMode::NONE;
-		denoiser_ext->init(input);
+	if (denoiserext) {
+		albedo = Device.create_buffer<float4>(resolution.x * resolution.y);
+		normal = Device.create_buffer<float4>(resolution.x * resolution.y);
+		noisy_image = Device.create_buffer<float4>(resolution.x * resolution.y);
+		output_image = Device.create_buffer<float4>(resolution.x * resolution.y);
+		denoiser_ext = denoiserext->create(scene->GetStream());
+		{
+			auto input = DenoiserExt::DenoiserInput{ resolution.x, resolution.y };
+			input.push_noisy_image(noisy_image.view(), output_image.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+			input.push_feature_image("albedo", albedo.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+			input.push_feature_image("normal", normal.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+			input.noisy_features = false;
+			input.filter_quality = DenoiserExt::FilterQuality::FAST;
+			input.prefilter_mode = DenoiserExt::PrefilterMode::NONE;
+			denoiser_ext->init(input);
+		}
 	}
 
 	copy_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
@@ -135,14 +137,16 @@ void denoiser::CompileShader(Device& Device, bool bDebugInfo)
 }
 void denoiser::PostPass(luisa::compute::CommandList& command_list) const
 {
-	RenderPass::PostPass(command_list);
-	auto& g_buffer = scene->get_gbuffer();
-	command_list
-	<< g_buffer.albedo.copy_to(albedo)
-	<< g_buffer.normal.copy_to(normal)
-	<< (*copy_frame_buffer_shader)().dispatch(scene->GetWindosSize());
-	scene->get_stream() << command_list.commit();
-	denoiser_ext->execute(true);
-	scene->get_stream() << (*write_frame_buffer_shader)().dispatch(scene->GetWindosSize());
+	if (denoiser_ext) {
+		RenderPass::PostPass(command_list);
+		auto& g_buffer = scene->get_gbuffer();
+		command_list
+		<< g_buffer.albedo.copy_to(albedo)
+		<< g_buffer.normal.copy_to(normal)
+		<< (*copy_frame_buffer_shader)().dispatch(scene->GetWindosSize());
+		scene->get_stream() << command_list.commit();
+		denoiser_ext->execute(true);
+		scene->get_stream() << (*write_frame_buffer_shader)().dispatch(scene->GetWindosSize());
+	}
 }
 } // namespace MechEngine::Rendering

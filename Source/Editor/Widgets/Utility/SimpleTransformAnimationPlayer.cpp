@@ -3,6 +3,12 @@
 //
 
 #include "SimpleTransformAnimationPlayer.h"
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "tiny_gltf.h"
+#include "Components/StaticMeshComponent.h"
+#include "Math/Math.h"
 
 void SimpleTransformAnimationPlayer::Draw()
 {
@@ -129,6 +135,364 @@ void SimpleTransformAnimationPlayer::Draw()
     ImGui::Checkbox("Loop", &bLoop);
 
     ImGui::End();
+}
+
+void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary)
+{
+    tinygltf::Model model;
+    tinygltf::Scene scene;
+
+    model.asset.version = "2.0";
+    model.asset.generator = "SimpleTransformAnimationPlayer";
+
+    // Create buffers for all data
+    tinygltf::Buffer buffer;
+    std::vector<unsigned char> bufferData;
+
+    // Animation data
+    tinygltf::Animation animation;
+    animation.name = "Animation_001";
+
+    // Process each track
+    for (size_t trackIndex = 0; trackIndex < Tracks.size(); ++trackIndex)
+    {
+        const Track& track = Tracks[trackIndex];
+
+        if (!track.Actor || track.Transforms.empty())
+            continue;
+
+        // Create node for this actor
+        tinygltf::Node node;
+        node.name = track.Actor->GetName() + "_" + std::to_string(trackIndex);
+
+        // Export mesh if available
+        if (track.Actor)
+        {
+            auto Mesh = track.Actor->GetComponent<StaticMeshComponent>()->GetStaticMesh();
+            const auto& verM = Mesh->verM;
+            const auto& triM = Mesh->triM;
+
+            TArray<Eigen::Vector3f> vertices;
+            for (int i = 0; i < verM.size(); i++)
+            {
+                auto& v = verM.row(i);
+                vertices.emplace_back(v.x(), v.y(), v.z());
+            }
+            TArray<int> indices;
+            for (int i = 0; i < triM.size(); i++)
+            {
+                auto& t = triM.row(i);
+                indices.emplace_back(t.x());
+                indices.emplace_back(t.y());
+                indices.emplace_back(t.z());
+            }
+
+            // Create mesh
+            tinygltf::Mesh mesh;
+            mesh.name = node.name + "_Mesh";
+            tinygltf::Primitive primitive;
+
+            // --- POSITION ATTRIBUTE ---
+            size_t positionBufferStart = bufferData.size();
+            for (const auto& vertex : vertices)
+            {
+                float v[3] = {vertex.x(), vertex.y(), vertex.z()};
+                bufferData.insert(bufferData.end(),
+                                reinterpret_cast<unsigned char*>(v),
+                                reinterpret_cast<unsigned char*>(v) + sizeof(v));
+            }
+
+            tinygltf::BufferView positionBufferView;
+            positionBufferView.buffer = 0;
+            positionBufferView.byteOffset = positionBufferStart;
+            positionBufferView.byteLength = vertices.size() * sizeof(float) * 3;
+            positionBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+            int positionBufferViewIndex = model.bufferViews.size();
+            model.bufferViews.push_back(positionBufferView);
+
+            tinygltf::Accessor positionAccessor;
+            positionAccessor.bufferView = positionBufferViewIndex;
+            positionAccessor.byteOffset = 0;
+            positionAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            positionAccessor.count = vertices.size();
+            positionAccessor.type = TINYGLTF_TYPE_VEC3;
+
+            // Calculate min/max for positions
+            positionAccessor.minValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
+            positionAccessor.maxValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
+            for (const auto& v : vertices)
+            {
+                positionAccessor.minValues[0] = std::min(positionAccessor.minValues[0], static_cast<double>(v.x()));
+                positionAccessor.minValues[1] = std::min(positionAccessor.minValues[1], static_cast<double>(v.y()));
+                positionAccessor.minValues[2] = std::min(positionAccessor.minValues[2], static_cast<double>(v.z()));
+                positionAccessor.maxValues[0] = std::max(positionAccessor.maxValues[0], static_cast<double>(v.x()));
+                positionAccessor.maxValues[1] = std::max(positionAccessor.maxValues[1], static_cast<double>(v.y()));
+                positionAccessor.maxValues[2] = std::max(positionAccessor.maxValues[2], static_cast<double>(v.z()));
+            }
+
+            int positionAccessorIndex = model.accessors.size();
+            model.accessors.push_back(positionAccessor);
+            primitive.attributes["POSITION"] = positionAccessorIndex;
+
+            // --- INDICES ---
+            size_t indexBufferStart = bufferData.size();
+            for (const auto& index : indices)
+            {
+                unsigned short idx = static_cast<unsigned short>(index);
+                bufferData.insert(bufferData.end(),
+                                reinterpret_cast<unsigned char*>(&idx),
+                                reinterpret_cast<unsigned char*>(&idx) + sizeof(idx));
+            }
+
+            tinygltf::BufferView indexBufferView;
+            indexBufferView.buffer = 0;
+            indexBufferView.byteOffset = indexBufferStart;
+            indexBufferView.byteLength = indices.size() * sizeof(unsigned short);
+            indexBufferView.target = TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER;
+            int indexBufferViewIndex = model.bufferViews.size();
+            model.bufferViews.push_back(indexBufferView);
+
+            tinygltf::Accessor indexAccessor;
+            indexAccessor.bufferView = indexBufferViewIndex;
+            indexAccessor.byteOffset = 0;
+            indexAccessor.componentType = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+            indexAccessor.count = indices.size();
+            indexAccessor.type = TINYGLTF_TYPE_SCALAR;
+
+            int indexAccessorIndex = model.accessors.size();
+            model.accessors.push_back(indexAccessor);
+            primitive.indices = indexAccessorIndex;
+
+            primitive.mode = TINYGLTF_MODE_TRIANGLES;
+            mesh.primitives.push_back(primitive);
+
+            int meshIndex = model.meshes.size();
+            model.meshes.push_back(mesh);
+            node.mesh = meshIndex;
+        }
+
+        // --- ANIMATION DATA ---
+        // Time data for keyframes
+        std::vector<float> times;
+        for (size_t i = 0; i < track.Transforms.size(); ++i)
+        {
+            float t = static_cast<float>(i) / (track.Transforms.size() - 1) * Duration;
+            times.push_back(t);
+        }
+
+        // Create time accessor
+        size_t timeBufferStart = bufferData.size();
+        bufferData.insert(bufferData.end(),
+                         reinterpret_cast<unsigned char*>(times.data()),
+                         reinterpret_cast<unsigned char*>(times.data() + times.size()));
+
+        tinygltf::BufferView timeBufferView;
+        timeBufferView.buffer = 0;
+        timeBufferView.byteOffset = timeBufferStart;
+        timeBufferView.byteLength = times.size() * sizeof(float);
+        int timeBufferViewIndex = model.bufferViews.size();
+        model.bufferViews.push_back(timeBufferView);
+
+        tinygltf::Accessor timeAccessor;
+        timeAccessor.bufferView = timeBufferViewIndex;
+        timeAccessor.byteOffset = 0;
+        timeAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+        timeAccessor.count = times.size();
+        timeAccessor.type = TINYGLTF_TYPE_SCALAR;
+        timeAccessor.minValues = {static_cast<double>(times.front())};
+        timeAccessor.maxValues = {static_cast<double>(times.back())};
+
+        int timeAccessorIndex = model.accessors.size();
+        model.accessors.push_back(timeAccessor);
+
+        // Translation animation
+        {
+            std::vector<float> translations;
+            for (const auto& transform : track.Transforms)
+            {
+                auto t = transform.GetTranslation();
+                translations.push_back(t.x());
+                translations.push_back(t.y());
+                translations.push_back(t.z());
+            }
+
+            size_t translationBufferStart = bufferData.size();
+            bufferData.insert(bufferData.end(),
+                             reinterpret_cast<unsigned char*>(translations.data()),
+                             reinterpret_cast<unsigned char*>(translations.data() + translations.size()));
+
+            tinygltf::BufferView translationBufferView;
+            translationBufferView.buffer = 0;
+            translationBufferView.byteOffset = translationBufferStart;
+            translationBufferView.byteLength = translations.size() * sizeof(float);
+            int translationBufferViewIndex = model.bufferViews.size();
+            model.bufferViews.push_back(translationBufferView);
+
+            tinygltf::Accessor translationAccessor;
+            translationAccessor.bufferView = translationBufferViewIndex;
+            translationAccessor.byteOffset = 0;
+            translationAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            translationAccessor.count = track.Transforms.size();
+            translationAccessor.type = TINYGLTF_TYPE_VEC3;
+
+            int translationAccessorIndex = model.accessors.size();
+            model.accessors.push_back(translationAccessor);
+
+            tinygltf::AnimationChannel channel;
+            channel.sampler = animation.samplers.size();
+            channel.target_node = model.nodes.size();
+            channel.target_path = "translation";
+            animation.channels.push_back(channel);
+
+            tinygltf::AnimationSampler sampler;
+            sampler.input = timeAccessorIndex;
+            sampler.output = translationAccessorIndex;
+            sampler.interpolation = "LINEAR";
+            animation.samplers.push_back(sampler);
+        }
+
+        // Rotation animation
+        {
+            std::vector<float> rotations;
+            for (const auto& transform : track.Transforms)
+            {
+                auto r = transform.GetRotation();
+                rotations.push_back(r.x());
+                rotations.push_back(r.y());
+                rotations.push_back(r.z());
+                rotations.push_back(r.w());
+            }
+
+            size_t rotationBufferStart = bufferData.size();
+            bufferData.insert(bufferData.end(),
+                             reinterpret_cast<unsigned char*>(rotations.data()),
+                             reinterpret_cast<unsigned char*>(rotations.data() + rotations.size()));
+
+            tinygltf::BufferView rotationBufferView;
+            rotationBufferView.buffer = 0;
+            rotationBufferView.byteOffset = rotationBufferStart;
+            rotationBufferView.byteLength = rotations.size() * sizeof(float);
+            int rotationBufferViewIndex = model.bufferViews.size();
+            model.bufferViews.push_back(rotationBufferView);
+
+            tinygltf::Accessor rotationAccessor;
+            rotationAccessor.bufferView = rotationBufferViewIndex;
+            rotationAccessor.byteOffset = 0;
+            rotationAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            rotationAccessor.count = track.Transforms.size();
+            rotationAccessor.type = TINYGLTF_TYPE_VEC4;
+
+            int rotationAccessorIndex = model.accessors.size();
+            model.accessors.push_back(rotationAccessor);
+
+            tinygltf::AnimationChannel channel;
+            channel.sampler = animation.samplers.size();
+            channel.target_node = model.nodes.size();
+            channel.target_path = "rotation";
+            animation.channels.push_back(channel);
+
+            tinygltf::AnimationSampler sampler;
+            sampler.input = timeAccessorIndex;
+            sampler.output = rotationAccessorIndex;
+            sampler.interpolation = "LINEAR";
+            animation.samplers.push_back(sampler);
+        }
+
+        // Scale animation
+        {
+            std::vector<float> scales;
+            for (const auto& transform : track.Transforms)
+            {
+                auto s = transform.GetScale();
+                scales.push_back(s.x());
+                scales.push_back(s.y());
+                scales.push_back(s.z());
+            }
+
+            size_t scaleBufferStart = bufferData.size();
+            bufferData.insert(bufferData.end(),
+                             reinterpret_cast<unsigned char*>(scales.data()),
+                             reinterpret_cast<unsigned char*>(scales.data() + scales.size()));
+
+            tinygltf::BufferView scaleBufferView;
+            scaleBufferView.buffer = 0;
+            scaleBufferView.byteOffset = scaleBufferStart;
+            scaleBufferView.byteLength = scales.size() * sizeof(float);
+            int scaleBufferViewIndex = model.bufferViews.size();
+            model.bufferViews.push_back(scaleBufferView);
+
+            tinygltf::Accessor scaleAccessor;
+            scaleAccessor.bufferView = scaleBufferViewIndex;
+            scaleAccessor.byteOffset = 0;
+            scaleAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            scaleAccessor.count = track.Transforms.size();
+            scaleAccessor.type = TINYGLTF_TYPE_VEC3;
+
+            int scaleAccessorIndex = model.accessors.size();
+            model.accessors.push_back(scaleAccessor);
+
+            tinygltf::AnimationChannel channel;
+            channel.sampler = animation.samplers.size();
+            channel.target_node = model.nodes.size();
+            channel.target_path = "scale";
+            animation.channels.push_back(channel);
+
+            tinygltf::AnimationSampler sampler;
+            sampler.input = timeAccessorIndex;
+            sampler.output = scaleAccessorIndex;
+            sampler.interpolation = "LINEAR";
+            animation.samplers.push_back(sampler);
+        }
+
+        // Add node to scene
+        int nodeIndex = model.nodes.size();
+        model.nodes.push_back(node);
+        scene.nodes.push_back(nodeIndex);
+    }
+
+    // Add animation to model
+    if (!animation.channels.empty())
+    {
+        model.animations.push_back(animation);
+    }
+
+    // Finalize buffer
+    buffer.data = bufferData;
+    if (bBinary)
+    {
+        buffer.uri = ""; // Empty URI for GLB embedded buffer
+    }
+    else
+    {
+        buffer.uri = Path + ".bin";
+    }
+    model.buffers.push_back(buffer);
+
+    // Add scene to model
+    model.scenes.push_back(scene);
+    model.defaultScene = 0;
+
+    // Write to file
+    tinygltf::TinyGLTF writer;
+    bool success;
+
+    if (bBinary)
+    {
+        success = writer.WriteGltfSceneToFile(&model, Path, false, true, true, true);
+    }
+    else
+    {
+        success = writer.WriteGltfSceneToFile(&model, Path, false, true, true, false);
+    }
+
+    if (!success)
+    {
+        LOG_CRITICAL("Failed to export GLTF/GLB to: {}", Path);
+    }
+    else
+    {
+        LOG_INFO("Successfully exported GLTF/GLB to: {}", Path);
+    }
 }
 
 void SimpleTransformAnimationPlayer::ApplyCurrentFrame()
