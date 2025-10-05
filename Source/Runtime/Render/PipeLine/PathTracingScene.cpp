@@ -16,6 +16,8 @@
 #include "Render/Core/transform_data.h"
 #include "denoiser/denoiser_ext.h"
 #include "denoiser/svgf.h"
+#include "denoiser/denoiser.h"
+#include "luisa/rust/api_types.hpp"
 #include "rasterizer/rasterizer.h"
 
 namespace MechEngine::Rendering
@@ -24,32 +26,18 @@ namespace MechEngine::Rendering
 void PathTracingScene::LoadRenderSettings()
 {
 	GpuScene::LoadRenderSettings();
-	bUseRIS = GConfig.Get<bool>("PathTracing", "RIS");
-	bUseSVGF = GConfig.Get<bool>("PathTracing", "SVGF");
-	bUseDenoiserEXT = GConfig.Get<bool>("PathTracing", "DenoiserEXT");
+	bUseDenoiser = GConfig.Get<bool>("PathTracing", "Denoiser");
 }
 
 void PathTracingScene::CompileShader()
 {
-	auto resolution = Window->framebuffer().size();
-	if(bUseSVGF) // For now, we call temporal filter from main pass so we need to compile it before main pass
-	{
-		denoiser = std::make_unique<svgf>(resolution, frame_buffer());
-		denoiser->CompileShader(device, bShaderDebugInfo);
-	}
-
 	GpuScene::CompileShader();
 
-	if (bUseRIS)
-		reservoirs = device.create_buffer<ris_reservoir>(resolution.x * resolution.y);
-
-	if(bUseDenoiserEXT && !bUseSVGF)
+	if (denoiser_ext)
 	{
-		denoiser = std::make_unique<denoiser_ext>(this);
-		denoiser->CompileShader(device, bShaderDebugInfo);
+		denoiser_ext = std::make_unique<denoiser>(this);
+		denoiser_ext->CompileShader(device, bShaderDebugInfo);
 	}
-
-
 }
 
 void PathTracingScene::PrePass(CommandList& CmdList)
@@ -79,8 +67,11 @@ void PathTracingScene::Render()
 	PrePass(CmdList);
 	CmdList << (*MainShader)(FrameCounter++, TimeCounter++).dispatch(GetWindosSize());
 
-	if(denoiser) denoiser->PostPass(CmdList);
-	stream << CmdList.commit();
+	if(denoiser_ext)
+	{
+		denoiser_ext->PostPass(CmdList);
+		stream << CmdList.commit();
+	}
 
 	PostPass(CmdList);
 	stream << CmdList.commit();
@@ -219,9 +210,10 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	g_buffer.set_default(pixel_coord);
 	$if(first_intersection.valid())
 	{
+		// Write g_buffer after temporal denoising, as the g_buffer is used for temporal reprojection
+		if (bUseDenoiser)
+			pixel_radiance = denoiser_ext->temporal_filter(pixel_coord, first_intersection, pixel_radiance, g_buffer);
 		g_buffer.write(pixel_coord, first_intersection);
-		if (bUseSVGF)
-			pixel_radiance = dynamic_cast<svgf*>(denoiser.get())->temporal_filter(pixel_coord, first_intersection, pixel_radiance);
 	}$else{
 		pixel_radiance = BackgroundColor;
 	};

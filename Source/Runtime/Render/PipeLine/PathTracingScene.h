@@ -6,6 +6,7 @@
 #include "GpuScene.h"
 #include "ris_reservoir.h"
 #include "denoiser/svgf.h"
+#include "denoiser/denoiser.h"
 
 namespace MechEngine::Rendering
 {
@@ -57,12 +58,10 @@ public:
 	}
 
 protected:
-	bool bUseSVGF = true;
-	bool bUseDenoiserEXT = false;
-	bool bUseRIS = true;
+	bool bUseDenoiser = true;
 
 	BufferView<ris_reservoir> reservoirs;
 
-	std::unique_ptr<RenderPass> denoiser;
+	std::unique_ptr<denoiser> denoiser_ext;
 };
 };

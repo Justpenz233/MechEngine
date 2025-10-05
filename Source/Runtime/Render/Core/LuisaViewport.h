@@ -49,7 +49,11 @@ public:
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
 		ImGui::StyleColorsDark();
-
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.Colors[ImGuiCol_WindowBg].w = 1.0f;   // window background alpha
+		style.Colors[ImGuiCol_PopupBg].w  = 1.0f;
+		style.Colors[ImGuiCol_TitleBg].w  = 1.0f;
+		style.Colors[ImGuiCol_TitleBgActive].w = 1.0f;
 		auto LayoutFilePaht = Path::ProjectConfigDir() / "EditorLayout.config";
 		if(!exists(LayoutFilePaht))
 		{
@@ -64,10 +68,9 @@ public:
 		ImGui::GetIO().IniFilename = copy;
 
 		// Set Style
-		ImGuiStyle * style = &ImGui::GetStyle();
-		style->WindowTitleAlign = ImVec2(0.5f, 0.5f); //Center
-		style->WindowRounding = 0.0f;
-		style->FrameRounding = 0.0f;
+		style.WindowTitleAlign = ImVec2(0.5f, 0.5f); //Center
+		style.WindowRounding = 0.0f;
+		style.FrameRounding = 0.0f;
 
 		ReloadFont();
 	}
