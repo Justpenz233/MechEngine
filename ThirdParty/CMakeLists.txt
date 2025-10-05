@@ -60,6 +60,10 @@ if (NOT TARGET sdf)
     add_subdirectory(sdf)
 endif ()
 
+if (NOT TARGET Clipper2)
+    add_subdirectory(cliper)
+endif ()
+
 add_library(ThirdParty INTERFACE)
 target_link_libraries(ThirdParty INTERFACE
         json11
@@ -72,4 +76,5 @@ target_link_libraries(ThirdParty INTERFACE
         bvh
         pmp
         sdf
+        Clipper2
 )

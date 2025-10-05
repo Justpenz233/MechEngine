@@ -71,6 +71,13 @@ namespace MechEngine::Algorithm::GeometryProcess
 	ENGINE_API ObjectPtr<StaticMesh> SolidifyMeshEven(const ObjectPtr<StaticMesh>& Mesh, double Thickness); // Solidfy with half thickness on both side
 
 
+	/* Offset a 2D polygon with given offset distance
+	 * @param Polygon The input polygon, must be a simple polygon(no self-intersection)
+	 * @param Offset The offset distance, positive means offset outside the polygon, negative means offset inside the polygon
+	 * @return The offset polygon, may be empty if the offset is too large
+	 */
+	ENGINE_API TArray<FVector2> OffsetPolygon2D(const TArray<FVector2>& Polygon, double Offset, int Precision = 2); // Positive offset means offset outside the polygon
+
 	/**
 	 * Fast OBB estimation from a set of points.
 	 * @param points The input points.

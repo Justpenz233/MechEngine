@@ -21,6 +21,8 @@
 #include <unsupported/Eigen/NumericalDiff>
 #include <CGAL/Polygon_mesh_processing/self_intersections.h>
 
+#include "Clipper2/clipper.h"
+
 namespace MechEngine::Algorithm::GeometryProcess
 {
 
@@ -353,6 +355,28 @@ namespace MechEngine::Algorithm::GeometryProcess
 		Result->SetGeometry(TriM);
 		return Result;
 	}
+
+	TArray<FVector2> OffsetPolygon2D(const TArray<FVector2>& Polygon, double Offset, int Precision)
+	{
+		using namespace Clipper2Lib;
+		PathsD polygons;
+		PathD polygon;
+		for (const auto& P : Polygon) {
+			polygon.push_back(PointD(P.x(), P.y()));
+		}
+		polygons.push_back(polygon);
+
+		polygons = Clipper2Lib::InflatePaths(polygons, Offset, JoinType::Round, EndType::Polygon);
+		TArray<FVector2> Result;
+		if (polygons.empty()) {
+			LOG_CRITICAL("Offset polygon failed.");
+			return Result;
+		}
+		for (const auto& P : polygons[0])
+			Result.push_back({ P.x, P.y});
+		return Result;
+	}
+
 	FTransform EstimatePointsOBB(const TArray<FVector>& points)
 	{
 		int num_points = points.size();
