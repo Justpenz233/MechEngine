@@ -26,7 +26,7 @@ struct geometry_buffer
 		depth = device.create_buffer<float>(size.x * size.y);
 		instance_id = device.create_image<uint>(PixelStorage::INT1, size.x, size.y);
 		primitive_id = device.create_image<uint>(PixelStorage::INT1, size.x, size.y);
-		motion_vector = device.create_image<float>(PixelStorage::FLOAT2, size.x, size.y);
+		motion_vector = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 		LOG_INFO("Init render frame buffer: {} {}", size.x, size.y);
 	}
 

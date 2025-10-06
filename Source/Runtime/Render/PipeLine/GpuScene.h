@@ -45,8 +45,8 @@ public:
 
 	~GpuScene() override;
 
-	/** Init and create Sampler */
-	virtual void InitSamplers();
+	/** Create and init pass, including creating instance, register and initiate buffers */
+	virtual void InitPass(CommandList& CmdList);
 
 	virtual void CompileShader();
 

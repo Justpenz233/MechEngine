@@ -21,9 +21,21 @@ public:
 	 */
 	virtual void CompileShader(luisa::compute::Device& Device, bool bDebugInfo) = 0;
 
+	/**
+	 * This will be called once when the scene is initialized
+	 * Create resources and upload initial data to GPU
+	 */
+	virtual void InitPass(luisa::compute::Device& Device, luisa::compute::CommandList& command_list) {}
+
+	/**
+	 * This will be called before the main render pass
+	 * Do some pre-process here
+	 */
 	virtual void PrePass(luisa::compute::CommandList& command_list) const {}
 
-	virtual void MainPass(luisa::compute::CommandList& command_list) const {}
-
+	/**
+	 * This will be called after the main render pass
+	 * Do some post-process here
+	 */
 	virtual void PostPass(luisa::compute::CommandList& command_list) const {}
 };

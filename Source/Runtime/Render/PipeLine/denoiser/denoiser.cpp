@@ -14,7 +14,6 @@ denoiser::denoiser(GpuScene* InScene)
 	scene = InScene;
 	WinSize = scene->GetWindosSize();
 
-	history_length = scene->GetDevice().create_image<uint>(PixelStorage::INT1, WinSize.x, WinSize.y);
 }
 
 Bool denoiser::is_reproject_valid(const UInt2& pixel_coord, const UInt2& pre_coord, const ray_intersection& intersection, const geometry_buffer& g_buffer) const
@@ -88,56 +87,63 @@ Float3 denoiser::temporal_filter(const UInt2& pixel_coord, const ray_intersectio
 
 	return new_color;
 }
+void denoiser::InitPass(Device& Device, luisa::compute::CommandList& command_list)
+{
+	RenderPass::InitPass(Device, command_list);
+	history_length = Device.create_image<uint>(PixelStorage::INT1, WinSize.x, WinSize.y);
+	static auto ClearHistoryLength = Device.compile<2>(
+	[=]() noexcept {
+		auto pixel_coord = dispatch_id().xy();
+		history_length->write(pixel_coord, make_uint4(0u));
+	}, { .enable_debug_info = false, .name = "ClearHistoryLength" });
+	command_list << ClearHistoryLength().dispatch(WinSize.x, WinSize.y);
+}
 void denoiser::CompileShader(Device& Device, bool bDebugInfo)
 {
-	auto ClearHistoryLength = Device.compile<2>(
-		[=]() noexcept {
-			auto pixel_coord = dispatch_id().xy();
-			history_length->write(pixel_coord, make_uint4(0u));
-		}, ShaderOption{.enable_debug_info = bDebugInfo, .name = "ClearHistoryLength"});
-
-	scene->get_stream() << ClearHistoryLength().dispatch(WinSize.x, WinSize.y);
 	auto resolution = scene->GetWindosSize();
 
-	auto denoiserext = Device.extension<DenoiserExt>();
-	if (denoiserext) {
-		albedo = Device.create_buffer<float4>(resolution.x * resolution.y);
-		normal = Device.create_buffer<float4>(resolution.x * resolution.y);
-		noisy_image = Device.create_buffer<float4>(resolution.x * resolution.y);
-		output_image = Device.create_buffer<float4>(resolution.x * resolution.y);
-		denoiser_ext = denoiserext->create(scene->GetStream());
-		{
-			auto input = DenoiserExt::DenoiserInput{ resolution.x, resolution.y };
-			input.push_noisy_image(noisy_image.view(), output_image.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-			input.push_feature_image("albedo", albedo.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-			input.push_feature_image("normal", normal.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
-			input.noisy_features = false;
-			input.filter_quality = DenoiserExt::FilterQuality::FAST;
-			input.prefilter_mode = DenoiserExt::PrefilterMode::NONE;
-			denoiser_ext->init(input);
+	if (bUseOIDN)
+	{
+		auto denoiserext = Device.extension<DenoiserExt>();
+		if (denoiserext) {
+			albedo = Device.create_buffer<float4>(resolution.x * resolution.y);
+			normal = Device.create_buffer<float4>(resolution.x * resolution.y);
+			noisy_image = Device.create_buffer<float4>(resolution.x * resolution.y);
+			output_image = Device.create_buffer<float4>(resolution.x * resolution.y);
+			denoiser_ext = denoiserext->create(scene->GetStream());
+			{
+				auto input = DenoiserExt::DenoiserInput{ resolution.x, resolution.y };
+				input.push_noisy_image(noisy_image.view(), output_image.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+				input.push_feature_image("albedo", albedo.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+				input.push_feature_image("normal", normal.view(), DenoiserExt::ImageFormat::FLOAT3, DenoiserExt::ImageColorSpace::HDR);
+				input.noisy_features = false;
+				input.filter_quality = DenoiserExt::FilterQuality::FAST;
+				input.prefilter_mode = DenoiserExt::PrefilterMode::NONE;
+				denoiser_ext->init(input);
+			}
 		}
+
+		copy_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
+			[&]() noexcept {
+				auto pixel_coord = dispatch_id().xy();
+				auto color = scene->frame_buffer()->read(pixel_coord);
+
+				auto index = pixel_coord.x + pixel_coord.y * resolution.x;
+				noisy_image->write(index, make_float4(color.xyz(), 1.f));
+			}, { .enable_debug_info = bDebugInfo, .name = "CopyFrameBufferShader" }));
+
+		write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
+			[&]() noexcept {
+				auto pixel_coord = dispatch_id().xy();
+				auto index = pixel_coord.x + pixel_coord.y * resolution.x;
+				auto color = output_image->read(index);
+				scene->frame_buffer()->write(pixel_coord, make_float4(color.xyz(), 1.f));
+			}, { .enable_debug_info = bDebugInfo, .name = "WriteFrameBufferShader" }));
 	}
-
-	copy_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
-		[&]() noexcept {
-			auto pixel_coord = dispatch_id().xy();
-			auto color = scene->frame_buffer()->read(pixel_coord);
-
-			auto index = pixel_coord.x + pixel_coord.y * resolution.x;
-			noisy_image->write(index, make_float4(color.xyz(), 1.f));
-		}, { .enable_debug_info = bDebugInfo, .name = "CopyFrameBufferShader" }));
-
-	write_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
-		[&]() noexcept {
-			auto pixel_coord = dispatch_id().xy();
-			auto index = pixel_coord.x + pixel_coord.y * resolution.x;
-			auto color = output_image->read(index);
-			scene->frame_buffer()->write(pixel_coord, make_float4(color.xyz(), 1.f));
-		}, { .enable_debug_info = bDebugInfo, .name = "WriteFrameBufferShader" }));
 }
 void denoiser::PostPass(luisa::compute::CommandList& command_list) const
 {
-	if (denoiser_ext) {
+	if (bUseOIDN && denoiser_ext) {
 		RenderPass::PostPass(command_list);
 		auto& g_buffer = scene->get_gbuffer();
 		command_list

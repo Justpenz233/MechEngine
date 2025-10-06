@@ -40,12 +40,16 @@ public:
  */
 	Float3 temporal_filter(const UInt2& pixel_coord, const ray_intersection& intersection, const Float3& pixel_color, const geometry_buffer& g_buffer) const;
 
+	virtual void InitPass(Device& Device, luisa::compute::CommandList& command_list) override;
 
 	virtual void CompileShader(Device& Device, bool bDebugInfo) override;
 
 	virtual void PostPass(luisa::compute::CommandList& command_list) const override;
 
 protected:
+
+	bool bUseOIDN = false;
+
 	GpuScene* scene;
 	Image<uint> history_length;
 	uint2 WinSize;

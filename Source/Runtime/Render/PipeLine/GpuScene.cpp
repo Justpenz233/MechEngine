@@ -241,9 +241,6 @@ Float2 GpuScene::motion_vector(const ray_intersection& intersection) const
 
 void GpuScene::CompileShader()
 {
-	// Compile base shaders
-	g_buffer.InitBuffer(device, GetWindosSize());
-
 	LineProxy->CompileShader();
 
 	BufferViewPass = make_unique<buffer_view_pass>(*this);
@@ -295,17 +292,23 @@ void GpuScene::Init()
 
 	LoadRenderSettings();
 
-	InitSamplers();
+	CommandList CmdList{};
+	InitPass(CmdList);
+	stream << CmdList.commit() << synchronize();
 
 	CompileShader();
 }
 
 
-void GpuScene::InitSamplers()
+void GpuScene::InitPass(CommandList& CmdList)
 {
 	// Initialize the sampler
 	sampler = luisa::make_unique<independent_sampler>(this, stream);
 	stream << synchronize();
+
+	// Compile base shaders
+	g_buffer.InitBuffer(device, GetWindosSize());
 }
+
 
 } // namespace MechEngine::Rendering

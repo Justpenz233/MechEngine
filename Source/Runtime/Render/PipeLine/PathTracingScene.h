@@ -19,6 +19,8 @@ public:
 
 	virtual void LoadRenderSettings() override;
 
+	virtual void InitPass(CommandList& CmdList) override;
+
 	virtual void CompileShader() override;
 
 	virtual void PrePass(CommandList& CmdList) override;

@@ -28,16 +28,22 @@ void PathTracingScene::LoadRenderSettings()
 	GpuScene::LoadRenderSettings();
 	bUseDenoiser = GConfig.Get<bool>("PathTracing", "Denoiser");
 }
+void PathTracingScene::InitPass(CommandList& CmdList)
+{
+	GpuScene::InitPass(CmdList);
+	if (bUseDenoiser)
+	{
+		denoiser_ext = std::make_unique<denoiser>(this);
+		denoiser_ext->InitPass(device, CmdList);
+	}
+}
 
 void PathTracingScene::CompileShader()
 {
 	GpuScene::CompileShader();
 
 	if (denoiser_ext)
-	{
-		denoiser_ext = std::make_unique<denoiser>(this);
 		denoiser_ext->CompileShader(device, bShaderDebugInfo);
-	}
 }
 
 void PathTracingScene::PrePass(CommandList& CmdList)
@@ -182,7 +188,8 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			{
 				auto light_id = 0;
 				auto light_sample = LightProxy->sample_li(light_id, x, get_sampler()->generate_2d());
-				auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, 0.99f));
+				light_sample.w_i = normalize(light_sample.w_i);
+				auto occluded = has_hit(make_ray(x, light_sample.w_i, 0.01f, distance(light_sample.p_l, x) * 0.99f));
 				auto cos = dot(normalize(light_sample.w_i), normal);
 				$if(cos > 0.01f & !occluded & light_sample.pdf > 0.f)
 				{
@@ -211,7 +218,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 	$if(first_intersection.valid())
 	{
 		// Write g_buffer after temporal denoising, as the g_buffer is used for temporal reprojection
-		if (bUseDenoiser)
+		if (denoiser_ext)
 			pixel_radiance = denoiser_ext->temporal_filter(pixel_coord, first_intersection, pixel_radiance, g_buffer);
 		g_buffer.write(pixel_coord, first_intersection);
 	}$else{
