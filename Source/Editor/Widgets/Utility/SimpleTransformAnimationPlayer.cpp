@@ -9,6 +9,7 @@
 #include "tiny_gltf.h"
 #include "Components/StaticMeshComponent.h"
 #include "Math/Math.h"
+#include "Misc/Path.h"
 
 void SimpleTransformAnimationPlayer::Draw()
 {
@@ -52,6 +53,21 @@ void SimpleTransformAnimationPlayer::Draw()
         Percent    = 0.0;
         bIsPlaying = false;
         ApplyCurrentFrame();
+    }
+    if (ImGui::Button("Export")) {
+        auto FilePath = SaveFileDialog("Export GLB", Path::ProjectContentDir()).result();
+        if (Path(FilePath).extension().string() == ".glb") {
+            ExportToGltf(FilePath, true);
+            ImGui::NotifySuccess("Exported successfully to " + FilePath);
+        }
+        else if (Path(FilePath).extension().string() == ".gltf") {
+            ExportToGltf(FilePath, false);
+            ImGui::NotifySuccess("Exported successfully to " + FilePath);
+
+        }
+        else {
+            ImGui::NotifyError("Please select a valid .glb or .gltf file path.");
+        }
     }
 
     // Time display
@@ -136,8 +152,7 @@ void SimpleTransformAnimationPlayer::Draw()
 
     ImGui::End();
 }
-
-void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary)
+void SimpleTransformAnimationPlayer::ExportToGltf(std::string& Path, bool bBinary)
 {
     tinygltf::Model model;
     tinygltf::Scene scene;
@@ -173,18 +188,18 @@ void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary
             const auto& triM = Mesh->triM;
 
             TArray<Eigen::Vector3f> vertices;
-            for (int i = 0; i < verM.size(); i++)
+            for (int i = 0; i < verM.rows(); i++)
             {
-                auto& v = verM.row(i);
+                auto v = verM.row(i);
                 vertices.emplace_back(v.x(), v.y(), v.z());
             }
-            TArray<int> indices;
-            for (int i = 0; i < triM.size(); i++)
+            TArray<unsigned int> indices;
+            for (int i = 0; i < triM.rows(); i++)
             {
-                auto& t = triM.row(i);
-                indices.emplace_back(t.x());
-                indices.emplace_back(t.y());
-                indices.emplace_back(t.z());
+                auto t = triM.row(i);
+                indices.emplace_back(static_cast<unsigned int>(t.x()));
+                indices.emplace_back(static_cast<unsigned int>(t.y()));
+                indices.emplace_back(static_cast<unsigned int>(t.z()));
             }
 
             // Create mesh
@@ -218,16 +233,19 @@ void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary
             positionAccessor.type = TINYGLTF_TYPE_VEC3;
 
             // Calculate min/max for positions
-            positionAccessor.minValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
-            positionAccessor.maxValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
-            for (const auto& v : vertices)
+            if (!vertices.empty())
             {
-                positionAccessor.minValues[0] = std::min(positionAccessor.minValues[0], static_cast<double>(v.x()));
-                positionAccessor.minValues[1] = std::min(positionAccessor.minValues[1], static_cast<double>(v.y()));
-                positionAccessor.minValues[2] = std::min(positionAccessor.minValues[2], static_cast<double>(v.z()));
-                positionAccessor.maxValues[0] = std::max(positionAccessor.maxValues[0], static_cast<double>(v.x()));
-                positionAccessor.maxValues[1] = std::max(positionAccessor.maxValues[1], static_cast<double>(v.y()));
-                positionAccessor.maxValues[2] = std::max(positionAccessor.maxValues[2], static_cast<double>(v.z()));
+                positionAccessor.minValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
+                positionAccessor.maxValues = {vertices[0].x(), vertices[0].y(), vertices[0].z()};
+                for (const auto& v : vertices)
+                {
+                    positionAccessor.minValues[0] = std::min(positionAccessor.minValues[0], static_cast<double>(v.x()));
+                    positionAccessor.minValues[1] = std::min(positionAccessor.minValues[1], static_cast<double>(v.y()));
+                    positionAccessor.minValues[2] = std::min(positionAccessor.minValues[2], static_cast<double>(v.z()));
+                    positionAccessor.maxValues[0] = std::max(positionAccessor.maxValues[0], static_cast<double>(v.x()));
+                    positionAccessor.maxValues[1] = std::max(positionAccessor.maxValues[1], static_cast<double>(v.y()));
+                    positionAccessor.maxValues[2] = std::max(positionAccessor.maxValues[2], static_cast<double>(v.z()));
+                }
             }
 
             int positionAccessorIndex = model.accessors.size();
@@ -235,19 +253,49 @@ void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary
             primitive.attributes["POSITION"] = positionAccessorIndex;
 
             // --- INDICES ---
+            // Determine the appropriate index type based on vertex count
             size_t indexBufferStart = bufferData.size();
-            for (const auto& index : indices)
+            int indexComponentType;
+
+            if (vertices.size() <= 255)
             {
-                unsigned short idx = static_cast<unsigned short>(index);
-                bufferData.insert(bufferData.end(),
-                                reinterpret_cast<unsigned char*>(&idx),
-                                reinterpret_cast<unsigned char*>(&idx) + sizeof(idx));
+                // Use unsigned byte for small meshes
+                indexComponentType = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+                for (const auto& index : indices)
+                {
+                    unsigned char idx = static_cast<unsigned char>(index);
+                    bufferData.push_back(idx);
+                }
+            }
+            else if (vertices.size() <= 65535)
+            {
+                // Use unsigned short for medium meshes
+                indexComponentType = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+                for (const auto& index : indices)
+                {
+                    unsigned short idx = static_cast<unsigned short>(index);
+                    bufferData.insert(bufferData.end(),
+                                    reinterpret_cast<unsigned char*>(&idx),
+                                    reinterpret_cast<unsigned char*>(&idx) + sizeof(idx));
+                }
+            }
+            else
+            {
+                // Use unsigned int for large meshes
+                indexComponentType = TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+                for (const auto& index : indices)
+                {
+                    unsigned int idx = index;
+                    bufferData.insert(bufferData.end(),
+                                    reinterpret_cast<unsigned char*>(&idx),
+                                    reinterpret_cast<unsigned char*>(&idx) + sizeof(idx));
+                }
             }
 
             tinygltf::BufferView indexBufferView;
             indexBufferView.buffer = 0;
             indexBufferView.byteOffset = indexBufferStart;
-            indexBufferView.byteLength = indices.size() * sizeof(unsigned short);
+            indexBufferView.byteLength = bufferData.size() - indexBufferStart;
             indexBufferView.target = TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER;
             int indexBufferViewIndex = model.bufferViews.size();
             model.bufferViews.push_back(indexBufferView);
@@ -255,7 +303,7 @@ void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary
             tinygltf::Accessor indexAccessor;
             indexAccessor.bufferView = indexBufferViewIndex;
             indexAccessor.byteOffset = 0;
-            indexAccessor.componentType = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+            indexAccessor.componentType = indexComponentType;
             indexAccessor.count = indices.size();
             indexAccessor.type = TINYGLTF_TYPE_SCALAR;
 
@@ -472,29 +520,47 @@ void SimpleTransformAnimationPlayer::ExportToFBX(std::string& Path, bool bBinary
     model.scenes.push_back(scene);
     model.defaultScene = 0;
 
-    // Write to file
+    // Validate the model before writing
     tinygltf::TinyGLTF writer;
-    bool success;
+    std::string err;
+    std::string warn;
 
-    if (bBinary)
+    if (!writer.WriteGltfSceneToFile(&model, Path, false, true, true, bBinary))
     {
-        success = writer.WriteGltfSceneToFile(&model, Path, false, true, true, true);
-    }
-    else
-    {
-        success = writer.WriteGltfSceneToFile(&model, Path, false, true, true, false);
-    }
-
-    if (!success)
-    {
-        LOG_CRITICAL("Failed to export GLTF/GLB to: {}", Path);
     }
     else
     {
         LOG_INFO("Successfully exported GLTF/GLB to: {}", Path);
+
+        // Additional validation using TinyGLTF's validator
+        tinygltf::Model validationModel;
+        std::string validationErr;
+        std::string validationWarn;
+
+        if (bBinary)
+        {
+            if (!writer.LoadBinaryFromFile(&validationModel, &validationErr, &validationWarn, Path))
+            {
+                LOG_ERROR("Validation failed for exported GLB: Error:{} Warn:{}", validationErr, validationWarn);
+            }
+            else
+            {
+                LOG_INFO("GLB validation passed");
+            }
+        }
+        else
+        {
+            if (!writer.LoadASCIIFromFile(&validationModel, &validationErr, &validationWarn, Path))
+            {
+                LOG_ERROR("Validation failed for exported GLTF: {}", validationErr);
+            }
+            else
+            {
+                LOG_INFO("GLTF validation passed");
+            }
+        }
     }
 }
-
 void SimpleTransformAnimationPlayer::ApplyCurrentFrame()
 {
     for (const Track& track : Tracks)

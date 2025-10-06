@@ -22,7 +22,7 @@ public:
 
     virtual void Draw() override;
 
-    void ExportToFBX(std::string& Path, bool bBinary = true);
+    void ExportToGltf(std::string& Path, bool bBinary = true);
 
 protected:
     struct Track {
