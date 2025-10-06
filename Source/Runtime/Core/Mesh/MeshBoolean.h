@@ -8,17 +8,15 @@ enum BooleanType
     UNION, INTERSECTION, A_NOT_B
 };
 
-class ENGINE_API MeshBoolean {
+namespace MeshBoolean {
 
-public:
+    ENGINE_API ObjectPtr<StaticMesh> MeshConnect(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B );
 
-    static ObjectPtr<StaticMesh> MeshConnect(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B );
+    ENGINE_API ObjectPtr<StaticMesh> MeshMinus(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B);
 
-    static ObjectPtr<StaticMesh> MeshMinus(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B);
+    ENGINE_API ObjectPtr<StaticMesh> MeshUnion(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B);
 
-    static ObjectPtr<StaticMesh> MeshUnion(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B);
-
-	static ObjectPtr<StaticMesh> MeshIntersect(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B);
+	ENGINE_API ObjectPtr<StaticMesh> MeshIntersect(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B);
 	
-    static ObjectPtr<StaticMesh> Boolean(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type);
+    ENGINE_API ObjectPtr<StaticMesh> Boolean(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B, BooleanType type);
 };

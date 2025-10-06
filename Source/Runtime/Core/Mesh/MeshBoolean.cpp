@@ -13,22 +13,22 @@
 ///                              Boolean
 ///==============================================================================//
 
-ObjectPtr<StaticMesh> MeshBoolean::MeshMinus(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B)
+ObjectPtr<StaticMesh> MeshBoolean::MeshMinus(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B)
 {
     return Boolean(A, B, BooleanType::A_NOT_B);
 }
 
-ObjectPtr<StaticMesh> MeshBoolean::MeshUnion(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B)
+ObjectPtr<StaticMesh> MeshBoolean::MeshUnion(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B)
 {
 	return Boolean(A, B, BooleanType::UNION);
 }
 
-ObjectPtr<StaticMesh> MeshBoolean::MeshIntersect(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B)
+ObjectPtr<StaticMesh> MeshBoolean::MeshIntersect(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B)
 {
 	return Boolean(A, B, BooleanType::INTERSECTION);
 }
 
-ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B)
+ObjectPtr<StaticMesh> MeshBoolean::MeshConnect(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B)
 {
     MatrixXd Vertex;
     MatrixXi FC, fB;
@@ -214,7 +214,7 @@ ObjectPtr<StaticMesh> BooleanCGAL(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh>
 	return NewObject<StaticMesh>(std::move(V), std::move(F));
 }
 
-ObjectPtr<StaticMesh> MeshBoolean::Boolean(ObjectPtr<StaticMesh> A, ObjectPtr<StaticMesh> B, BooleanType type)
+ObjectPtr<StaticMesh> MeshBoolean::Boolean(const ObjectPtr<StaticMesh>& A, const ObjectPtr<StaticMesh>& B, BooleanType type)
 {
     return BooleanCGAL(A, B, type);
 }
