@@ -55,7 +55,7 @@ void SimpleTransformAnimationPlayer::Draw()
         ApplyCurrentFrame();
     }
     if (ImGui::Button("Export")) {
-        auto FilePath = SaveFileDialog("Export GLB", Path::ProjectContentDir()).result();
+        auto FilePath = SaveFileDialog("Export GLB", Path::ProjectContentDir().string()).result();
         if (Path(FilePath).extension().string() == ".glb") {
             ExportToGltf(FilePath, true);
             ImGui::NotifySuccess("Exported successfully to " + FilePath);
@@ -190,7 +190,7 @@ void SimpleTransformAnimationPlayer::ExportToGltf(std::string& Path, bool bBinar
             TArray<Eigen::Vector3f> vertices;
             for (int i = 0; i < verM.rows(); i++)
             {
-                auto v = verM.row(i);
+                auto v = verM.row(i).cast<float>();
                 vertices.emplace_back(v.x(), v.y(), v.z());
             }
             TArray<unsigned int> indices;

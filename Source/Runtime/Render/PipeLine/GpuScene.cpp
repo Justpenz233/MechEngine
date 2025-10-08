@@ -243,7 +243,6 @@ void GpuScene::CompileShader()
 {
 	LineProxy->CompileShader();
 
-	BufferViewPass = make_unique<buffer_view_pass>(*this);
 	BufferViewPass->CompileShader(device, bShaderDebugInfo);
 
 	Rasterizer = make_unique<scanline_rasterizer>(this);
@@ -308,6 +307,9 @@ void GpuScene::InitPass(CommandList& CmdList)
 
 	// Compile base shaders
 	g_buffer.InitBuffer(device, GetWindosSize());
+
+	BufferViewPass = make_unique<buffer_view_pass>(*this);
+	BufferViewPass->InitPass(device, CmdList);
 }
 
 

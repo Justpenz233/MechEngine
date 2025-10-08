@@ -214,7 +214,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			}
 		};
 	};
-	g_buffer.set_default(pixel_coord);
+
 	$if(first_intersection.valid())
 	{
 		// Write g_buffer after temporal denoising, as the g_buffer is used for temporal reprojection
@@ -222,6 +222,7 @@ Float3 PathTracingScene::mis_path_tracing(Var<Ray> ray, const Float2& pixel_pos,
 			pixel_radiance = denoiser_ext->temporal_filter(pixel_coord, first_intersection, pixel_radiance, g_buffer);
 		g_buffer.write(pixel_coord, first_intersection);
 	}$else{
+		g_buffer.set_default(pixel_coord);
 		pixel_radiance = BackgroundColor;
 	};
 	return pixel_radiance;

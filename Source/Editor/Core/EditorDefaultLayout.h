@@ -37,6 +37,10 @@ inline void LoadDefaultEditorLayout(World* CurrentWorld)
 		CurrentWorld->SetViewMode(BaseColorBuffer);
 	}});
 
+	MainMenuBar->AddItem("View/Buffer/InstanceID", "", { [=]() {
+		CurrentWorld->SetViewMode(InstanceIDBuffer);
+	}});
+
 	MainMenuBar->AddItem<SaveMeshMenuBar>("File/Export Selected Mesh", "");
 	MainMenuBar->AddItem<SaveSceneMenuBar>("File/Export Scene", "");
 

@@ -44,7 +44,7 @@ Float wireframe_pass::wireframe_intensity
 	auto instance_id = Scene.get_gbuffer().instance_id->read(pixel_coord).x;
 	$if(instance_id != ~0u)
 	{
-		auto primitive_id = Scene.get_gbuffer().primitive_id->read(pixel_coord).x;
+		auto primitive_id = Scene.get_gbuffer().primitive_id->read(pixel_coord).as<UInt>();
 		auto pixel_pos = make_float2(pixel_coord) + 0.5f;
 		auto shape = Scene.GetShapeProxy()->get_instance_shape(instance_id);
 		$if(shape->is_mesh())

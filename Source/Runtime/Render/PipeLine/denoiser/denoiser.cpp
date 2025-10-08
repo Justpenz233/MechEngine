@@ -19,16 +19,15 @@ denoiser::denoiser(GpuScene* InScene)
 Bool denoiser::is_reproject_valid(const UInt2& pixel_coord, const UInt2& pre_coord, const ray_intersection& intersection, const geometry_buffer& g_buffer) const
 {
 	const float NORMAL_TOLERANCE = 5.0e-2;
-	const float DEPTH_TOLERANCE = 5.0e-2;
+	const float DEPTH_TOLERANCE = 5.0e-1;
 	Bool is_valid = false;
 	$if(all(pre_coord > make_uint2(0, 0)) & all(pre_coord < WinSize))
 	{
-		auto pre_instance = g_buffer.instance_id->read(pre_coord).x;
+		auto pre_instance = g_buffer.instance_id->read(pre_coord).as<UInt>();
 		auto pre_normal = g_buffer.normal->read(pre_coord).xyz();
 		auto pre_depth = g_buffer.read_depth(pre_coord);
 		is_valid = pre_instance == intersection.instance_id & distance_squared(pre_normal, intersection.corner_normal_world) < NORMAL_TOLERANCE;
-		is_valid = is_valid & abs(pre_depth - intersection.depth) < DEPTH_TOLERANCE;
-		is_valid = true;
+		// is_valid = is_valid & abs(pre_depth - intersection.depth) < DEPTH_TOLERANCE;
 	};
 
 	return is_valid;

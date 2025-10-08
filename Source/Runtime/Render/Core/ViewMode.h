@@ -14,6 +14,6 @@ enum ViewMode : int
     DepthBuffer = 1,
     NormalWorldBuffer = 2,
     BaseColorBuffer = 3,
+    InstanceIDBuffer = 4,
     // MaterialIDBuffer,
-    // InstanceIDBuffer
 };

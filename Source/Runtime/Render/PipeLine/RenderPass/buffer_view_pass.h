@@ -20,6 +20,7 @@ public:
 
 	virtual void CompileShader(Device& Device, bool bDebugInfo) override;
 	virtual void PostPass(CommandList& command_list) const override;
+	virtual void InitPass(luisa::compute::Device& Device, luisa::compute::CommandList& command_list) override;
 
 protected:
 	GpuScene& Scene;
