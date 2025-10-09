@@ -199,7 +199,7 @@ std::pair<Float3, Float> DeferredShadingScene::calc_surface_point_color(
 
 Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord)
 {
-	ray_intersection intersection;
+	ray_intersection intersection, first_intersection;
 	$comment("Rasterization");
 
 	if(bUseRasterizer)
@@ -214,7 +214,7 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 		intersection = intersect(ray);
 	}
 
-	$if(intersection.valid()) { g_buffer.write(pixel_coord, intersection)	;};
+	first_intersection = intersection;
 
 	Float  transmission = 1.f;
 	Float3 pixel_color = make_float3(0.f);
@@ -238,6 +238,13 @@ Float3 DeferredShadingScene::render_pixel(Var<Ray> ray, const UInt2& pixel_coord
 		$break;
 	};
 	pixel_color += transmission * BackgroundColor;
+	$if(first_intersection.valid()){
+		g_buffer.write(pixel_coord, pixel_color, first_intersection);
+	}
+	$else{
+		g_buffer.set_default(pixel_coord);
+	};
+
 	return pixel_color;
 }
 };

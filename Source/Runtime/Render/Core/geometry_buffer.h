@@ -13,6 +13,7 @@ struct geometry_buffer
 	Image<uint> instance_id;
 	Image<uint> primitive_id;
 
+	Image<float> radiance; // color of the rendering, not include UI
     Image<float> albedo;
     Image<float> normal;
 	Buffer<float> depth; // For atomic operation
@@ -21,6 +22,7 @@ struct geometry_buffer
 	void InitBuffer(Device& device, const uint2& size)
 	{
 		LOG_DEBUG("GBuffer initial size: {} {}", size.x, size.y);
+		radiance = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 		albedo = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 		normal = device.create_image<float>(PixelStorage::FLOAT4, size.x, size.y);
 		depth = device.create_buffer<float>(size.x * size.y);
@@ -33,6 +35,7 @@ struct geometry_buffer
     void set_default(const UInt2& pixel_coord,
         const Float4& background_color = luisa::make_float4(1.)) const noexcept
     {
+		radiance->write(pixel_coord, background_color);
         albedo->write(pixel_coord, background_color);
         normal->write(pixel_coord, background_color);
         depth->write(flattend_index(pixel_coord), 1e6f);
@@ -42,8 +45,10 @@ struct geometry_buffer
     }
 
 	void write(const UInt2& pixel_coord,
+		Float3 pixel_radiance,
 		const ray_intersection& intersection) const noexcept
     {
+		radiance->write(pixel_coord, make_float4(pixel_radiance, 1.f));
 		albedo->write(pixel_coord, make_float4(intersection.albedo, 1.f));
     	instance_id->write(pixel_coord, make_uint4(intersection.instance_id));
     	primitive_id->write(pixel_coord, make_uint4(intersection.primitive_id));

@@ -302,7 +302,7 @@ void GpuScene::Init()
 void GpuScene::InitPass(CommandList& CmdList)
 {
 	// Initialize the sampler
-	sampler = luisa::make_unique<independent_sampler>(this, stream);
+	sampler = luisa::make_unique<sobol_sampler>(this, stream);
 	stream << synchronize();
 
 	// Compile base shaders

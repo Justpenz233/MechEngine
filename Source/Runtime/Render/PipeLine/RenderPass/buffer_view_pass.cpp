@@ -43,7 +43,7 @@ void buffer_view_pass::CompileShader(Device& Device, bool bDebugInfo)
 			};
 			$case(static_cast<uint>(ViewMode::InstanceIDBuffer))
 			{
-				auto instance_id = Scene.get_gbuffer().instance_id->read(pixel_coord).as<UInt>();
+				auto instance_id = Scene.get_gbuffer().instance_id->read(pixel_coord).x;
 				auto color = ite(instance_id == ~0u, make_float3(0.f, 0.f, 0.f), id_to_color(instance_id));
 				Scene.frame_buffer()->write(pixel_coord, make_float4(color, 1.f));
 			};

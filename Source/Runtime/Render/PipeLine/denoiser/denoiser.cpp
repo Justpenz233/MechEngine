@@ -19,15 +19,15 @@ denoiser::denoiser(GpuScene* InScene)
 Bool denoiser::is_reproject_valid(const UInt2& pixel_coord, const UInt2& pre_coord, const ray_intersection& intersection, const geometry_buffer& g_buffer) const
 {
 	const float NORMAL_TOLERANCE = 5.0e-2;
-	const float DEPTH_TOLERANCE = 5.0e-1;
+	const float DEPTH_TOLERANCE = 5.0e-2;
 	Bool is_valid = false;
 	$if(all(pre_coord > make_uint2(0, 0)) & all(pre_coord < WinSize))
 	{
-		auto pre_instance = g_buffer.instance_id->read(pre_coord).as<UInt>();
+		auto pre_instance = g_buffer.instance_id->read(pre_coord).x;
 		auto pre_normal = g_buffer.normal->read(pre_coord).xyz();
+		is_valid = (pre_instance == intersection.instance_id) & distance_squared(pre_normal, intersection.corner_normal_world) < NORMAL_TOLERANCE;
 		auto pre_depth = g_buffer.read_depth(pre_coord);
-		is_valid = pre_instance == intersection.instance_id & distance_squared(pre_normal, intersection.corner_normal_world) < NORMAL_TOLERANCE;
-		// is_valid = is_valid & abs(pre_depth - intersection.depth) < DEPTH_TOLERANCE;
+		is_valid = is_valid & abs(pre_depth - intersection.depth) < DEPTH_TOLERANCE;
 	};
 
 	return is_valid;
@@ -59,7 +59,7 @@ Float3 denoiser::temporal_filter(const UInt2& pixel_coord, const ray_intersectio
 			$if(is_reproject_valid(pixel_coord, p, intersection, g_buffer))
 			{
 				has_vaild_history = true;
-				auto pre_color = scene->frame_buffer()->read(p);
+				auto pre_color = g_buffer.radiance->read(p);
 				sum_weight += weights[dx + dy * 2];
 				sum_val += pre_color.xyz() * weights[dx + dy * 2];
 				sum_spp += history_length->read(p).x * weights[dx + dy * 2];
@@ -75,8 +75,7 @@ Float3 denoiser::temporal_filter(const UInt2& pixel_coord, const ray_intersectio
 	$if (has_vaild_history)
 	{
 		auto historyLength = min(sum_spp + 1.0f, MAX_HISTORY_LENGTH);
-		auto adaptiveAlpha = max(0.15f, 1.0f / historyLength);
-		new_color = ite(has_vaild_history, lerp(sum_val, pixel_color, adaptiveAlpha), pixel_color);
+		new_color = ite(has_vaild_history, lerp(sum_val, pixel_color, 1.0f / historyLength), pixel_color);
 		history_length->write(pixel_coord, make_uint4(UInt(historyLength)));
 	}
 	$else
@@ -125,8 +124,7 @@ void denoiser::CompileShader(Device& Device, bool bDebugInfo)
 		copy_frame_buffer_shader = luisa::make_unique<Shader2D<>>(Device.compile<2>(
 			[&]() noexcept {
 				auto pixel_coord = dispatch_id().xy();
-				auto color = scene->frame_buffer()->read(pixel_coord);
-
+				auto color = scene->get_gbuffer().radiance->read(pixel_coord);
 				auto index = pixel_coord.x + pixel_coord.y * resolution.x;
 				noisy_image->write(index, make_float4(color.xyz(), 1.f));
 			}, { .enable_debug_info = bDebugInfo, .name = "CopyFrameBufferShader" }));
@@ -136,6 +134,7 @@ void denoiser::CompileShader(Device& Device, bool bDebugInfo)
 				auto pixel_coord = dispatch_id().xy();
 				auto index = pixel_coord.x + pixel_coord.y * resolution.x;
 				auto color = output_image->read(index);
+				scene->get_gbuffer().radiance->write(pixel_coord, make_float4(color.xyz(), 1.f));
 				scene->frame_buffer()->write(pixel_coord, make_float4(color.xyz(), 1.f));
 			}, { .enable_debug_info = bDebugInfo, .name = "WriteFrameBufferShader" }));
 	}
