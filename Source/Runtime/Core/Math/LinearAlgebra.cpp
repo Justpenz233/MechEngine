@@ -20,6 +20,14 @@ double NormalizeAngle(double angle) {
 
 namespace MMath
 {
+	FVector2 RotateVector2D(const FVector2& Vec, double AngleRad)
+	{
+		FVector Vec3D = FVector(Vec.x(), Vec.y(), 0);
+		Eigen::AngleAxisd Rotation(AngleRad, FVector::UnitZ());
+		FVector RotatedVec3D = Rotation * Vec3D;
+		return FVector2(RotatedVec3D.x(), RotatedVec3D.y());
+	}
+
 FVector EulerFromQuaternionXYZ(const Quaterniond& Rotation)
 {
 	FVector Euler = Rotation.toRotationMatrix().eulerAngles(2, 1, 0);

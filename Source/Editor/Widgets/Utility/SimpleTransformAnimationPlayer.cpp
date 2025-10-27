@@ -11,6 +11,14 @@
 #include "Math/Math.h"
 #include "Misc/Path.h"
 
+void SimpleTransformAnimationPlayer::AddTrack(const ObjectPtr<Actor>& Actor, TArray<FTransform> Transforms)
+{
+    if (Transforms.empty()) {
+        Transforms = {Actor->GetFTransform(), Actor->GetFTransform()};
+    }
+    Tracks.push_back({Actor, Transforms});
+}
+
 void SimpleTransformAnimationPlayer::Draw()
 {
     ImGui::Begin("SimpleTransformAnimationPlayer");

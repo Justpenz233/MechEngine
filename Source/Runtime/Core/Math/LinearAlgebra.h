@@ -6,6 +6,9 @@
 #include "CoreMinimal.h"
 namespace MMath
 {
+
+	ENGINE_API FVector2 RotateVector2D(const FVector2& Vec, double AngleRad);
+
 	//Get Euler angle of rotation order XYZ
 	ENGINE_API FVector EulerFromQuaternionXYZ(const Eigen::Quaterniond& Rotation);
 

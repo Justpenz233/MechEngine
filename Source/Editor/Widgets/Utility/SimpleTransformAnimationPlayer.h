@@ -15,10 +15,10 @@ public:
 
     void SetDuration(double InDuration) { Duration = InDuration; }
 
-    void AddTrack(const ObjectPtr<Actor>& Actor, const TArray<FTransform>& Transforms)
-    {
-        Tracks.push_back({Actor, Transforms});
-    }
+    /* Add a track to the animation player.
+     * @param Actor The actor to animate
+    */
+    void AddTrack(const ObjectPtr<Actor>& Actor, TArray<FTransform> Transforms = {});
 
     virtual void Draw() override;
 

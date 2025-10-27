@@ -431,30 +431,38 @@ ObjectPtr<StaticMesh> BasicShapesLibrary::GenerateExtrudeCylinder(const TArray<F
         }
     }
 
+	// Calculate a mid point as the center of bottom and top face
+	FVector2 CenterBottom(0.0f, 0.0f);
+	for (const FVector2& Point : Outline)
+		CenterBottom += Point;
+	CenterBottom /= OutlineCount;
+	G_verList.emplace_back(CenterBottom.x(), CenterBottom.y(), 0.0); // Bottom center
+	G_verList.emplace_back(CenterBottom.x(), CenterBottom.y(), Height); // Top center
+
     // Bottom face - faces downward, so reverse winding for outward normals
-    for (int i = 1; i < OutlineCount - 1; i++)
+    for (int i = 0; i < OutlineCount; i++)
     {
         if (bIsClockwise)
         {
-            G_triList.emplace_back(0, i, i + 1);
+            G_triList.emplace_back(G_verList.size() - 2, i, (i + 1) % OutlineCount);
         }
         else
         {
-            G_triList.emplace_back(0, i + 1, i);
+            G_triList.emplace_back(G_verList.size() - 2, (i + 1) % OutlineCount, i);
         }
     }
 
     // Top face - faces upward, so use same winding as outline for outward normals
     int TopStart = OutlineCount;
-    for (int i = 1; i < OutlineCount - 1; i++)
+    for (int i = 0; i < OutlineCount; i++)
     {
         if (bIsClockwise)
         {
-            G_triList.emplace_back(TopStart, TopStart + i + 1, TopStart + i);
+            G_triList.emplace_back(G_verList.size() - 1, TopStart + (i + 1) % OutlineCount, TopStart + i);
         }
         else
         {
-            G_triList.emplace_back(TopStart, TopStart + i, TopStart + i + 1);
+            G_triList.emplace_back(G_verList.size() - 1, TopStart + i, TopStart + (i + 1) % OutlineCount);
         }
     }
 
